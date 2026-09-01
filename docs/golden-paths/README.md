@@ -20,7 +20,9 @@ The governing principle is **Golden Path, not Golden Cage**: new applications sh
 
 ## Architecture checkpoint — Slice 0 complete (2026-09-01)
 
-Slice 0 inspected `platform-devops-developer-portal` on branch `feat/ado-repo-governance` at HEAD `6e28611`, plus ~39 uncommitted WIP files containing brownfield templates, assessor, catalog validation, and golden-path alignment.
+Slice 0 inspected `platform-devops-developer-portal` on branch `feat/ado-repo-governance` at baseline `6e28611`, plus ~39 uncommitted WIP files containing brownfield templates, assessor, catalog validation, and golden-path alignment.
+
+Documentation published to `backstage-docs@f6260c7`; refreshed at `6706ad4`. ADO branch HEAD at refresh: `be16ffb` (GMUD workstream; golden-path WIP delta unchanged).
 
 Key findings:
 

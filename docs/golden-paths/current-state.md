@@ -4,7 +4,8 @@
 > **Architecture repository:** `diegofernandes-dev/backstage-docs@main`  
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Assessment date:** 2026-09-01  
-> **Slice 0 status:** **COMPLETE**
+> **Slice 0 status:** **COMPLETE**  
+> **Documentation checkpoint:** `backstage-docs@6706ad4` (published 2026-09-01)
 
 ## 1. Purpose
 
@@ -31,9 +32,10 @@ A design described in this repository is not evidence that the capability exists
 |---|---|
 | Repository | `platform-devops-developer-portal` (Azure DevOps) |
 | Branch inspected | `feat/ado-repo-governance` |
-| Committed HEAD SHA | `6e28611e90455dfd56f583bdd132ee830d88f126` |
+| Slice 0 inspection baseline SHA | `6e28611e90455dfd56f583bdd132ee830d88f126` |
+| Branch HEAD at docs publish | `be16ffb02b59d791f0086d8e5086e4428c82b90d` (GMUD F3.1 ledger; golden-path WIP unchanged) |
 | `main` branch SHA (reference) | `86b2e03f1201decb23b15f13e24f87884e5e1bab` |
-| Working-tree delta | ~39 uncommitted files on the same branch |
+| Working-tree delta | ~39 uncommitted files on `feat/ado-repo-governance` (unchanged since Slice 0) |
 | Backstage version | `1.51.0` (`backstage.json`) |
 | Node | `22 \|\| 24` (`package.json` engines) |
 | Package manager | Yarn `4.4.1` |
@@ -320,3 +322,15 @@ Slice 0 is **evidence-complete**. The ADO implementation contains a functional g
 4. Fix `modernize-application` promote URL placeholder.
 
 **Recommended next slice:** land and harden the brownfield vertical slice (not build from scratch). See `implementation-roadmap.md`.
+
+## 16. Documentation checkpoint record
+
+| Field | SHA |
+|---|---|
+| `backstage-docs` baseline (pre-Slice 0) | `c0ef3b4d5dfcce5da005d563e4c36fbb48bbb933` |
+| `backstage-docs` Slice 0 publish | `f6260c7657ba53207e83bef5542124b3d9581206` |
+| `backstage-docs` at last refresh | `6706ad4442dd30435d0b49bfa7ac5a502d7e3426` |
+| ADO Slice 0 inspection baseline | `6e28611e90455dfd56f583bdd132ee830d88f126` |
+| ADO branch HEAD at last refresh | `be16ffb02b59d791f0086d8e5086e4428c82b90d` |
+
+Shared ADR created: [ADR-010](../adr/ADR-010-catalog-system-component-semantics.md).

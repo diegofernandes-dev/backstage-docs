@@ -34,6 +34,9 @@ Current accepted GMUD authorization model: [ADR-009](./adr/ADR-009-change-author
 
 Use [`golden-paths/`](./golden-paths/) for architecture, current-state assessment, application-template strategy, legacy/brownfield adoption, implementation roadmap, and future construction handoffs. Shared decisions that constrain the wider Backstage platform belong in `adr/` rather than being hidden in a workstream document.
 
+- Slice 0 (2026-09-01): implementation inventory complete — gate **GO** with preconditions.
+- Shared Catalog semantics: [ADR-010](./adr/ADR-010-catalog-system-component-semantics.md).
+
 ## Documentation protocol
 
 Before architecture or implementation work:

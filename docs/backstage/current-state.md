@@ -91,7 +91,7 @@
 |---|---|
 | F2.2.1 implementation | **IMPLEMENTED** at ADO `6e28611` |
 | F3 authorization architecture | **ACCEPTED** by ADR-009 at F3.0.1 |
-| F3.1 Authorization Ledger Foundation | **NOT IMPLEMENTED**; eligible for implementation planning only |
+| F3.1 Authorization Ledger Foundation | **PLANNED**; [F3.1.0 ledger contract/storage](./f3-1-implementation-plan.md) authorized for implementation only |
 
 ### F3.0.1 accepted authorization architecture (documentation only)
 
@@ -116,7 +116,7 @@
 | DevOps | Policy/control/integration/observability/exception owner; absent from happy-path per-deploy approval |
 | Model C | Retained; bounded platform authorization ledger sits beside the index while provider owns operational GMUD detail |
 
-**Gate:** the [F3 architect review brief](../architect-review-f3-change-authorization.md) records all nine decisions as resolved and ADR-009 as Accepted. The result is **GO for F3.1 implementation planning** and **NO-GO for F3.1 implementation** until a reviewed implementation plan authorizes it. No application code, route, migration, Teams, CAB UI, pipeline enforcement, or real provider was introduced in F3.0.1.
+**Gate:** the [F3 architect review brief](../architect-review-f3-change-authorization.md) records all nine decisions as resolved and ADR-009 as Accepted. The reviewed [F3.1 implementation plan](./f3-1-implementation-plan.md) now authorizes **F3.1.0 only**: domain types, pure evaluators, append-only durable ledger contract, legacy marking, and cross-database tests. F3.1.1–F3.1.4 remain NO-GO pending their preceding checkpoint reviews.
 
 See [`implementation-progress.md`](./implementation-progress.md) §12–§19 for full checkpoint detail (F2.1 through F3.0.1 architecture convergence).
 

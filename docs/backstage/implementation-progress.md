@@ -121,15 +121,29 @@ ADR-009 is **Accepted**. It defines a platform-owned, provider-neutral authoriza
 - Azure DevOps is a future execution-eligibility consumer/enforcer, not canonical business authorization.
 - DevOps/Platform owns policy, controls, reliability, observability, and exceptions; it is absent from happy-path per-deployment approval.
 
-### F3.1 gate
+### F3.1 implementation-plan gate
 
-**GO for F3.1 implementation planning.**
+The reviewed [F3.1 implementation plan](./f3-1-implementation-plan.md) decomposes
+the Authorization Ledger Foundation into five checkpoints.
 
-**NO-GO for F3.1 implementation** until a reviewed implementation plan explicitly authorizes it.
+**GO for F3.1.0 implementation only:** domain types, pure evaluators, four
+append-only ledger tables/repositories, explicit `LEGACY_PRE_F3` marking, and
+SQLite/Postgres verification.
 
-The intended next planning slice is **Authorization Ledger Foundation**. It may cover rounds, requirements, principal snapshots, append-only decisions/audit, deterministic versioned policy/configuration, selector resolution, pure authorization/governance evaluators, submission-time first-round generation, permission boundaries, and read representation.
+**NO-GO for F3.1.1–F3.1.4** until the preceding checkpoint has passed its STOP
+condition and received explicit review.
 
 Explicitly out of F3.1: Teams, CAB Workbench, Azure DevOps enforcement/public eligibility transport, execution lifecycle integration, automatic SLA escalation, real ITSM providers, generic DSL/BPM, break-glass, decision reversal/expiry/abstention, and technical stop-execution behavior.
+
+Planning findings recorded for implementation:
+
+- ADO local HEAD is `6e28611`, while `origin/feat/ado-repo-governance` remains at
+  `0b9cb38`.
+- Existing finalized F2 records remain read-only `LEGACY_PRE_F3`; no authorization
+  rounds or decisions are backfilled.
+- The F2 create path builds the Change twice, which can diverge server-generated
+  snapshot fields; this must be fixed before F3.1.2, not in F3.1.0.
+- Configured RBAC policy files are absent from ADO HEAD; resolve before F3.1.4.
 
 ---
 

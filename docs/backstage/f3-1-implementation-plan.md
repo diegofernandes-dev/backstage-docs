@@ -1,8 +1,9 @@
 # GMUD F3.1 — Authorization Ledger Foundation implementation plan
 
-- Status: Reviewed — **GO for F3.1.0 implementation only**
+- Status: F3.1.0 **IMPLEMENTED locally** — remote publication pending ADO access
 - Date: 2026-09-01
 - ADO implementation baseline: `platform-devops-developer-portal`, branch `feat/ado-repo-governance`, local HEAD `6e28611`
+- F3.1.0 implementation commit: `be16ffb`
 - Documentation baseline: `backstage-docs@c0ef3b4`
 - Architecture authority: [ADR-009](../adr/ADR-009-change-authorization-model.md)
 
@@ -120,7 +121,9 @@ HEAD. That must be resolved before F3.1.4; F3.1.0 adds no permissions.
 
 ## Gate
 
-**GO for F3.1.0 implementation only.**
+**F3.1.0 implementation complete locally.** The commit is `be16ffb`; pushing to
+the ADO branch was rejected because the configured remote credentials lack read
+access. Reconcile remote publication before opening review.
 
-**NO-GO for F3.1.1–F3.1.4** until the preceding checkpoint is implemented,
-verified, documented, and explicitly reviewed.
+**NO-GO for F3.1.1–F3.1.4** until F3.1.0 is reviewed and the preceding
+checkpoint is explicitly accepted.

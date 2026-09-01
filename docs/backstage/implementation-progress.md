@@ -126,9 +126,10 @@ ADR-009 is **Accepted**. It defines a platform-owned, provider-neutral authoriza
 The reviewed [F3.1 implementation plan](./f3-1-implementation-plan.md) decomposes
 the Authorization Ledger Foundation into five checkpoints.
 
-**GO for F3.1.0 implementation only:** domain types, pure evaluators, four
-append-only ledger tables/repositories, explicit `LEGACY_PRE_F3` marking, and
-SQLite/Postgres verification.
+**F3.1.0 implemented locally:** domain types, pure evaluators, four append-only
+ledger tables/repositories, explicit `LEGACY_PRE_F3` marking, and SQLite
+verification. ADO commit: `be16ffb`. The push to the configured ADO remote was
+rejected for lack of repository access and remains a publication prerequisite.
 
 **NO-GO for F3.1.1–F3.1.4** until the preceding checkpoint has passed its STOP
 condition and received explicit review.

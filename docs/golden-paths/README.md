@@ -4,12 +4,12 @@ This folder is the documentation home for the Backstage application-onboarding w
 
 ## Scope
 
-The workstream covers two entry paths that should converge on a coherent platform model:
+The workstream covers two first-class entry paths that converge on a coherent platform model:
 
 - **Greenfield:** Software Templates / Golden Paths for new applications.
 - **Brownfield:** registration, assessment, progressive adoption, modernization, exceptions, and retirement of existing applications.
 
-The goal is a Golden Path, not a Golden Cage: new applications should start close to the supported platform standard, while existing applications can obtain Catalog/governance/platform value without requiring an immediate rewrite.
+The governing principle is **Golden Path, not Golden Cage**: new applications should start close to the supported platform standard, while existing applications can obtain Catalog/governance/platform value without requiring an immediate rewrite.
 
 ## Authority model
 
@@ -18,20 +18,41 @@ The goal is a Golden Path, not a Golden Cage: new applications should start clos
 - Shared decisions that affect the overall Backstage platform belong in `docs/adr/`.
 - Workstream-specific reasoning and handoffs belong here.
 
-## Expected documents
+## Architecture checkpoint — 2026-09-01
 
-The architect may refine names, but the workstream should maintain clear equivalents of:
+The target architecture and brownfield adoption model are now documented, but implementation readiness is intentionally blocked because the Azure DevOps implementation source of truth could not be inspected from this checkpoint.
 
-- `current-state.md` — evidence-based assessment of the existing portal/templates/Catalog model;
-- `architecture.md` — target Golden Path and brownfield architecture;
-- `adoption-model.md` — progressive legacy onboarding/modernization model;
-- `implementation-roadmap.md` — small reviewable implementation slices;
-- `implementation-progress.md` — implementation handoffs once coding is authorized.
+Current gate: **NO-GO for production implementation until Slice 0 implementation inventory/reconciliation is completed against the actual ADO repository.**
 
-Do not create production templates in this repository. Template/source implementation belongs in the Azure DevOps implementation repository; this repo holds architecture and construction documentation only.
+No shared ADR was created in this checkpoint. Proposed platform-wide Catalog semantics remain proposals until current production conventions are verified.
+
+## Workstream documents
+
+- [`current-state.md`](./current-state.md) — evidence-based assessment; implementation-specific Golden Path capabilities are currently marked UNKNOWN pending ADO inspection.
+- [`architecture.md`](./architecture.md) — target greenfield + brownfield architecture, template decomposition, central ownership boundaries, Catalog semantics, monorepos, multi-workload, versioning, conformance, exceptions and retirement.
+- [`adoption-model.md`](./adoption-model.md) — brownfield registration, assessment, progressive adoption stages, PR-based modernization, exceptions and retirement.
+- [`implementation-roadmap.md`](./implementation-roadmap.md) — reviewable slices and gates; Slice 0 is evidence reconciliation and the default first production slice after that gate is registration-only brownfield adoption.
+- `implementation-progress.md` — create only when implementation is explicitly authorized and begins.
+
+## Target model
+
+```text
+Create New Application ─┐
+                        ├─> Catalog + ownership + platform capability contract
+Register Existing App ──┘
+```
+
+A Software Template is an orchestration/onboarding mechanism, not the lasting compliance oracle. Day-2 conformance must evaluate observable application/platform state against a versioned contract/profile.
 
 ## Working protocol
 
-Before each checkpoint, fetch and compare `origin/main`. Read the root README, `docs/README.md`, relevant shared ADRs, and this workstream's latest documents. Inspect the actual Azure DevOps implementation before stating what exists.
+Before each checkpoint:
+
+1. fetch and compare `origin/main`;
+2. read the root README, `docs/README.md`, `docs/adr/README.md`, the shared ADRs relevant to the proposal, and the latest workstream documents;
+3. inspect the actual Azure DevOps implementation before stating that a template, action, Catalog convention, pipeline integration or permission exists;
+4. record code/documentation disagreement as a deviation rather than rewriting architecture to justify drift.
 
 Each implementation handoff must record the ADO branch/SHA inspected or changed, the `backstage-docs` baseline/final SHA, tests/validation, deviations, unresolved questions, and an explicit next gate.
+
+Do not create production templates in this repository. Template/source implementation belongs in Azure DevOps; this repository holds architecture and construction documentation only.

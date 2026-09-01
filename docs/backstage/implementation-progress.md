@@ -30,23 +30,23 @@ The canonical architecture and current construction state were imported at legac
 
 ## Imported GMUD construction timeline
 
-| Checkpoint | Outcome | Implementation / architecture reference |
-|---|---|---|
-| F1 | Frontend GMUD shell | Dedicated Backstage plugin and `/gmud` route |
-| F1.1 | Visual polish | Backstage/MUI-first composition |
-| F1.2 | Backstage-first layout | Single form surface + informational rail |
-| F1.3 | Semantic UX | Generic production-change language; removed deployment-only assumptions |
-| F1.4 | Integrity cleanup | Provider opacity, explicit classification, evidence semantics; ADO `52e01ca` |
-| F2.0 | Backend contract scaffold | `ChangeManagementService` + provider contract; ADO `b2bed17` |
-| F2.0 review | Record authority | ADR-007 Model C accepted; accidental Model B drift reverted |
-| F2.1 | Durable Model C persistence | canonical index + DevelopmentProvider; ADO `0dc3ed4` |
-| F2.1.1 | Crash-safe idempotency | retry-driven recovery; ADO `ed6810b` |
-| F2.1.2 | Multi-activity plan | ADR-008; ADO `5e4f30e` |
-| F2.1.3 | Real frontend wiring | create → backend → Model C persistence; ADO `75da44fb46d308e23b1c987e2093636fa4811b92` |
-| F2.2 | My Changes + Detail | index-backed list + provider-routed detail; ADO `0b9cb38` |
-| F2.2.1 | Participant read | requester/owner/responsible-team/admin; ADO `6e28611` |
-| F3.0 | Authorization architecture | ADR-009 proposed; no implementation |
-| F3.0.1 | Authorization convergence | ADR-009 Accepted; no implementation |
+| Checkpoint  | Outcome                     | Implementation / architecture reference                                                |
+| ----------- | --------------------------- | -------------------------------------------------------------------------------------- |
+| F1          | Frontend GMUD shell         | Dedicated Backstage plugin and `/gmud` route                                           |
+| F1.1        | Visual polish               | Backstage/MUI-first composition                                                        |
+| F1.2        | Backstage-first layout      | Single form surface + informational rail                                               |
+| F1.3        | Semantic UX                 | Generic production-change language; removed deployment-only assumptions                |
+| F1.4        | Integrity cleanup           | Provider opacity, explicit classification, evidence semantics; ADO `52e01ca`           |
+| F2.0        | Backend contract scaffold   | `ChangeManagementService` + provider contract; ADO `b2bed17`                           |
+| F2.0 review | Record authority            | ADR-007 Model C accepted; accidental Model B drift reverted                            |
+| F2.1        | Durable Model C persistence | canonical index + DevelopmentProvider; ADO `0dc3ed4`                                   |
+| F2.1.1      | Crash-safe idempotency      | retry-driven recovery; ADO `ed6810b`                                                   |
+| F2.1.2      | Multi-activity plan         | ADR-008; ADO `5e4f30e`                                                                 |
+| F2.1.3      | Real frontend wiring        | create → backend → Model C persistence; ADO `75da44fb46d308e23b1c987e2093636fa4811b92` |
+| F2.2        | My Changes + Detail         | index-backed list + provider-routed detail; ADO `0b9cb38`                              |
+| F2.2.1      | Participant read            | requester/owner/responsible-team/admin; ADO `6e28611`                                  |
+| F3.0        | Authorization architecture  | ADR-009 proposed; no implementation                                                    |
+| F3.0.1      | Authorization convergence   | ADR-009 Accepted; no implementation                                                    |
 
 The original detailed F1–F3.0.1 diary is preserved in the legacy bridge at `docs/backstage/implementation-progress.md` for historical investigation only. This file is the active continuation point.
 
@@ -98,12 +98,12 @@ ADO `platform-devops-developer-portal`, branch `feat/ado-repo-governance`: **`6e
 
 ADR-009 is **Accepted**. It defines a platform-owned, provider-neutral authorization ledger and four orthogonal concepts:
 
-| Dimension | Values / result |
-|---|---|
-| Change lifecycle | `submitted`, `executing`, `completed`, `rejected`, `cancelled` |
-| AuthorizationEvaluation | `PENDING`, `AUTHORIZED`, `REJECTED` |
-| GovernanceEvaluation | `NOT_APPLICABLE`, `PENDING`, `COMPLIANT`, `NON_COMPLIANT` |
-| ExecutionEligibility | point-in-time `ALLOW` / `DENY` with reasons |
+| Dimension               | Values / result                                                |
+| ----------------------- | -------------------------------------------------------------- |
+| Change lifecycle        | `submitted`, `executing`, `completed`, `rejected`, `cancelled` |
+| AuthorizationEvaluation | `PENDING`, `AUTHORIZED`, `REJECTED`                            |
+| GovernanceEvaluation    | `NOT_APPLICABLE`, `PENDING`, `COMPLIANT`, `NON_COMPLIANT`      |
+| ExecutionEligibility    | point-in-time `ALLOW` / `DENY` with reasons                    |
 
 `AUTHORIZED` is not a Change lifecycle state. A Change may be `submitted` and already `AUTHORIZED` while its execution window is closed. `completed` means actual execution completed and may coexist with pending post-execution governance.
 
@@ -126,10 +126,12 @@ ADR-009 is **Accepted**. It defines a platform-owned, provider-neutral authoriza
 The reviewed [F3.1 implementation plan](./f3-1-implementation-plan.md) decomposes
 the Authorization Ledger Foundation into five checkpoints.
 
-**F3.1.0 implemented locally:** domain types, pure evaluators, four append-only
-ledger tables/repositories, explicit `LEGACY_PRE_F3` marking, and SQLite
-verification. ADO commit: `be16ffb`. The push to the configured ADO remote was
-rejected for lack of repository access and remains a publication prerequisite.
+`be16ffb` is an **unreviewed candidate**, created after a planning-only checkpoint
+and therefore not an accepted implementation baseline. Corrective commit
+`7a9347e` is a direct local child that makes the pre-F3.1.2 cutover safe, closes
+the remaining F3.1.0 storage/evaluator gaps, and adds both-dialect evidence. Neither
+commit has been pushed to ADO. The accepted implementation baseline remains F2.2.1
+at `6e28611`.
 
 **NO-GO for F3.1.1–F3.1.4** until the preceding checkpoint has passed its STOP
 condition and received explicit review.
@@ -140,11 +142,66 @@ Planning findings recorded for implementation:
 
 - ADO local HEAD is `6e28611`, while `origin/feat/ado-repo-governance` remains at
   `0b9cb38`.
-- Existing finalized F2 records remain read-only `LEGACY_PRE_F3`; no authorization
-  rounds or decisions are backfilled.
+- Existing finalized and unfinalized F2 records, plus every Change created by the
+  still-F2 submission path, remain `LEGACY_PRE_F3`; no authorization facts are
+  backfilled.
 - The F2 create path builds the Change twice, which can diverge server-generated
   snapshot fields; this must be fixed before F3.1.2, not in F3.1.0.
 - Configured RBAC policy files are absent from ADO HEAD; resolve before F3.1.4.
+
+---
+
+## GMUD F3.1.0-C — Authorization Ledger Cutover Safety Correction
+
+Implementation repository/branch/SHA:
+`platform-devops-developer-portal`, local branch
+`review/f3-1-0-cutover-safety`, `7a9347e318b3a3a0b5bf4d457f206ce033a6f833`
+
+Documentation baseline SHA: `4cdc9b1`
+
+### Objective
+
+Correct the unreviewed `be16ffb` candidate without rewriting its evidence. Ensure
+that introducing empty ledger tables cannot make the still-F2 submission path
+produce Changes that the F3 model considers inconsistent.
+
+### Architecture applied
+
+- `authorization_mode` defaults to and is explicitly inserted as
+  `LEGACY_PRE_F3` for all pre-cutover F2 traffic.
+- Existing finalized and pending rows are both backfilled as legacy; no ledger
+  row is fabricated.
+- The marker accepts only `LEGACY_PRE_F3 | LEDGER_REQUIRED` and is immutable.
+- Future F3.1.2 must explicitly insert `LEDGER_REQUIRED` in the path that creates
+  round 1; it must not flip the global default.
+- Round creation is atomic and strictly monotonic; canonical artifacts/hashes,
+  audit identity/references, bigint ordering, and governance evaluation are
+  enforced without submission integration or runtime policy behavior.
+
+### Tests / functional verification
+
+- Change Management: 14 suites / 98 tests PASS.
+- SQLite migration up/down, legacy cutover/default, constraints, append-only
+  triggers, rollback, canonical hashing, evaluators, and F2 regression PASS.
+- Disposable PostgreSQL 16: migration up/down, round/decision concurrency,
+  parent-row locking, FKs/checks, bigint audit ordering, and triggers PASS.
+- Backend lint PASS; backend build PASS.
+- After Jest reported success, the known open handle remained and the process was
+  stopped explicitly. No clean-exit claim is made.
+
+### Deviations and process record
+
+- `be16ffb` remains an unreviewed candidate because the preceding checkpoint was
+  planning-only and did not authorize implementation.
+- ADO remote `origin/feat/ado-repo-governance` remains `0b9cb38`; neither candidate
+  commit was pushed or merged.
+- Unrelated modifications in the primary ADO worktree were preserved untouched.
+
+### Gate
+
+**GO for architecture review of F3.1.0-C only.** `be16ffb` and `7a9347e` are local
+review evidence, not an accepted baseline. **NO-GO** for ADO publication/merge and
+for F3.1.1–F3.1.4 until explicit acceptance.
 
 ---
 

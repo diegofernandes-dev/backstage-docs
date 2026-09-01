@@ -1,16 +1,18 @@
 # GMUD F3.1 — Authorization Ledger Foundation implementation plan
 
-- Status: F3.1.0 **IMPLEMENTED locally** — remote publication pending ADO access
+- Status: F3.1.0-C **CORRECTED LOCAL CANDIDATE — architecture review required**
 - Date: 2026-09-01
-- ADO implementation baseline: `platform-devops-developer-portal`, branch `feat/ado-repo-governance`, local HEAD `6e28611`
-- F3.1.0 implementation commit: `be16ffb`
-- Documentation baseline: `backstage-docs@c0ef3b4`
+- Accepted ADO implementation baseline: `platform-devops-developer-portal@6e28611` (F2.2.1)
+- Unreviewed F3.1.0 candidate: `be16ffb02b59d791f0086d8e5086e4428c82b90d`
+- Corrective local candidate: `7a9347e318b3a3a0b5bf4d457f206ce033a6f833`, branch `review/f3-1-0-cutover-safety`
+- Documentation baseline for the correction: `backstage-docs@4cdc9b1`
 - Architecture authority: [ADR-009](../adr/ADR-009-change-authorization-model.md)
 
 ## Outcome
 
-F3.1 is decomposed into five independently reviewed checkpoints. Only the first is
-authorized by this handoff:
+F3.1 is decomposed into five independently reviewed checkpoints. The first has a
+corrected local candidate ready for architecture review; this handoff does not
+authorize merge, ADO publication, or a later slice:
 
 1. **F3.1.0 — Ledger contract and durable storage**: domain types, pure evaluators,
    four append-only ledger tables, repository contracts, legacy marking, and
@@ -54,13 +56,22 @@ foreign keys keep requirements, decisions, and audit events bound to their round
 
 ### Legacy policy
 
-`change_index.authorization_mode` explicitly distinguishes:
+`change_index.authorization_mode` establishes a safe incremental-deployment
+boundary:
 
-- existing finalized F2 changes: `LEGACY_PRE_F3`;
-- existing unfinalized rows and all new rows: `LEDGER_REQUIRED`.
+- every existing finalized F2 change: `LEGACY_PRE_F3`;
+- every existing unfinalized/pending F2 row: `LEGACY_PRE_F3`;
+- every new Change created by the still-F2 submission path: `LEGACY_PRE_F3`.
 
-No historical round or decision is fabricated. A finalized `LEDGER_REQUIRED`
-record without a round is a consistency failure, not an implicit legacy record.
+The database default and the current F2 repository write are both
+`LEGACY_PRE_F3`, making either application/schema rollout order safe. The marker
+is constrained to the two declared values and immutable after insertion.
+
+No historical round, requirement, decision, or audit event is fabricated. A
+future F3.1.2 path must explicitly insert `LEDGER_REQUIRED` only as part of the
+submission flow that creates AuthorizationRound 1 and its effective requirements.
+The global default remains fail-safe; the mere presence of ledger tables never
+opts a Change into ledger governance.
 
 ## Persistence and compatibility
 
@@ -95,11 +106,26 @@ F3.1.0 is accepted only when:
 - architecture guards continue to prohibit provider/ADO/Teams canonical fields,
   workflow repositories, mutable current/evaluation state, and a policy DSL.
 
+Corrective-candidate evidence at `7a9347e`:
+
+- Change Management: 14 suites / 98 tests PASS, including SQLite and a disposable
+  PostgreSQL 16 instance;
+- PostgreSQL migration up/down, parent-row serialization, same-round concurrency,
+  audit bigint mapping, FKs, checks, and immutability PASS;
+- backend lint PASS;
+- backend build PASS;
+- the test command still retained the previously observed open handle after Jest
+  reported success and was explicitly stopped; this is recorded, not represented
+  as a clean process exit.
+
 ## Findings and prerequisites
 
-The inspected ADO local HEAD is the documented `6e28611` baseline, but the remote
-feature branch remains at `0b9cb38`. The worktree also contains unrelated changes;
-F3.1.0 must be staged and reviewed independently.
+The accepted ADO baseline is `6e28611`, while the remote feature branch remains at
+`0b9cb38`. `be16ffb` was created after a planning-only checkpoint and is therefore
+an unreviewed candidate, not an accepted implementation baseline. The corrective
+commit `7a9347e` is a direct child of `be16ffb`, was produced in an isolated clean
+worktree, and has not been pushed. Unrelated changes in the primary worktree were
+not touched.
 
 The current F2 create service calls `buildChange()` twice, allowing server-generated
 `activityId` and `createdAt` values to differ between index and provider snapshots.
@@ -121,9 +147,10 @@ HEAD. That must be resolved before F3.1.4; F3.1.0 adds no permissions.
 
 ## Gate
 
-**F3.1.0 implementation complete locally.** The commit is `be16ffb`; pushing to
-the ADO branch was rejected because the configured remote credentials lack read
-access. Reconcile remote publication before opening review.
+**GO for architecture review of the corrected F3.1.0-C candidate only.** Review
+the commit pair `be16ffb` + `7a9347e` as historical candidate plus correction.
+Neither commit is accepted, merged, or published to ADO by this handoff. The
+accepted implementation baseline remains F2.2.1 at `6e28611`.
 
 **NO-GO for F3.1.1–F3.1.4** until F3.1.0 is reviewed and the preceding
 checkpoint is explicitly accepted.

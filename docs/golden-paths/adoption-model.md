@@ -1,6 +1,6 @@
 # Brownfield adoption model
 
-> **Status:** Proposed architecture checkpoint  
+> **Status:** Reconciled with ADO evidence (Slice 0 complete)  
 > **Principle:** Golden Path, not Golden Cage
 
 ## 1. Goal
@@ -13,6 +13,8 @@ Brownfield adoption is a first-class product path, not a migration appendix.
 
 Use explicit stages so teams can gain value before full modernization.
 
+### Proposed stages (architecture)
+
 | Stage | Meaning | Minimum outcome |
 |---|---|---|
 | 0 — Unregistered | Application exists outside the governed platform model | none |
@@ -22,6 +24,20 @@ Use explicit stages so teams can gain value before full modernization.
 | 4 — Conformant | Required baseline capabilities are satisfied or governed exceptions exist | policy/conformance result with no unknown critical gaps |
 | 5 — Modernized | Application uses the target supported patterns for its applicable workload | reduced local delivery/platform debt |
 | R — Retiring/Retired | Application is intentionally leaving service | explicit lifecycle and safe decommission path |
+
+### Implemented stages (implementation ADR 0013, WIP)
+
+| Stage ID | Meaning |
+|---|---|
+| `discovered` | Known to the org; not yet in IDP |
+| `cataloged` | Component + owner + System + repo link (set by `register-existing-application`) |
+| `documented` | TechDocs minimum + lifecycle defined |
+| `governed` | Required metadata + ownership validated (set by `enrich-catalog-pr`) |
+| `delivery-integrated` | Central CI + build validation + baseline scans |
+| `platform-deployed` | Deploy contract + observability |
+| `golden-path` | Aligned to current greenfield standard |
+
+Stored in `metadata.annotations.idp.company/platform-adoption-stage`.
 
 Stages describe platform adoption, not business criticality or software quality.
 
@@ -97,14 +113,15 @@ A modernization action should:
 - run validation before proposing the PR;
 - leave merge authority with the repository's normal governance unless a separately approved automation model exists.
 
-Examples may include:
+Examples implemented in WIP (`modernize-application` template):
 
-- adding or normalizing `catalog-info.yaml`;
-- replacing a duplicated pipeline implementation with a thin central binding;
-- adding a required contract/version declaration;
-- adding standard metadata or documentation bootstrap.
+- adding or normalizing `catalog-info.yaml` (`idp:enrich-catalog-pr`);
+- replacing a duplicated pipeline implementation with a thin central binding (`idp:adopt-platform-ci-pr`);
+- adding a required contract/version declaration via `idp.platform.yaml`;
+- adding standard metadata or documentation bootstrap (`idp:adopt-techdocs-pr`);
+- promoting to corporate catalog (`idp:promote-catalog-pr` — promote URL placeholder must be fixed before production use).
 
-Automatic PR creation must not be implemented until repository and policy behavior in ADO is inspected and an implementation slice explicitly authorizes it.
+PR-based modernization is implemented in WIP but uncommitted. Production use requires commit, review, and trust-boundary validation.
 
 ## 7. Monorepos and multi-workload brownfield systems
 

@@ -1,7 +1,7 @@
 # Golden Paths — implementation roadmap
 
-> **Status:** Proposed roadmap  
-> **Implementation authorization:** NO-GO until Slice 0 evidence gate is complete
+> **Status:** Active roadmap (Slice 0 complete)  
+> **Implementation authorization:** GO — subject to preconditions in `current-state.md`
 
 ## 1. Roadmap principles
 
@@ -50,41 +50,35 @@ The checkpoint must record:
 
 ### Gate
 
-**Current state: REQUIRED / BLOCKED by ADO access in this checkpoint.**
+**COMPLETE** — inspected `feat/ado-repo-governance@6e28611` plus uncommitted WIP. See `current-state.md`.
 
-No later slice is authorized until Slice 0 is reviewed.
-
-## 3. Slice 1 — brownfield registration-only vertical slice
+## 3. Slice 1 — land and harden brownfield vertical slice
 
 ### Objective
 
-Prove the convergence model with the lowest-destructive-risk path: register an existing application into the canonical Catalog model without rewriting source, pipeline or runtime architecture.
+Land the brownfield registration flow already implemented in uncommitted WIP: commit, review, test, and validate end-to-end against a real legacy repository.
 
-### Why this is the recommended first implementation slice
+Slice 0 found that `register-existing-application`, `idp:register-existing-catalog-pr`, `idpAssessor`, and the Platform tab already exist in the working tree. This slice is **not** greenfield construction — it is review, merge, and production readiness.
+
+### Why this remains the recommended first implementation slice
 
 A registration-only slice validates the hardest shared foundation — identity, ownership, System/Component semantics, repository annotations, permissions and post-registration validation — without coupling the first experiment to repository generation or central pipeline assumptions.
 
-It also creates immediate value for the existing estate and prevents brownfield adoption from becoming secondary to greenfield scaffolding.
+### Scope (revised after Slice 0)
 
-### Candidate scope
-
-Subject to Slice 0 findings:
-
-- one `Register Existing Application` Software Template/workflow;
-- supported repository selector/input;
-- owner/System/Component declaration using existing Catalog conventions;
-- generation or proposal of minimal Catalog metadata;
-- registration through the supported Catalog mechanism;
-- post-task verification that the entity is resolvable with expected ownership/relations;
-- tests for form/schema and orchestration behavior.
+- commit and PR-review WIP on `feat/ado-repo-governance`;
+- validate `register-existing-application` template and `idp:register-existing-catalog-pr` action;
+- end-to-end test: register one real legacy repo → merge PR → catalog import → Platform tab assessment;
+- execute first production template sync to `platform-devops-idp-catalog/templates/`;
+- fix `modernize-application` promote URL placeholder;
+- document runbook in corporate catalog README.
 
 ### Non-goals
 
-- no automatic pipeline migration;
+- no automatic pipeline migration in Slice 1;
 - no source rewrite;
-- no automatic PR creation unless separately authorized after Slice 0;
-- no repository policy mutation;
-- no conformance engine;
+- no repository policy mutation beyond existing governance actions;
+- no fleet-wide conformance engine;
 - no retirement automation.
 
 ### Validation
@@ -97,9 +91,25 @@ Subject to Slice 0 findings:
 
 ### Gate
 
-GO to Slice 2 only after the Catalog model and registration mechanism are proven against real estate examples.
+GO to Slice 1.5 and Slice 2 only after the brownfield registration mechanism is proven against real estate examples.
 
-## 4. Slice 2 — conformance assessment foundation
+## 4. Slice 1.5 — align legacy greenfield templates and production publishing
+
+### Objective
+
+Close maturity gaps found in Slice 0 without blocking brownfield delivery.
+
+### Scope
+
+- align `dotnet-worker-service`, `dotnet-grpc-service`, and `dotnet-cronjob` to the `dotnet-minimal-api` golden-path pattern (central CI, `idp.platform.yaml`, `idp:platform-context`), **or** mark them deprecated in favor of `dotnet-minimal-api` + `modernize-application`;
+- automate or document template sync CI from portal repo to corporate catalog (ADR 0016);
+- verify production template discovery via `platform-devops-idp-catalog/templates/catalog-info.yaml`.
+
+### Gate
+
+May proceed in parallel with Slice 1 after WIP is committed.
+
+## 5. Slice 2 — conformance assessment foundation
 
 ### Objective
 
@@ -107,12 +117,13 @@ Evaluate registered applications against a small, explainable platform profile w
 
 ### Scope
 
-Start with only a few high-confidence checks, for example:
+Slice 0 found substantial WIP foundation (`idpAssessor`, `catalogValidation`, `config/scorecards/platform-adoption.yaml`). This slice hardens and validates that foundation:
 
 - required Catalog identity/ownership;
 - required repository annotation/link;
-- supported delivery binding detection if Slice 0 provides a reliable contract;
-- explicit UNKNOWN when evidence cannot be derived.
+- central pipeline contract detection (`usesCentralPipelineTemplate()`);
+- explicit UNKNOWN when evidence cannot be derived;
+- Platform tab UX for actionable recommendations.
 
 ### Non-goals
 
@@ -125,15 +136,15 @@ Start with only a few high-confidence checks, for example:
 
 Findings must be deterministic, attributable to a profile/version and distinguish compliant/gap/unknown/not-applicable.
 
-## 5. Slice 3 — first greenfield Golden Path
+## 6. Slice 3 — first greenfield Golden Path (harden)
 
 ### Objective
 
-Create one supported workload archetype using the already-proven Catalog and ownership model.
+Harden one supported workload archetype using the already-proven Catalog and ownership model.
 
-### Candidate
+### Candidate (confirmed by Slice 0)
 
-Choose the highest-demand, best-understood workload after Slice 0; do not assume API is correct before implementation inventory.
+`dotnet-minimal-api` is the golden-path reference implementation (WIP-aligned). `angular-spa` is a secondary candidate. Slice 3 focuses on production readiness, not initial creation.
 
 ### Scope
 
@@ -150,7 +161,7 @@ Choose the highest-demand, best-understood workload after Slice 0; do not assume
 - no second/third stack just for portfolio completeness;
 - no broad policy mutation framework.
 
-## 6. Slice 4 — platform capability composition
+## 7. Slice 4 — platform capability composition
 
 ### Objective
 
@@ -166,24 +177,26 @@ Candidates:
 
 Extraction is justified by repeated concrete use, not anticipation.
 
-## 7. Slice 5 — PR-based modernization
+## 8. Slice 5 — PR-based modernization (harden)
 
 ### Objective
 
-Turn selected brownfield assessment gaps into small reviewable repository changes.
+Harden the `modernize-application` template and its PR actions already implemented in WIP.
 
 ### Prerequisites
 
-- stable assessment model;
+- Slice 1 registration proven;
+- stable assessment model (Slice 2);
 - verified ADO branch/policy behavior;
 - reviewed mutation permissions;
-- clear conflict/overwrite strategy.
+- clear conflict/overwrite strategy;
+- promote URL placeholder fixed.
 
 ### First candidate migrations
 
 Prefer low-risk declarative changes such as Catalog normalization or thin pipeline binding before broad application-code modernization.
 
-## 8. Slice 6 — multi-workload and monorepo expansion
+## 9. Slice 6 — multi-workload and monorepo expansion
 
 ### Objective
 
@@ -191,7 +204,7 @@ Support adding/registering multiple independently operated Components while pres
 
 This should extend a proven model rather than introduce the model before basic registration works.
 
-## 9. Slice 7 — exceptions and day-2 governance
+## 10. Slice 7 — exceptions and day-2 governance
 
 ### Objective
 
@@ -199,7 +212,7 @@ Add governed deviations, expiry/review and recurring conformance evaluation.
 
 This may require a shared platform ADR because exception semantics can span multiple Backstage workstreams.
 
-## 10. Slice 8 — retirement workflow
+## 11. Slice 8 — retirement workflow
 
 ### Objective
 
@@ -207,7 +220,7 @@ Provide a safe orchestration path for deprecation and retirement.
 
 Deletion/decommission automation must be the last step, with explicit dependency and authority checks.
 
-## 11. Cross-slice construction handoff
+## 12. Cross-slice construction handoff
 
 Once implementation begins, create `docs/golden-paths/implementation-progress.md` and record for every checkpoint:
 
@@ -224,10 +237,8 @@ Once implementation begins, create `docs/golden-paths/implementation-progress.md
 11. unresolved questions;
 12. explicit GO / NO-GO.
 
-## 12. Current gate
+## 13. Current gate
 
-**NO-GO for production implementation.**
+**GO FOR IMPLEMENTATION** — subject to preconditions in `current-state.md` section 15.
 
-Reason: the implementation source of truth has not been inspected during this checkpoint, so current Scaffolder, Catalog and pipeline behavior remains unverified.
-
-**Recommended immediate next action:** complete Slice 0 against the actual Azure DevOps repository. After that review, the default recommendation is Slice 1 (brownfield registration-only) unless implementation evidence materially changes the ordering.
+**Recommended immediate next action:** Slice 1 — land and harden the brownfield vertical slice (commit WIP, E2E validation, production template sync). Slice 1.5 may proceed in parallel.

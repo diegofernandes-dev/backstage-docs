@@ -19,6 +19,7 @@ The former bridge `diegofernandes-dev/poc-teams-approval` is historical POC evid
 | ADR-007 | Change record authority and persistence ownership | Accepted (F2.0 architecture review) |
 | ADR-008 | Multi-activity change execution plan | Accepted (F2.1.2 architecture) |
 | ADR-009 | Change authorization model | Accepted (F3.0.1 architecture convergence) |
+| ADR-010 | Canonical Catalog System/Component and repository semantics | Accepted (Golden Paths Slice 0) |
 
 Future workstreams such as Software Templates / Golden Paths and brownfield adoption share this ADR directory when a decision affects the overall Backstage platform. Workstream-specific analysis belongs in focused folders under `docs/`.
 

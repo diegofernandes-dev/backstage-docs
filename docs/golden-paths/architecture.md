@@ -1,8 +1,8 @@
 # Golden Paths — target architecture
 
-> **Status:** Proposed architecture checkpoint  
-> **Implementation:** Not authorized  
-> **Implementation verification:** pending Azure DevOps source inspection
+> **Status:** Reconciled with ADO evidence (Slice 0 complete)  
+> **Implementation:** Authorized — subject to preconditions in `current-state.md`  
+> **Implementation verification:** `feat/ado-repo-governance@6e28611` + uncommitted WIP
 
 ## 1. Objective
 
@@ -39,12 +39,15 @@ A Software Template should compose platform capabilities. It should not copy the
 
 Do not start with one universal template containing a large matrix of conditionals. Start with a small portfolio organized around meaningful workload archetypes and compose shared building blocks.
 
-Proposed initial portfolio, subject to ADO implementation validation:
+Proposed initial portfolio, **validated by Slice 0**:
 
-1. **Backend service/API** — service-oriented workload with standard build/test/container/deploy integration.
-2. **Worker/background service** — non-HTTP or asynchronous processing workload.
-3. **Frontend application** — browser-delivered application with runtime-configuration support where applicable.
-4. **Register existing application** — brownfield entry path that creates/normalizes Catalog metadata without rewriting the application.
+1. **Backend service/API** — `dotnet-minimal-api` (golden-path reference, WIP-aligned).
+2. **Worker/background service** — `dotnet-worker-service` (POC, needs alignment).
+3. **Frontend application** — `angular-spa` (WIP, near production-ready).
+4. **Register existing application** — `register-existing-application` (WIP, brownfield registration).
+5. **Improve platform alignment** — `modernize-application` (WIP, opt-in PR modernization).
+
+Additional .NET archetypes (`dotnet-grpc-service`, `dotnet-cronjob`) exist as POC templates and should be aligned or deprecated.
 
 Additional paths should be added from demonstrated product demand rather than by anticipating every possible stack.
 
@@ -125,15 +128,15 @@ The binding must be versionable and reviewable. A central pipeline breaking chan
 
 The Catalog must represent the product/application model independently of how the repository was created.
 
-### Proposed semantic rules
+### Verified semantic rules (ADR-010)
 
-- **System** represents a business/product/system boundary, not merely a repository.
+- **System** represents a business/product/system boundary — implemented as one System per ADO Team Project.
 - **Component** represents a deployable or independently operated software component/workload.
-- repository identity is metadata/annotation, not automatically the Component identity;
-- ownership should resolve to Catalog Groups and remain meaningful across greenfield and brownfield paths;
-- generated and registered applications should use the same required metadata vocabulary.
+- repository identity is metadata/annotation (`dev.azure.com/project-repo`), not automatically the Component identity;
+- ownership resolves to Catalog Groups ingested from Entra ID and remains meaningful across greenfield and brownfield paths;
+- generated and registered applications use the same metadata vocabulary (`catalog-info.yaml`, `idp.platform.yaml`, adoption-stage annotation).
 
-This is a platform-wide proposal. It must not be promoted to a shared ADR until current production Catalog conventions are verified against the ADO implementation and application landscape.
+See [ADR-010](../adr/ADR-010-catalog-system-component-semantics.md) for the shared platform decision.
 
 ## 8. Monorepos
 
@@ -299,17 +302,78 @@ Rejected because it cannot represent monorepos or multiple independently deploya
 
 Rejected because applications and central capabilities evolve after scaffolding.
 
-## 17. Open architecture questions requiring implementation evidence
+## 17. Slice 0 reconciliation summary
 
-Before this target is accepted as an implementation contract, verify:
+| Concern | Result |
+|---|---|
+| Catalog System/Component semantics | **MATCH** — see ADR-010 |
+| ADO repository/pipeline creation | **MATCH** — `publish:azure`, `idp:ado-pipeline-create` |
+| Central pipeline contract | **PARTIAL** — thin consumer in WIP for 2/5 greenfield templates |
+| Scaffolder actions and permissions | **MATCH** — 10 custom `idp:*` actions (WIP), RBAC gating |
+| Catalog locations | **MATCH** — dev file locations, prod URL to corporate catalog |
+| Monorepo conventions | **DEVIATION** — schema only, no flows |
+| Conformance capability | **PARTIAL** — assessor foundation in WIP |
+| Repository policies | **MATCH** — `idp:ado-repo-governance` with hybrid mode |
 
-- existing Catalog System/Component semantics and ownership relations;
-- whether current Azure DevOps integration already creates repositories or pipelines;
-- the existing central pipeline template/versioning mechanism;
-- available/custom Scaffolder actions and permission controls;
-- how Catalog locations are registered today;
-- existing monorepo/entity conventions;
-- whether a conformance/scorecard capability already exists;
-- what repository policies can be evaluated or applied safely from Backstage.
+Full evidence in `current-state.md`.
 
-Until these are reconciled against ADO source, this document is a target architecture rather than proof of implementation readiness.
+## 18. Software Template repository boundary
+
+**Recommendation: HYBRID**
+
+Slice 0 validated that the implementation already follows a hybrid model (implementation ADR 0016, WIP):
+
+| Asset | Owner repository | Release model |
+|---|---|---|
+| Backstage portal + Scaffolder actions | `platform-devops-developer-portal` | Portal deploy |
+| Template YAML (authoring) | `platform-devops-developer-portal/templates/` | Fast local iteration via file locations |
+| Template YAML (production discovery) | `platform-devops-idp-catalog/templates/` | Independent sync from authoring repo |
+| Pipeline implementation | `platform-pipeline-templates` (separate ADO repo) | Git tag semver (`dotnet-ci-1.0.0`, etc.) |
+| Corporate catalog entities | `platform-devops-idp-catalog` | PR-based promotion |
+
+### Ownership rationale
+
+- Scaffolder custom actions are trust-boundary code and must ship with the portal.
+- Template YAML contributors may be product/platform teams who should not need write access to Backstage application code — the corporate catalog sync path enables separate CODEOWNERS.
+- Pipeline implementation is already in a separate repository with versioned tags.
+
+### Versioning
+
+- **Template product version:** implicit via git history in authoring repo; production discovery pinned to corporate catalog commit.
+- **Application/platform contract version:** `idp.platform.yaml` `contracts.pipeline` and adoption-stage annotation.
+- **Central pipeline contract version:** git tags on `platform-pipeline-templates`.
+
+### CI validation model (future)
+
+| Pipeline | Validates |
+|---|---|
+| Portal build/test/deploy | Backstage app, Scaffolder actions, backend modules |
+| Template sync/publish | Template schema, YAML validity, optional Scaffolder dry-run |
+| Pipeline template release | Central CI template correctness, tag creation |
+
+Templates should not share the portal release path in production. Dev uses file locations for speed.
+
+### Dependency direction
+
+```text
+Scaffolder actions (portal) ──orchestrate──> Template YAML (authoring or catalog)
+Template YAML ──generates──> Application-owned artifacts (catalog-info, idp.platform.yaml, thin pipeline)
+Application artifacts ──bind to──> Central pipeline templates (tagged)
+```
+
+### Rejected alternatives
+
+- **KEEP TOGETHER** (templates only in portal repo): couples template changes to portal deploy; fails production discovery requirement.
+- **SPLIT** (dedicated `platform-software-templates` repo): premature at current portfolio size; corporate catalog sync achieves most benefits.
+- **Mega-template:** rejected — seven discrete templates with shared actions is the correct decomposition.
+
+### Migration impact
+
+Low — sync `templates/` to corporate catalog; production config already references the URL location. First sync not yet executed.
+
+## 19. Remaining open questions
+
+- Monorepo registration flow for multiple Components per repository.
+- Automated template sync CI vs manual runbook.
+- Production authentication for brownfield PR actions (PAT vs service principal).
+- Whether legacy .NET POC templates should be aligned or deprecated.

@@ -1,7 +1,7 @@
 # Golden Paths — implementation roadmap
 
-> **Status:** Active roadmap (Slice 0 complete)  
-> **Implementation authorization:** GO — subject to preconditions in `current-state.md`
+> **Status:** Active roadmap (Slice 0 complete; template SoT checkpoint complete)  
+> **Implementation authorization:** GO for brownfield hardening — NO-GO for production template publishing until Slice T0
 
 ## 1. Roadmap principles
 
@@ -52,7 +52,40 @@ The checkpoint must record:
 
 **COMPLETE** — inspected `feat/ado-repo-governance@6e28611` plus uncommitted WIP. See `current-state.md`.
 
-## 3. Slice 1 — land and harden brownfield vertical slice
+## 3. Slice T0 — template source boundary foundation
+
+### Objective
+
+Establish the authoritative Software Template repository boundary per [ADR-011](../adr/ADR-011-software-template-source-of-truth.md) before any production template publishing is treated as permanent.
+
+### Scope
+
+- create ADO repository `platform-software-templates` with CODEOWNERS, branch policies, and CI skeleton;
+- move `templates/` from `platform-devops-developer-portal` (preserve git history where practical);
+- update dev and production `catalog.locations` to URL → template repo bundle (dev: branch; prod: semver tag);
+- add template-repo CI: YAML/schema validation, bundle integrity, optional Scaffolder dry-run;
+- validate all seven templates E2E on staging;
+- supersede implementation ADR 0016 authoring/distribution portions (new ADR 0017 in portal repo);
+- remove portal `templates/` only after successful cutover;
+- **do not** populate `platform-devops-idp-catalog/templates/`.
+
+### Non-goals
+
+- no brownfield action changes;
+- no Scaffolder action refactoring;
+- no corporate catalog entity migration.
+
+### Validation
+
+- production Backstage discovers templates from `platform-software-templates` via tag-pinned URL;
+- no duplicate template copies in corporate catalog;
+- template maintainers can contribute without portal repo write access.
+
+### Gate
+
+**BLOCKS** permanent production template publishing. May proceed in parallel with Slice 1B.
+
+## 4. Slice 1B — land and harden brownfield vertical slice
 
 ### Objective
 
@@ -64,18 +97,18 @@ Slice 0 found that `register-existing-application`, `idp:register-existing-catal
 
 A registration-only slice validates the hardest shared foundation — identity, ownership, System/Component semantics, repository annotations, permissions and post-registration validation — without coupling the first experiment to repository generation or central pipeline assumptions.
 
-### Scope (revised after Slice 0)
+### Scope (revised after Slice 0 and template SoT checkpoint)
 
 - commit and PR-review WIP on `feat/ado-repo-governance`;
 - validate `register-existing-application` template and `idp:register-existing-catalog-pr` action;
 - end-to-end test: register one real legacy repo → merge PR → catalog import → Platform tab assessment;
-- execute first production template sync to `platform-devops-idp-catalog/templates/`;
 - fix `modernize-application` promote URL placeholder;
-- document runbook in corporate catalog README.
+- document brownfield runbook.
 
 ### Non-goals
 
-- no automatic pipeline migration in Slice 1;
+- no production template publishing (deferred to post-T0);
+- no automatic pipeline migration in Slice 1B;
 - no source rewrite;
 - no repository policy mutation beyond existing governance actions;
 - no fleet-wide conformance engine;
@@ -91,9 +124,9 @@ A registration-only slice validates the hardest shared foundation — identity, 
 
 ### Gate
 
-GO to Slice 1.5 and Slice 2 only after the brownfield registration mechanism is proven against real estate examples.
+**GO** for Slice 1B. Proceed to Slice 2 only after brownfield registration is proven against real estate examples. Production template publishing requires Slice T0 completion.
 
-## 4. Slice 1.5 — align legacy greenfield templates and production publishing
+## 5. Slice 1.5 — align legacy greenfield templates and production publishing
 
 ### Objective
 
@@ -102,14 +135,14 @@ Close maturity gaps found in Slice 0 without blocking brownfield delivery.
 ### Scope
 
 - align `dotnet-worker-service`, `dotnet-grpc-service`, and `dotnet-cronjob` to the `dotnet-minimal-api` golden-path pattern (central CI, `idp.platform.yaml`, `idp:platform-context`), **or** mark them deprecated in favor of `dotnet-minimal-api` + `modernize-application`;
-- automate or document template sync CI from portal repo to corporate catalog (ADR 0016);
-- verify production template discovery via `platform-devops-idp-catalog/templates/catalog-info.yaml`.
+- automate template release CI on `platform-software-templates` (semver tags);
+- verify production template discovery via tag-pinned URL to `platform-software-templates/templates/catalog-info.yaml`.
 
 ### Gate
 
-May proceed in parallel with Slice 1 after WIP is committed.
+Requires Slice T0 complete. May proceed in parallel with Slice 1B after T0.
 
-## 5. Slice 2 — conformance assessment foundation
+## 6. Slice 2 — conformance assessment foundation
 
 ### Objective
 
@@ -136,7 +169,7 @@ Slice 0 found substantial WIP foundation (`idpAssessor`, `catalogValidation`, `c
 
 Findings must be deterministic, attributable to a profile/version and distinguish compliant/gap/unknown/not-applicable.
 
-## 6. Slice 3 — first greenfield Golden Path (harden)
+## 7. Slice 3 — first greenfield Golden Path (harden)
 
 ### Objective
 
@@ -161,7 +194,7 @@ Harden one supported workload archetype using the already-proven Catalog and own
 - no second/third stack just for portfolio completeness;
 - no broad policy mutation framework.
 
-## 7. Slice 4 — platform capability composition
+## 8. Slice 4 — platform capability composition
 
 ### Objective
 
@@ -177,7 +210,7 @@ Candidates:
 
 Extraction is justified by repeated concrete use, not anticipation.
 
-## 8. Slice 5 — PR-based modernization (harden)
+## 9. Slice 5 — PR-based modernization (harden)
 
 ### Objective
 
@@ -185,7 +218,7 @@ Harden the `modernize-application` template and its PR actions already implement
 
 ### Prerequisites
 
-- Slice 1 registration proven;
+- Slice 1B registration proven;
 - stable assessment model (Slice 2);
 - verified ADO branch/policy behavior;
 - reviewed mutation permissions;
@@ -196,7 +229,7 @@ Harden the `modernize-application` template and its PR actions already implement
 
 Prefer low-risk declarative changes such as Catalog normalization or thin pipeline binding before broad application-code modernization.
 
-## 9. Slice 6 — multi-workload and monorepo expansion
+## 10. Slice 6 — multi-workload and monorepo expansion
 
 ### Objective
 
@@ -204,7 +237,7 @@ Support adding/registering multiple independently operated Components while pres
 
 This should extend a proven model rather than introduce the model before basic registration works.
 
-## 10. Slice 7 — exceptions and day-2 governance
+## 11. Slice 7 — exceptions and day-2 governance
 
 ### Objective
 
@@ -212,7 +245,7 @@ Add governed deviations, expiry/review and recurring conformance evaluation.
 
 This may require a shared platform ADR because exception semantics can span multiple Backstage workstreams.
 
-## 11. Slice 8 — retirement workflow
+## 12. Slice 8 — retirement workflow
 
 ### Objective
 
@@ -220,7 +253,7 @@ Provide a safe orchestration path for deprecation and retirement.
 
 Deletion/decommission automation must be the last step, with explicit dependency and authority checks.
 
-## 12. Cross-slice construction handoff
+## 13. Cross-slice construction handoff
 
 Once implementation begins, create `docs/golden-paths/implementation-progress.md` and record for every checkpoint:
 
@@ -237,8 +270,12 @@ Once implementation begins, create `docs/golden-paths/implementation-progress.md
 11. unresolved questions;
 12. explicit GO / NO-GO.
 
-## 13. Current gate
+## 14. Current gate
 
-**GO FOR IMPLEMENTATION** — subject to preconditions in `current-state.md` section 15.
+| Track | Gate |
+|---|---|
+| Brownfield hardening (Slice 1B) | **GO** |
+| Production template publishing | **NO-GO** until Slice T0 |
+| Template source boundary (Slice T0) | **GO** — blocks publishing |
 
-**Recommended immediate next action:** Slice 1 — land and harden the brownfield vertical slice (commit WIP, E2E validation, production template sync). Slice 1.5 may proceed in parallel.
+**Recommended immediate actions:** Slice T0 and Slice 1B in parallel. Do not sync templates to corporate catalog.

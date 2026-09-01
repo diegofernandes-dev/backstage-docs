@@ -5,7 +5,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Assessment date:** 2026-09-01  
 > **Slice 0 status:** **COMPLETE**  
-> **Documentation checkpoint:** `backstage-docs@6706ad4` (published 2026-09-01)
+> **Template SoT checkpoint:** **COMPLETE** (2026-09-01)  
+> **Documentation checkpoint:** `backstage-docs@3a6dc50` baseline; template SoT decision published in this refresh
 
 ## 1. Purpose
 
@@ -32,8 +33,9 @@ A design described in this repository is not evidence that the capability exists
 |---|---|
 | Repository | `platform-devops-developer-portal` (Azure DevOps) |
 | Branch inspected | `feat/ado-repo-governance` |
+| Template SoT checkpoint SHA | `be16ffb02b59d791f0086d8e5086e4428c82b90d` |
 | Slice 0 inspection baseline SHA | `6e28611e90455dfd56f583bdd132ee830d88f126` |
-| Branch HEAD at docs publish | `be16ffb02b59d791f0086d8e5086e4428c82b90d` (GMUD F3.1 ledger; golden-path WIP unchanged) |
+| Branch HEAD at Slice 0 docs publish | `be16ffb02b59d791f0086d8e5086e4428c82b90d` (GMUD F3.1 ledger; golden-path WIP unchanged) |
 | `main` branch SHA (reference) | `86b2e03f1201decb23b15f13e24f87884e5e1bab` |
 | Working-tree delta | ~39 uncommitted files on `feat/ado-repo-governance` (unchanged since Slice 0) |
 | Backstage version | `1.51.0` (`backstage.json`) |
@@ -169,7 +171,9 @@ Seven templates exist in the working tree; four are committed at HEAD.
 
 ### Production template publishing
 
-ADR 0016 (WIP) defines a HYBRID model: templates authored in `platform-devops-developer-portal/templates/`, synced to `platform-devops-idp-catalog/templates/` for production discovery. **Sync has not been executed** — the corporate catalog repo has no `templates/` folder yet.
+Implementation ADR 0016 (WIP) proposed portal authoring with sync to `platform-devops-idp-catalog/templates/` for production discovery. **Sync has not been executed** — the corporate catalog repo has no `templates/` folder yet.
+
+**Template SoT checkpoint decision ([ADR-011](../adr/ADR-011-software-template-source-of-truth.md)):** supersede the catalog-sync path. Authoritative authoring moves to `platform-software-templates`; production discovers templates via direct tag-pinned URL to that repo. **Do not execute catalog sync** — it would cement the wrong boundary.
 
 ## 7. Catalog state
 
@@ -268,15 +272,18 @@ Not yet implemented: scheduled re-evaluation, exception persistence, fleet-wide 
 
 ## 11. Template repository boundary
 
-**Recommendation: HYBRID** (see `architecture.md` section 18 and implementation ADR 0016).
+**Recommendation: HYBRID WITH SPLIT AUTHORING SOURCE** — see [ADR-011](../adr/ADR-011-software-template-source-of-truth.md) and `architecture.md` section 18.
 
 | Asset | Owner repository |
 |---|---|
 | Backstage portal + Scaffolder actions | `platform-devops-developer-portal` |
-| Template YAML (authoring) | `platform-devops-developer-portal/templates/` |
-| Template YAML (production discovery) | `platform-devops-idp-catalog/templates/` (sync required) |
+| Custom field extensions | `platform-devops-developer-portal` |
+| Template YAML + skeletons (authoring) | `platform-software-templates` (target; not yet created) |
+| Template production distribution | `platform-software-templates` (direct URL discovery; no catalog mirror) |
 | Pipeline implementation | `platform-pipeline-templates` (separate ADO repo) |
 | Corporate catalog entities | `platform-devops-idp-catalog` |
+
+**Current implementation (pre-T0):** templates still live in `platform-devops-developer-portal/templates/` with dev file locations. Production config (WIP) points to corporate catalog bundle — **must be redirected to template repo during Slice T0**.
 
 ## 12. Architecture reconciliation summary
 
@@ -289,48 +296,59 @@ Not yet implemented: scheduled re-evaluation, exception persistence, fleet-wide 
 | Monorepo support | **DEVIATION** (schema only) |
 | Multi-workload | **PARTIAL** |
 | Brownfield register → assess → adopt | **DEVIATION** (implemented in WIP, unlanded) |
-| Template repository boundary | **MATCH** (HYBRID per ADR 0016 WIP) |
+| Template repository boundary | **DEVIATION** (WIP still in portal; target is ADR-011 split) |
 | Day-2 conformance | **PARTIAL** (assessor foundation, no engine) |
-| Production template publishing | **DEVIATION** (config ready, sync not executed) |
+| Production template publishing | **BLOCKED** (NO-GO until Slice T0; do not catalog-sync) |
 | Greenfield portfolio | **MATCH** (with maturity gaps on 3 .NET POCs) |
 
 ## 13. Deviations requiring follow-up
 
 1. Brownfield and golden-path capabilities exist only in uncommitted working tree on `feat/ado-repo-governance`.
-2. Production template sync to `platform-devops-idp-catalog/templates/` not executed.
-3. Three .NET POC templates not aligned to central CI / `idp.platform.yaml` pattern.
-4. `modernize-application` promote step has placeholder `repoContentsUrl`.
-5. Monorepo / multi-Component registration flow not implemented.
-6. Implementation ADRs 0013–0016 uncommitted; pending merge to implementation repo.
+2. `platform-software-templates` repository not yet created — Slice T0 required before production template publishing.
+3. Production `app-config.production.yaml` (WIP) references corporate catalog template bundle — must redirect to template repo during T0.
+4. Three .NET POC templates not aligned to central CI / `idp.platform.yaml` pattern.
+5. `modernize-application` promote step has placeholder `repoContentsUrl`.
+6. Monorepo / multi-Component registration flow not implemented.
+7. Implementation ADRs 0013–0016 uncommitted; pending merge to implementation repo. ADR 0016 authoring/distribution portions superseded by ADR-011.
 
 ## 14. Unresolved questions
 
-1. When will automated CI sync replace manual template publishing to corporate catalog?
+1. Exact dev ergonomics for local template iteration after T0 (URL location vs local clone).
 2. Should legacy .NET POC templates be aligned or deprecated in favor of `dotnet-minimal-api` + `modernize-application`?
 3. What is the production authentication model for brownfield PR actions — continued PAT or service principal/managed identity?
 4. How should monorepo registration declare multiple Components — one descriptor or multiple?
 
 ## 15. Current-state conclusion
 
-Slice 0 is **evidence-complete**. The ADO implementation contains a functional greenfield Scaffolder foundation at HEAD and a substantially more complete Golden Path / brownfield model in uncommitted WIP.
+Slice 0 is **evidence-complete**. The template source-of-truth checkpoint is **decision-complete** ([ADR-011](../adr/ADR-011-software-template-source-of-truth.md)).
 
-**Implementation gate: GO FOR IMPLEMENTATION** — subject to preconditions:
+The ADO implementation contains a functional greenfield Scaffolder foundation at HEAD and a substantially more complete Golden Path / brownfield model in uncommitted WIP.
+
+**Implementation gates:**
+
+| Track | Gate |
+|---|---|
+| Brownfield hardening (Slice 1B) | **GO** |
+| Production template publishing | **NO-GO** until Slice T0 |
+
+Preconditions for brownfield hardening:
 
 1. Commit and PR-review WIP on `feat/ado-repo-governance`.
-2. Execute first production template sync to corporate catalog.
-3. End-to-end validation of `register-existing-application` against a real legacy repository.
-4. Fix `modernize-application` promote URL placeholder.
+2. End-to-end validation of `register-existing-application` against a real legacy repository.
+3. Fix `modernize-application` promote URL placeholder.
 
-**Recommended next slice:** land and harden the brownfield vertical slice (not build from scratch). See `implementation-roadmap.md`.
+**Do not** execute production template sync to `platform-devops-idp-catalog/templates/`.
+
+**Recommended next slices:** Slice T0 (template source boundary) in parallel with Slice 1B (brownfield hardening). See `implementation-roadmap.md`.
 
 ## 16. Documentation checkpoint record
 
 | Field | SHA |
 |---|---|
-| `backstage-docs` baseline (pre-Slice 0) | `c0ef3b4d5dfcce5da005d563e4c36fbb48bbb933` |
+| `backstage-docs` baseline (template SoT checkpoint) | `3a6dc50cff8bdb52e6acc0bd430e24dced3eed71` |
 | `backstage-docs` Slice 0 publish | `f6260c7657ba53207e83bef5542124b3d9581206` |
 | `backstage-docs` at last refresh | `6706ad4442dd30435d0b49bfa7ac5a502d7e3426` |
+| ADO template SoT checkpoint SHA | `be16ffb02b59d791f0086d8e5086e4428c82b90d` |
 | ADO Slice 0 inspection baseline | `6e28611e90455dfd56f583bdd132ee830d88f126` |
-| ADO branch HEAD at last refresh | `be16ffb02b59d791f0086d8e5086e4428c82b90d` |
 
-Shared ADR created: [ADR-010](../adr/ADR-010-catalog-system-component-semantics.md).
+Shared ADRs: [ADR-010](../adr/ADR-010-catalog-system-component-semantics.md), [ADR-011](../adr/ADR-011-software-template-source-of-truth.md).

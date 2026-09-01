@@ -18,27 +18,34 @@ The governing principle is **Golden Path, not Golden Cage**: new applications sh
 - Shared decisions that affect the overall Backstage platform belong in `docs/adr/`.
 - Workstream-specific reasoning and handoffs belong here.
 
-## Architecture checkpoint — Slice 0 complete (2026-09-01)
+## Architecture checkpoint — template SoT decision complete (2026-09-01)
 
 Slice 0 inspected `platform-devops-developer-portal` on branch `feat/ado-repo-governance` at baseline `6e28611`, plus ~39 uncommitted WIP files containing brownfield templates, assessor, catalog validation, and golden-path alignment.
 
-Documentation published to `backstage-docs@f6260c7`; refreshed at `6706ad4`. ADO branch HEAD at refresh: `be16ffb` (GMUD workstream; golden-path WIP delta unchanged).
+Template source-of-truth checkpoint inspected ADO at `be16ffb` (same golden-path WIP delta). Documentation baseline: `backstage-docs@3a6dc50`.
 
 Key findings:
 
 - Greenfield Scaffolder foundation exists at HEAD (4 .NET templates, 3 `idp:*` actions).
 - Golden Path and brownfield capabilities are substantially implemented in uncommitted WIP.
-- Template repository boundary: **HYBRID** (author in portal repo, discover in corporate catalog — ADR 0016).
+- Template repository boundary: **HYBRID WITH SPLIT AUTHORING SOURCE** — [ADR-011](../adr/ADR-011-software-template-source-of-truth.md).
 - Catalog System/Component semantics confirmed — see [ADR-010](../adr/ADR-010-catalog-system-component-semantics.md).
 
-**Current gate: GO FOR IMPLEMENTATION** — subject to preconditions in `current-state.md`.
+**Current gates:**
+
+| Track | Gate |
+|---|---|
+| Brownfield hardening (Slice 1B) | **GO** |
+| Production template publishing | **NO-GO** until Slice T0 |
+
+Do not sync templates to `platform-devops-idp-catalog/templates/`.
 
 ## Workstream documents
 
 - [`current-state.md`](./current-state.md) — evidence-based assessment with ADO implementation evidence.
 - [`architecture.md`](./architecture.md) — target greenfield + brownfield architecture, reconciled with ADO evidence.
 - [`adoption-model.md`](./adoption-model.md) — brownfield registration, assessment, progressive adoption stages, PR-based modernization.
-- [`implementation-roadmap.md`](./implementation-roadmap.md) — reviewable slices and gates; Slice 0 complete; Slice 1 is land/harden brownfield WIP.
+- [`implementation-roadmap.md`](./implementation-roadmap.md) — reviewable slices and gates; Slice T0 + Slice 1B are next.
 - `implementation-progress.md` — create only when implementation is explicitly authorized and begins.
 
 ## Target model

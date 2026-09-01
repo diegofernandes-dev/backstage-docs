@@ -1,8 +1,9 @@
 # Golden Paths — target architecture
 
-> **Status:** Reconciled with ADO evidence (Slice 0 complete)  
+> **Status:** Reconciled with ADO evidence (Slice 0 complete; template SoT checkpoint complete)  
 > **Implementation:** Authorized — subject to preconditions in `current-state.md`  
-> **Implementation verification:** `feat/ado-repo-governance@6e28611` + uncommitted WIP
+> **Implementation verification:** `feat/ado-repo-governance@be16ffb` + uncommitted WIP  
+> **Template SoT decision:** [ADR-011](../adr/ADR-011-software-template-source-of-truth.md) — HYBRID WITH SPLIT AUTHORING SOURCE
 
 ## 1. Objective
 
@@ -319,61 +320,76 @@ Full evidence in `current-state.md`.
 
 ## 18. Software Template repository boundary
 
-**Recommendation: HYBRID**
+**Recommendation: HYBRID WITH SPLIT AUTHORING SOURCE** — see [ADR-011](../adr/ADR-011-software-template-source-of-truth.md).
 
-Slice 0 validated that the implementation already follows a hybrid model (implementation ADR 0016, WIP):
+Template source-of-truth checkpoint (2026-09-01) superseded the Slice 0 **CURRENT HYBRID** recommendation (portal authoring + corporate catalog sync). The catalog-sync model decoupled runtime discovery but did not decouple authoring ownership and introduced an unnecessary second copy.
+
+### Three explicit concerns
+
+| Concern | Mechanism |
+|---|---|
+| **Authoring source** | `platform-software-templates` (dedicated Azure DevOps repository) |
+| **Publishing / distribution** | Semver git tags on `platform-software-templates` |
+| **Runtime discovery** | Backstage `catalog.locations` URL to `templates/catalog-info.yaml`, tag-pinned in production |
+
+### Authoritative boundaries
 
 | Asset | Owner repository | Release model |
 |---|---|---|
 | Backstage portal + Scaffolder actions | `platform-devops-developer-portal` | Portal deploy |
-| Template YAML (authoring) | `platform-devops-developer-portal/templates/` | Fast local iteration via file locations |
-| Template YAML (production discovery) | `platform-devops-idp-catalog/templates/` | Independent sync from authoring repo |
-| Pipeline implementation | `platform-pipeline-templates` (separate ADO repo) | Git tag semver (`dotnet-ci-1.0.0`, etc.) |
+| Custom field extensions | `platform-devops-developer-portal` | Portal deploy |
+| Template YAML + skeletons (authoring) | `platform-software-templates` | Semver git tags |
+| Template production distribution | `platform-software-templates` | Direct URL discovery (no catalog mirror) |
+| Pipeline implementation | `platform-pipeline-templates` | Git tag semver (`dotnet-ci-1.0.0`, etc.) |
 | Corporate catalog entities | `platform-devops-idp-catalog` | PR-based promotion |
+
+`platform-devops-idp-catalog` is **not** a Software Template registry. It holds organizational entity inventory (Systems, Components) only.
 
 ### Ownership rationale
 
 - Scaffolder custom actions are trust-boundary code and must ship with the portal.
-- Template YAML contributors may be product/platform teams who should not need write access to Backstage application code — the corporate catalog sync path enables separate CODEOWNERS.
-- Pipeline implementation is already in a separate repository with versioned tags.
+- Product teams maintaining Golden Paths must be able to contribute **without write access to the Backstage application repository**. Path-based CODEOWNERS inside the portal repo are insufficient — portal CI, dependency upgrades, and RBAC remain in the blast radius.
+- Pipeline implementation is already in a separate repository with versioned tags; Software Templates follow the same pattern.
 
 ### Versioning
 
-- **Template product version:** implicit via git history in authoring repo; production discovery pinned to corporate catalog commit.
+- **Template product version:** semver git tags on `platform-software-templates` (e.g. `templates-v1.0.0`).
+- **Scaffolder action contract:** portal release; document action IDs and input schemas.
 - **Application/platform contract version:** `idp.platform.yaml` `contracts.pipeline` and adoption-stage annotation.
 - **Central pipeline contract version:** git tags on `platform-pipeline-templates`.
 
-### CI validation model (future)
+### CI validation model
 
 | Pipeline | Validates |
 |---|---|
 | Portal build/test/deploy | Backstage app, Scaffolder actions, backend modules |
-| Template sync/publish | Template schema, YAML validity, optional Scaffolder dry-run |
+| Template repo CI | Template schema, YAML validity, bundle integrity, optional Scaffolder dry-run |
 | Pipeline template release | Central CI template correctness, tag creation |
 
-Templates should not share the portal release path in production. Dev uses file locations for speed.
+Templates must not share the portal release path in production.
 
 ### Dependency direction
 
 ```text
-Scaffolder actions (portal) ──orchestrate──> Template YAML (authoring or catalog)
+Scaffolder actions (portal) ──orchestrate──> Template YAML (platform-software-templates)
 Template YAML ──generates──> Application-owned artifacts (catalog-info, idp.platform.yaml, thin pipeline)
 Application artifacts ──bind to──> Central pipeline templates (tagged)
 ```
 
 ### Rejected alternatives
 
-- **KEEP TOGETHER** (templates only in portal repo): couples template changes to portal deploy; fails production discovery requirement.
-- **SPLIT** (dedicated `platform-software-templates` repo): premature at current portfolio size; corporate catalog sync achieves most benefits.
+- **KEEP TOGETHER** (templates only in portal repo): couples template changes to portal deploy; blocks independent Golden Path ownership.
+- **CURRENT HYBRID** (portal authoring + catalog sync): runtime discovery OK; authoring ownership and duplication risk remain. **Not permanent.**
+- **FULL SPLIT** (actions also separate): rejected — actions and field extensions remain portal-coupled.
 - **Mega-template:** rejected — seven discrete templates with shared actions is the correct decomposition.
 
 ### Migration impact
 
-Low — sync `templates/` to corporate catalog; production config already references the URL location. First sync not yet executed.
+**Slice T0** (not yet executed): create `platform-software-templates`, move `templates/` from portal, update dev/prod discovery URLs, validate E2E, supersede implementation ADR 0016. Do **not** populate `platform-devops-idp-catalog/templates/`.
 
 ## 19. Remaining open questions
 
 - Monorepo registration flow for multiple Components per repository.
-- Automated template sync CI vs manual runbook.
 - Production authentication for brownfield PR actions (PAT vs service principal).
 - Whether legacy .NET POC templates should be aligned or deprecated.
+- Exact dev ergonomics for local template iteration (URL vs clone) after T0.

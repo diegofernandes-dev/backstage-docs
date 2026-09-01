@@ -26,9 +26,10 @@ Do not reconstruct missing history from memory when the canonical documents exis
 
 - `docs/adr/` — cross-workstream architecture decisions.
 - `docs/backstage/` — current platform state and implementation/construction handoffs.
+- `docs/golden-paths/` — Software Templates, Golden Paths, brownfield adoption (architecture, current state, roadmap).
 - `docs/ui/` — normative Backstage UI contracts and visual notes.
 - `docs/architect-review-*.md` — active architecture review packets.
-- Future workstreams should add focused documentation areas under `docs/` while sharing the same ADR set when decisions affect the overall Backstage platform.
+- Additional workstreams should add focused documentation areas under `docs/` while sharing the same ADR set when decisions affect the overall Backstage platform.
 
 Examples of independent workstreams that can coexist here include:
 

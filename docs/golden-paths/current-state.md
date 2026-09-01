@@ -6,7 +6,7 @@
 > **Assessment date:** 2026-09-01  
 > **Slice 0 status:** **COMPLETE**  
 > **Template SoT checkpoint:** **COMPLETE** (2026-09-01)  
-> **Documentation checkpoint:** `backstage-docs@3a6dc50` baseline; template SoT decision published in this refresh
+> **Documentation checkpoint:** `backstage-docs@f843fe7` (template SoT decision + ADR-011)
 
 ## 1. Purpose
 
@@ -346,8 +346,8 @@ Preconditions for brownfield hardening:
 | Field | SHA |
 |---|---|
 | `backstage-docs` baseline (template SoT checkpoint) | `3a6dc50cff8bdb52e6acc0bd430e24dced3eed71` |
+| `backstage-docs` template SoT publish | `f843fe7e985563ceae90fbc6dc87c4eb97670a8a` |
 | `backstage-docs` Slice 0 publish | `f6260c7657ba53207e83bef5542124b3d9581206` |
-| `backstage-docs` at last refresh | `6706ad4442dd30435d0b49bfa7ac5a502d7e3426` |
 | ADO template SoT checkpoint SHA | `be16ffb02b59d791f0086d8e5086e4428c82b90d` |
 | ADO Slice 0 inspection baseline | `6e28611e90455dfd56f583bdd132ee830d88f126` |
 

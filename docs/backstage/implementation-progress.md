@@ -552,6 +552,96 @@ architectural slice with a typing correction only — not a new slice.
 
 ---
 
+## F3.1.1 — Published Policy & Selector Resolution (planning checkpoint)
+
+Implementation repository/branch/SHA: ADO `platform-devops-developer-portal`,
+`feat/ado-repo-governance`, `4bad41d` (full SHA
+`4bad41d058edf5c5314d17275e0c8bdb5abf690f`) — verified unchanged from F3.1.0-H
+closure; `origin/feat/ado-repo-governance` fetched and confirmed identical.
+Documentation baseline SHA: `f4dc268b6f7ac09600710e59d9c7d35d918fdc15`.
+
+### Objective
+
+Design the deterministic mechanism that answers, for an immutable Change
+snapshot: which published policy version applies, which
+`ApprovalRequirement`s it produces, which selectors those need, what
+principal each selector resolves to, and what provenance a future
+`AuthorizationRound` must snapshot. Planning only — no
+`AuthorizationRound` is created by `POST /changes` in this checkpoint (that
+remains F3.1.2).
+
+### Architecture applied
+
+Full design recorded in
+[`f3-1-1-implementation-plan.md`](./f3-1-1-implementation-plan.md), derived
+by reading the actual F3.1.0 implementation (types, canonical hashing,
+evaluators, repository contract, migration columns, architecture guards) at
+ADO `4bad41d`, not re-derived from ADR-009 alone. Key decisions:
+
+- Policy matrix as versioned, frozen TypeScript; selector bindings as
+  validated app-config (hybrid publication model).
+- Policy input narrowed to `{classification, risk}` only.
+- Policy output is a pure `RequirementDefinition[]` — the policy never
+  persists `ApprovalRequirement` rows.
+- One immutable selector bundle per version (not per-selector versioning),
+  matching the round-level `selectorBundleKey/Version` columns already
+  persisted by F3.1.0.
+- Emergency `emergency-approver-a`/`emergency-approver-b` selectors
+  restricted to `user`-typed principals in F3 MVP, so distinctness is
+  provable at submission — flagged as an explicit open question for
+  architecture review, not a silent ADR-009 amendment.
+- No new database tables, routes, UI, Teams, or Azure DevOps integration.
+- Reuses `authorization/canonical.ts` verbatim for every hash; no second
+  canonicalization scheme introduced.
+
+### ADO files changed
+
+**None.** This checkpoint is documentation-only; the ADO working tree is
+unmodified (`git status --porcelain` empty before and after).
+
+### Tests / functional verification
+
+Not applicable — no code was written. Test strategy (policy matrix,
+determinism, version isolation, invalid publication, selector resolution,
+emergency separation, generic-semantics guard, no-provider-leakage guard, SLA
+validation, regression) is specified in the plan for the first authorized
+implementation slice to satisfy.
+
+### Deviations
+
+Carried forward, unchanged by this checkpoint:
+
+- `ChangeManagementService` still calls `buildChange()` twice — **must fix
+  before F3.1.2**.
+- Committed app-config still references RBAC CSV/conditional-policy files
+  absent from ADO HEAD — prerequisite for F3.1.4.
+
+### Open questions
+
+1. Should emergency Approver A/B ever support authority-typed selectors? This
+   plan narrows F3 MVP to individual (`user`) selectors only, to keep
+   separation-of-duty provable at submission. Left for architecture review;
+   would require its own ADR if reversed.
+2. `selectorBundleVersion` string convention — left to F3.1.1b implementation
+   time as a config-authoring detail.
+
+### Gate
+
+**F3.1.1 planning is COMPLETE.** Recommended decomposition: two slices,
+F3.1.1a (pure policy domain + registry) and F3.1.1b (selector config +
+Catalog-backed resolver) — a two-way split, not the three-way split
+originally suggested, since a standalone "validation + provenance" slice has
+no independent I/O boundary of its own.
+
+**GO for implementation review of slice F3.1.1a** (see the plan's §29 for
+exact file boundaries, types, tests, and STOP condition).
+
+**F3.1.1 implementation itself remains NO-GO** until a separate, constrained
+implementation prompt explicitly authorizes F3.1.1a. No ADO source was
+modified in this checkpoint.
+
+---
+
 ## Next checkpoint template
 
 ```text

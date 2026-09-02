@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-01 (F3.1.0-C corrected local candidate; architecture review pending)
+> **Last updated:** 2026-09-01 (F3.1.0-V cutover & verification closure; ready for architecture acceptance and publication review)
 
 ## Stack
 
@@ -36,7 +36,7 @@
 | Routes                     | `POST /api/change-management/changes` · `GET /api/change-management/changes` · `GET /api/change-management/changes/:changeId`        |
 | Service                    | `ChangeManagementService` — `createChange`, `listChanges`, `getChange`                                                               |
 | Platform index             | `ChangeIndexRepository` → `change_index` table (identity, routing, audit snapshot incl. `executionPlan`)                             |
-| Idempotency                | `IdempotencyRepository` → `change_idempotency` table (platform-owned, crash-safe recovery)                                           |
+| Idempotency                | `IdempotencyRepository` → `change_idempotency` table (platform-owned, crash-safe recovery; carries an immutable `authorization_mode` since F3.1.0-V, see below)                                           |
 | Sequence                   | `DatabaseChangeIdGenerator` → `change_id_sequences` table                                                                            |
 | Provider registry          | `ProviderRegistry` — immutable `providerKey` routing per change                                                                      |
 | Provider                   | `IChangeManagementProvider` → `DevelopmentProvider` (`providerKey: development`, non-production; `development_change_records` table) |
@@ -89,9 +89,10 @@
 
 | Slice                                | Status                                                                                                                                    |
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| F2.2.1 implementation                | **IMPLEMENTED** at ADO `6e28611`                                                                                                          |
-| F3 authorization architecture        | **ACCEPTED** by ADR-009 at F3.0.1                                                                                                         |
-| F3.1 Authorization Ledger Foundation | `be16ffb` is an unreviewed candidate; corrected locally by `7a9347e`; architecture review pending, no ADO publication; later slices NO-GO |
+| F2.2.1 implementation                | **ACCEPTED IMPLEMENTED BASELINE** at ADO `6e28611`                                                                                                          |
+| F3.0.1 authorization architecture    | **ACCEPTED ARCHITECTURE** by ADR-009                                                                                                         |
+| F3.1.0 Authorization Ledger Foundation | **LOCAL REVIEW CANDIDATE** — `be16ffb` (unreviewed) → `7a9347e` (cutover-safety correction) → `06ec9cf` (F3.1.0-V cutover/verification closure). **READY FOR ARCHITECTURE ACCEPTANCE AND PUBLICATION REVIEW.** Not merged, not pushed to ADO. |
+| F3.1.1 and later slices              | **NOT AUTHORIZED**                                                                                                                        |
 
 ### F3.0.1 accepted authorization architecture (documentation only)
 
@@ -116,7 +117,7 @@
 | DevOps                           | Policy/control/integration/observability/exception owner; absent from happy-path per-deploy approval                                   |
 | Model C                          | Retained; bounded platform authorization ledger sits beside the index while provider owns operational GMUD detail                      |
 
-**Gate:** the [F3 architect review brief](../architect-review-f3-change-authorization.md) records all nine architecture decisions as resolved and ADR-009 as Accepted. F3.1.0 now has a corrected local review candidate: unauthorized/unreviewed candidate `be16ffb`, followed by cutover-safety correction `7a9347e`. Before F3.1.2, all existing and newly created F2 Changes remain `LEGACY_PRE_F3`; no ledger facts are fabricated. The accepted implementation baseline remains F2.2.1 at `6e28611`. F3.1.1–F3.1.4 and any ADO publication remain NO-GO pending explicit review.
+**Gate:** the [F3 architect review brief](../architect-review-f3-change-authorization.md) records all nine architecture decisions as resolved and ADR-009 as Accepted. F3.1.0 local candidate lineage: unauthorized/unreviewed `be16ffb` → cutover-safety correction `7a9347e` → F3.1.0-V closure `06ec9cf`, which durably ties `change_idempotency.authorization_mode` (immutable, fail-closed on retry) to `change_index.authorization_mode` as the single source of a logical submission's regime, and classifies the previously reported test-process non-exit as pre-existing Jest watch-mode behavior (confirmed identical on `6e28611` and the candidate), not a leak. Before F3.1.2, all existing and newly created F2 Changes remain `LEGACY_PRE_F3`; no ledger facts are fabricated. F3.1.0-V is **ready for architecture acceptance and publication review**, not independently promoted to accepted implementation. The accepted implementation baseline remains F2.2.1 at `6e28611`. F3.1.1–F3.1.4 and any ADO publication remain NO-GO pending explicit review.
 
 See [`implementation-progress.md`](./implementation-progress.md) §12–§19 for full checkpoint detail (F2.1 through F3.0.1 architecture convergence).
 
@@ -169,6 +170,7 @@ Historical F1/F2 screenshots remain supporting evidence in the legacy POC reposi
 | **F2.2.1 commit**                                | **`6e28611`** (participant read policy)                                              |
 | Unreviewed F3.1.0 candidate                      | `be16ffb` (not accepted or published)                                                |
 | Corrective F3.1.0-C candidate                    | `7a9347e` on local branch `review/f3-1-0-cutover-safety` (not accepted or published) |
+| **F3.1.0-V closure candidate**                    | **`06ec9cf`** on local branch `review/f3-1-0-cutover-safety` (not accepted or published) |
 | Legacy bridge final architecture import baseline | `poc-teams-approval@fe4f807`                                                         |
 | New documentation bridge                         | `diegofernandes-dev/backstage-docs@main`                                             |
 

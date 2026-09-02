@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F2.2.1 — ADO `6e28611`  
-> **Current GMUD architecture baseline:** F3.0.1 — ADR-009 Accepted; F3.1 planning allowed, implementation not yet authorized
+> **Current GMUD architecture baseline:** F3.0.1 — ADR-009 Accepted; F3.1.0-V local candidate `06ec9cf` ready for architecture acceptance and publication review; F3.1.1+ not authorized
 
 ## How to use this log
 
@@ -202,6 +202,136 @@ produce Changes that the F3 model considers inconsistent.
 **GO for architecture review of F3.1.0-C only.** `be16ffb` and `7a9347e` are local
 review evidence, not an accepted baseline. **NO-GO** for ADO publication/merge and
 for F3.1.1–F3.1.4 until explicit acceptance.
+
+---
+
+## GMUD F3.1.0-V — Cutover & Verification Closure
+
+Implementation repository/branch/SHA:
+`platform-devops-developer-portal`, local branch
+`review/f3-1-0-cutover-safety`, `06ec9cf`
+
+Local candidate lineage: `6e28611` (accepted baseline) → `be16ffb` (unreviewed) →
+`7a9347e` (cutover-safety correction) → `06ec9cf` (this checkpoint).
+
+Documentation baseline SHA: `ef1e97253e6e0fb11e1a9d69368f3332ad5ffa74`
+
+### Objective
+
+Close the two remaining architecture-review blockers on F3.1.0-C: the durable
+authorization regime was not yet captured at the idempotency reservation boundary,
+and the previously reported test-process non-exit was recorded but not classified.
+No other design decision was reopened.
+
+### Architecture applied
+
+**Cross-cutover idempotency regime.** The idempotency reservation
+(`change_idempotency`) is written before `change_index` necessarily exists, so it
+is the earliest durable boundary for a logical submission
+(`ChangeManagementService.createChange`, reserve at the top of the method, index
+insert later in the same call). A new migration
+(`20260901220000_add_authorization_mode_to_change_idempotency.cjs`) adds
+`change_idempotency.authorization_mode` (`LEGACY_PRE_F3 | LEDGER_REQUIRED`,
+default `LEGACY_PRE_F3`, immutable via a dialect-specific trigger identical in
+shape to the existing `change_index` guard). Existing rows are backfilled to
+`LEGACY_PRE_F3` — no ledger regime is fabricated for history that predates the
+ledger.
+
+`KnexIdempotencyRepository.reserve()` persists the caller's requested mode (or
+`LEGACY_PRE_F3` if none is given, which is what the still-F2 path always does
+today) on first insert, and on a retry against an existing row now checks the
+requested mode against the stored one in addition to the existing payload-hash
+check — a mismatch on either fails closed with `CONFLICT`. The stored mode is
+never updated on a retry.
+
+`change_index.authorization_mode` (added by F3.1.0-C) is no longer hardcoded in
+`changeIndexMapper.changeToIndexRow` — it is threaded through from the
+reservation's mode via `PendingIndexInput.authorizationMode`, so the index row
+inherits from the reservation rather than the two being independently decided.
+`ChangeManagementService` asserts index/reservation consistency at every point it
+re-reads an existing index record alongside a reservation, throwing
+`INTERNAL_ERROR` on disagreement — no background repair.
+
+The future F3.1.2 boundary is unchanged from the F3.1.0-C plan and is now
+mechanically enforced: a submission path that reserves with `LEDGER_REQUIRED`
+must build one canonical Change, create `AuthorizationRound` 1, and finalize the
+index with the same `LEDGER_REQUIRED` value; a retry whose reservation says
+`LEGACY_PRE_F3` cannot be reinterpreted as ledger-governed merely because the
+caller now defaults to or requests the new mode — the reservation's regime is
+authoritative for that logical submission for its lifetime.
+
+**Open-handle classification.** The previously reported "Jest reports success but
+the process retains an open handle" is Jest **watch mode**, not a resource leak.
+`@backstage/cli-module-test-jest`'s `repo test` and `package test` commands both
+auto-append `--watch`/`--watchAll` whenever `CI` is unset, no `--since` is given,
+and neither `--coverage` nor `--watch(All)` was passed explicitly. Reproduced
+identically on accepted baseline `6e28611` and on the F3.1.0-V candidate: `yarn
+test` without `CI` hangs waiting for input in both, and must be interrupted
+manually. `@backstage/cli` is `^0.36.2` (unchanged) at both commits, and the
+change-management suites' own teardown was audited and found correct — every
+`createTestKnex()` has a matching `destroyTestKnex()`, and `postgres.test.ts`
+destroys both its scoped and admin Knex instances in `afterAll`. No `--forceExit`
+was added.
+
+### Tests / functional verification
+
+New/extended, `packages/backend/src/modules/changeManagement/`:
+
+- `persistence/idempotencyAuthorizationMode.test.ts` (new) — reservation defaults
+  to `LEGACY_PRE_F3`; identical retry preserves `changeId` and regime; a retry
+  requesting a different mode (simulating a post-cutover caller) fails closed and
+  leaves the stored regime unchanged; an independent key for the same actor may
+  use a different mode; a different actor with the same key is independent;
+  `insertPending` inherits the reservation's mode and the column rejects direct
+  updates.
+- `authorization/migration.test.ts` (extended) — SQLite backfill of pre-existing
+  idempotency rows to `LEGACY_PRE_F3`, invalid-value rejection, and up/down of the
+  new migration.
+- `authorization/postgres.test.ts` (extended) — same backfill/immutability
+  assertions and up/down against disposable PostgreSQL 16.
+- `ChangeManagementService.*.test.ts`, `testHelpers.ts` — updated call sites for
+  the new required `authorizationMode` parameter; all pre-existing F2 recovery,
+  crash-safe retry, actor-scoped idempotency, and payload-mismatch-conflict
+  behavior unchanged and still green.
+
+Results:
+
+- Change Management (SQLite): 15 suites / 109 tests PASS (`CI=1`,
+  `--runInBand`), including the architecture guard.
+- Change Management (SQLite + disposable PostgreSQL 16, `--detectOpenHandles`):
+  15 suites / 109 tests PASS, **0 open handles reported**, process **exit code 0**
+  on both runs.
+- Baseline `6e28611` (same command, `--detectOpenHandles`, `CI=1`): 9 suites / 68
+  tests PASS, 0 open handles, exit code 0.
+- Baseline `6e28611` and candidate `06ec9cf`, `yarn test` without `CI`: both enter
+  Jest watch mode and do not exit on their own — identical pre-existing behavior,
+  confirmed by process inspection on both, manually terminated in both cases.
+- Backend lint PASS (`CI=1`). Backend build PASS (`CI=1`).
+- `tsc` (repo-wide): identical 6 pre-existing errors before and after this
+  checkpoint's changes (`KnexAuthorizationLedgerRepository.test.ts` missing
+  `Knex` type import; `changeManagementPlugin.ts` duplicate-`knex`-package
+  structural mismatch) — both present at `7a9347e`, neither touched by this
+  checkpoint, neither in the Change Management test path.
+
+### Deviations and process record
+
+- `buildChange()` is still called twice in `ChangeManagementService.createChange`
+  — unchanged from F3.1.0-C, **MUST FIX BEFORE F3.1.2**, not addressed here.
+- Configured RBAC policy files remain absent from ADO HEAD — unchanged from
+  F3.1.0-C, resolve before F3.1.4.
+- ADO remote `origin/feat/ado-repo-governance` state not re-verified (unreachable
+  from this environment); irrelevant, as nothing was pushed.
+- Unrelated modifications in the primary ADO worktree were preserved untouched;
+  all work happened in the isolated `review/f3-1-0-cutover-safety` worktree.
+
+### Gate
+
+**GO for architecture acceptance and publication review of F3.1.0-V.** Local
+candidate `06ec9cf` is the full lineage `be16ffb` → `7a9347e` → `06ec9cf`; none of
+the three commits is accepted, merged, or published to ADO by this checkpoint. The
+accepted implementation baseline remains F2.2.1 at `6e28611`.
+
+**NO-GO for F3.1.1–F3.1.4** until F3.1.0 is explicitly accepted.
 
 ---
 

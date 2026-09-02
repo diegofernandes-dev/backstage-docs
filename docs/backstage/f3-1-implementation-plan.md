@@ -1,12 +1,20 @@
 # GMUD F3.1 — Authorization Ledger Foundation implementation plan
 
-- Status: F3.1.0-V **READY FOR ARCHITECTURE ACCEPTANCE AND PUBLICATION REVIEW**
+- Status: F3.1.0 **ACCEPTED IMPLEMENTED BASELINE (published)**
 - Date: 2026-09-01
-- Accepted ADO implementation baseline: `platform-devops-developer-portal@6e28611` (F2.2.1)
-- Unreviewed F3.1.0 candidate: `be16ffb02b59d791f0086d8e5086e4428c82b90d`
-- Corrective local candidate (F3.1.0-C): `7a9347e318b3a3a0b5bf4d457f206ce033a6f833`, branch `review/f3-1-0-cutover-safety`
-- Closure local candidate (F3.1.0-V): `06ec9cf`, branch `review/f3-1-0-cutover-safety`
+- Prior accepted ADO implementation baseline: `platform-devops-developer-portal@6e28611` (F2.2.1)
+- **Official published F3.1.0 implementation commit: `766388393458f82fbdc2e0502b8c193d0a85e605`**
+  (short `7663883`), branch `feat/ado-repo-governance`, direct child of `6e28611`
+- Review-only local candidates (**not official history**, retained as review/audit evidence on
+  `review/f3-1-0-cutover-safety`):
+  - Unreviewed F3.1.0 candidate: `be16ffb02b59d791f0086d8e5086e4428c82b90d`
+  - Corrective local candidate (F3.1.0-C): `7a9347e318b3a3a0b5bf4d457f206ce033a6f833`
+  - Closure local candidate (F3.1.0-V, architecture-accepted final state): `06ec9cf93da7f08acf395d1866883a29de3c430f`
+- The official commit was built as one clean final-state transfer of `6e28611..06ec9cf` onto
+  `6e28611` — the three candidate commits were **not** cherry-picked, and the official tree is
+  byte-for-byte identical to `06ec9cf`'s tree (`ad970c288f7d983de1210e34987de52851fb0c86`).
 - Documentation baseline for this closure: `backstage-docs@ef1e97253e6e0fb11e1a9d69368f3332ad5ffa74`
+- Documentation baseline for this publication checkpoint (F3.1.0-P): `backstage-docs@f5df375fb332bbb9eb2d8f76c973674b1d53c87f`
 - Architecture authority: [ADR-009](../adr/ADR-009-change-authorization-model.md)
 
 ## Outcome
@@ -182,14 +190,52 @@ Closure-candidate evidence at `06ec9cf` (F3.1.0-V):
   checkpoint's changes, none in the Change Management test path;
 - no `--forceExit` added.
 
+### Publication evidence (F3.1.0-P, official commit `7663883`)
+
+Re-verified independently from a clean worktree built at `6e28611` (final-state transfer of
+`06ec9cf`, not a cherry-pick chain):
+
+- Tree-hash equivalence: `git write-tree` on the staged clean candidate ==
+  `ad970c288f7d983de1210e34987de52851fb0c86` == `06ec9cf`'s tree; `git diff 06ec9cf` empty.
+  `git diff --name-status 6e28611` matched exactly the 22 F3.1.0-scoped paths, no unrelated files.
+- Change Management module tests (the 15 suites under `changeManagement/`): **153/153 tests
+  PASS**, exit code 0, `CI=true`, no `--forceExit`. Broader `--testPathPatterns` runs (which also
+  matched sibling modules by substring) additionally passed at 27/29 suites, 153/165 tests — all
+  green, no failures anywhere in the run.
+- SQLite: PASS (in-process, part of the above run).
+- PostgreSQL 16 (disposable Docker container, `postgres:16`, torn down after the run):
+  `authorization/postgres.test.ts` executed (not skipped — `CHANGE_MANAGEMENT_TEST_POSTGRES_URL`
+  was set) and PASS.
+- `yarn workspace backend lint`: PASS, exit 0.
+- `yarn workspace backend build`: PASS, exit 0.
+- `yarn tsc` repo-wide: **6 errors**, and the exact error set (file:line:col + code) is
+  byte-identical between `06ec9cf`, the clean candidate, and this published commit — 5 are the
+  pre-existing `Knex` cross-package type-identity errors in `changeManagementPlugin.ts` present
+  since before F3.1.0 (reproduced independently on `6e28611`, which has 5), and 1 (`TS2304:
+  Cannot find name 'Knex'` in `KnexAuthorizationLedgerRepository.test.ts:389`, a missing type
+  import) was already present in the architecture-accepted `06ec9cf` candidate itself. **No new
+  TypeScript error was introduced by this publication.**
+- Publication was a plain fast-forward push (`0b9cb38..7663883`), no force, verified via
+  `git ls-remote` and the Azure DevOps REST API independently before and after push.
+
 ## Findings and prerequisites
 
-The accepted ADO baseline is `6e28611`, while the remote feature branch remains at
-`0b9cb38`. `be16ffb` was created after a planning-only checkpoint and is therefore
-an unreviewed candidate, not an accepted implementation baseline. The corrective
-commit `7a9347e` is a direct child of `be16ffb`, was produced in an isolated clean
-worktree, and has not been pushed. Unrelated changes in the primary worktree were
-not touched.
+The accepted ADO baseline was `6e28611`; the remote feature branch was at `0b9cb38`
+(one commit behind `6e28611` — F2.2.1 itself had not yet been pushed) at the start of
+the F3.1.0-P publication checkpoint. `be16ffb` was created after a planning-only
+checkpoint and is therefore an unreviewed candidate, never an accepted implementation
+baseline. The corrective commit `7a9347e` is a direct child of `be16ffb`, was produced
+in an isolated clean worktree, and — like `be16ffb` and `06ec9cf` — was never pushed
+and is **not** part of official history. Unrelated changes in the primary worktree
+were not touched during construction, validation, or publication.
+
+**Publication (F3.1.0-P) resolved this.** The clean official commit `7663883` was
+built directly on `6e28611` in an isolated worktree and pushed as a single
+fast-forward (`0b9cb38..7663883`), carrying `6e28611` (F2.2.1) and the new F3.1.0
+commit onto the remote in one safe operation. `origin/feat/ado-repo-governance` is
+now `7663883`. The candidate lineage `be16ffb → 7a9347e → 06ec9cf` remains **local
+review-only evidence** on `review/f3-1-0-cutover-safety` and is excluded from the
+official first-parent history.
 
 The current F2 create service calls `buildChange()` twice, allowing server-generated
 `activityId` and `createdAt` values to differ between index and provider snapshots.
@@ -211,10 +257,33 @@ HEAD. That must be resolved before F3.1.4; F3.1.0 adds no permissions.
 
 ## Gate
 
-**GO for architecture acceptance and publication review of the F3.1.0-V
-candidate.** Review the lineage `be16ffb` → `7a9347e` → `06ec9cf` as historical
-candidate, cutover-safety correction, and closure. None of the three commits is
-accepted, merged, or published to ADO by this handoff. The accepted
-implementation baseline remains F2.2.1 at `6e28611`.
+**F3.1.0 is now the ACCEPTED IMPLEMENTED BASELINE**, published to Azure DevOps as
+`platform-devops-developer-portal@7663883` (full SHA
+`766388393458f82fbdc2e0502b8c193d0a85e605`) on branch `feat/ado-repo-governance`.
+The lineage `be16ffb` → `7a9347e` → `06ec9cf` is retained as historical
+review-only evidence (candidate, cutover-safety correction, closure) on
+`review/f3-1-0-cutover-safety` and in reflog, and is **excluded** from official
+publication history. `06ec9cf` is now historical review evidence only — do not
+continue referring to it as the implementation baseline.
 
-**NO-GO for F3.1.1–F3.1.4** until F3.1.0 is explicitly accepted.
+**GO for F3.1.1 architecture/implementation planning.** F3.1.1 implementation
+itself remains **NO-GO** until that planning checkpoint completes: no policy
+publication runtime, selector resolution runtime, organizational approver
+mappings, first-round submission integration, approval commands, CAB Workbench,
+Teams, or Azure DevOps execution enforcement was added in this checkpoint.
+
+Carried-forward mandatory invariants for F3.1.2:
+
+- One logical idempotent submission never changes authorization regime across a
+  retry, including across a deployment boundary. For an **existing** reservation,
+  the persisted mode wins — a `LEGACY_PRE_F3` reservation must resume legacy
+  semantics; F3.1.2 must not attempt to re-reserve it as `LEDGER_REQUIRED` and
+  must not return a misleading conflict merely because the application version
+  changed. Only a **new** reservation may select `LEDGER_REQUIRED`. Regime must
+  never be inferred from application version, deployment date, schema version,
+  current default, or the mere existence of ledger tables.
+- The `buildChange()`-twice deviation in `ChangeManagementService` (divergent
+  server-generated `activityId`/`createdAt` between index and provider snapshots)
+  remains open and **must be fixed before F3.1.2** submission integration.
+- Committed app config still references RBAC CSV/conditional-policy files absent
+  from HEAD; this remains a prerequisite for F3.1.4, not F3.1.0/F3.1.1.

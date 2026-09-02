@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-01 (F3.1.0-V cutover & verification closure; ready for architecture acceptance and publication review)
+> **Last updated:** 2026-09-01 (F3.1.0-P publication — F3.1.0 promoted to ACCEPTED IMPLEMENTED BASELINE at ADO `7663883`)
 
 ## Stack
 
@@ -70,6 +70,21 @@
 - Team-wide / enterprise-wide search, filters, sorting frameworks (deferred to F3)
 - New governance roles (`change.read.all`, Change Manager, Auditor) (deferred to F3)
 
+### Backend (F3.1.0 — Authorization Ledger Foundation)
+
+| Item                       | State                                                                                                                                |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Status                     | **ACCEPTED IMPLEMENTED BASELINE** — ADO `7663883`, direct child of `6e28611`, published `feat/ado-repo-governance`                    |
+| Domain types                | `AuthorizationRound`, `ApprovalRequirement`, `ApprovalDecision`, `AuthorizationAuditEvent` — append-only, immutable                   |
+| Pure evaluators             | `AuthorizationEvaluation` (mandatory pre-execution requirements) and `GovernanceEvaluation` (mandatory post-execution + SLA) — pure, derived only |
+| Persistence                 | Four new append-only ledger tables + `authorization_mode` on `change_index` and `change_idempotency`; SQLite and Postgres migrations with dialect-specific UPDATE/DELETE-blocking triggers |
+| Legacy/cutover semantics    | `LEGACY_PRE_F3` / `LEDGER_REQUIRED`; the idempotency reservation is the earliest durable authority for a logical submission's regime; `change_index.authorization_mode` inherits from it; one logical retry never changes regime |
+| F3.1.0 submission behavior  | Still F2 submission path — **every new Change remains `LEGACY_PRE_F3`; no `AuthorizationRound` is created by `POST /changes`** |
+| Repository contracts        | `AuthorizationLedgerRepository` (insert/read only, no update/delete) with a Knex implementation                                       |
+| Architecture guards          | Extended to prohibit provider/ADO/Teams canonical fields, workflow repositories, mutable current/evaluation state, and a policy DSL in the ledger |
+| Explicitly not implemented  | Policy publication runtime, selector resolution runtime, organizational approver mappings, first-round submission integration, approval commands, CAB Workbench, Teams, Azure DevOps execution enforcement (all deferred to F3.1.1+) |
+| Known deviation             | `ChangeManagementService` still calls `buildChange()` twice (index vs. provider snapshot); server-generated `activityId`/`createdAt` can diverge. **Must fix before F3.1.2.** |
+
 ### Architecture review outcome (cumulative through F2.2.1)
 
 | Decision                         | Outcome                                                                                                                                                                                                                          |
@@ -89,10 +104,11 @@
 
 | Slice                                | Status                                                                                                                                    |
 | ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| F2.2.1 implementation                | **ACCEPTED IMPLEMENTED BASELINE** at ADO `6e28611`                                                                                                          |
+| F2.2.1 implementation                | **ACCEPTED IMPLEMENTED BASELINE** at ADO `6e28611` (published to `origin/feat/ado-repo-governance` as part of F3.1.0-P)                    |
 | F3.0.1 authorization architecture    | **ACCEPTED ARCHITECTURE** by ADR-009                                                                                                         |
-| F3.1.0 Authorization Ledger Foundation | **LOCAL REVIEW CANDIDATE** — `be16ffb` (unreviewed) → `7a9347e` (cutover-safety correction) → `06ec9cf` (F3.1.0-V cutover/verification closure). **READY FOR ARCHITECTURE ACCEPTANCE AND PUBLICATION REVIEW.** Not merged, not pushed to ADO. |
-| F3.1.1 and later slices              | **NOT AUTHORIZED**                                                                                                                        |
+| **F3.1.0 Authorization Ledger Foundation** | **ACCEPTED IMPLEMENTED BASELINE** — published to ADO `feat/ado-repo-governance` as clean commit `7663883` (full SHA `766388393458f82fbdc2e0502b8c193d0a85e605`), a direct child of `6e28611`. Tree-identical to architecture-accepted candidate `06ec9cf`. The review lineage `be16ffb` → `7a9347e` → `06ec9cf` is retained as **review-only local evidence** on `review/f3-1-0-cutover-safety`, excluded from official history. |
+| F3.1.1                               | **NOT IMPLEMENTED** — planning authorized, implementation NOT authorized                                                                  |
+| F3.1.2–F3.1.4                        | **NOT AUTHORIZED**                                                                                                                        |
 
 ### F3.0.1 accepted authorization architecture (documentation only)
 
@@ -117,7 +133,7 @@
 | DevOps                           | Policy/control/integration/observability/exception owner; absent from happy-path per-deploy approval                                   |
 | Model C                          | Retained; bounded platform authorization ledger sits beside the index while provider owns operational GMUD detail                      |
 
-**Gate:** the [F3 architect review brief](../architect-review-f3-change-authorization.md) records all nine architecture decisions as resolved and ADR-009 as Accepted. F3.1.0 local candidate lineage: unauthorized/unreviewed `be16ffb` → cutover-safety correction `7a9347e` → F3.1.0-V closure `06ec9cf`, which durably ties `change_idempotency.authorization_mode` (immutable, fail-closed on retry) to `change_index.authorization_mode` as the single source of a logical submission's regime, and classifies the previously reported test-process non-exit as pre-existing Jest watch-mode behavior (confirmed identical on `6e28611` and the candidate), not a leak. Before F3.1.2, all existing and newly created F2 Changes remain `LEGACY_PRE_F3`; no ledger facts are fabricated. F3.1.0-V is **ready for architecture acceptance and publication review**, not independently promoted to accepted implementation. The accepted implementation baseline remains F2.2.1 at `6e28611`. F3.1.1–F3.1.4 and any ADO publication remain NO-GO pending explicit review.
+**Gate:** the [F3 architect review brief](../architect-review-f3-change-authorization.md) records all nine architecture decisions as resolved and ADR-009 as Accepted. F3.1.0's review lineage — unauthorized/unreviewed `be16ffb` → cutover-safety correction `7a9347e` → F3.1.0-V closure `06ec9cf` — durably ties `change_idempotency.authorization_mode` (immutable, fail-closed on retry) to `change_index.authorization_mode` as the single source of a logical submission's regime, and classifies the previously reported test-process non-exit as pre-existing Jest watch-mode behavior (confirmed identical on `6e28611` and the candidate), not a leak. **F3.1.0-P (this checkpoint) published that architecture-accepted final state as one clean commit `7663883` directly on `6e28611`** — a final-state transfer, not a cherry-pick of the three review commits — and pushed it to `origin/feat/ado-repo-governance` as a plain fast-forward, with tree-hash equivalence proven against `06ec9cf`. Before F3.1.2, all existing and newly created F2 Changes remain `LEGACY_PRE_F3`; no ledger facts are fabricated. **F3.1.0 is now the accepted implementation baseline; `06ec9cf` and its ancestors are historical review evidence only.** F3.1.1 architecture/implementation planning is now GO; F3.1.1 implementation itself, F3.1.2–F3.1.4, remain NO-GO pending their own checkpoints.
 
 See [`implementation-progress.md`](./implementation-progress.md) §12–§19 for full checkpoint detail (F2.1 through F3.0.1 architecture convergence).
 
@@ -168,9 +184,8 @@ Historical F1/F2 screenshots remain supporting evidence in the legacy POC reposi
 | F2.1.3 commit                                    | `75da44fb46d308e23b1c987e2093636fa4811b92` (execution plan wired to real backend)    |
 | F2.2 commit                                      | `0b9cb38` (My Changes List + Change Detail)                                          |
 | **F2.2.1 commit**                                | **`6e28611`** (participant read policy)                                              |
-| Unreviewed F3.1.0 candidate                      | `be16ffb` (not accepted or published)                                                |
-| Corrective F3.1.0-C candidate                    | `7a9347e` on local branch `review/f3-1-0-cutover-safety` (not accepted or published) |
-| **F3.1.0-V closure candidate**                    | **`06ec9cf`** on local branch `review/f3-1-0-cutover-safety` (not accepted or published) |
+| **F3.1.0 official commit**                       | **`7663883`** (full SHA `766388393458f82fbdc2e0502b8c193d0a85e605`) — published, direct child of `6e28611`, ACCEPTED IMPLEMENTED BASELINE |
+| F3.1.0 review-only candidates (not official history) | `be16ffb` (unreviewed) → `7a9347e` (cutover-safety correction) → `06ec9cf` (F3.1.0-V closure, architecture-accepted final state) — all on local branch `review/f3-1-0-cutover-safety`, retained as review/audit evidence only |
 | Legacy bridge final architecture import baseline | `poc-teams-approval@fe4f807`                                                         |
 | New documentation bridge                         | `diegofernandes-dev/backstage-docs@main`                                             |
 
@@ -181,4 +196,6 @@ Historical F1/F2 screenshots remain supporting evidence in the legacy POC reposi
 | Legacy bridge `diegofernandes-dev/poc-teams-approval`               | Historical POC/archive only after migration to `backstage-docs`                                                    |
 | GitHub mirror `diegofernandes-dev/platform-devops-developer-portal` | Deprecated accidental mirror — do not use for development                                                          |
 | ADR-008 "responsibleRef grants no read access" (F2.1.2)             | Superseded for read visibility by ADR-006 "Participant read scope (F2.2.1)"                                        |
-| F3.0.1 architecture convergence gate                                | **GO for F3.1 implementation planning; NO-GO for implementation** — ADR-009 accepted, no authorization code exists |
+| F3.0.1 architecture convergence gate                                | Superseded by F3.1.0 publication below                                                                             |
+| F3.1.0 review candidate lineage (`be16ffb`/`7a9347e`/`06ec9cf`)     | Superseded as implementation reference by published commit `7663883` — retained only as review/audit history on `review/f3-1-0-cutover-safety` |
+| F3.1.0 publication gate                                              | **GO for F3.1.1 planning; NO-GO for F3.1.1 implementation** — F3.1.0 is the accepted implemented baseline at ADO `7663883` |

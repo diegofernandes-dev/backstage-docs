@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F2.2.1 — ADO `6e28611`  
-> **Current GMUD architecture baseline:** F3.0.1 — ADR-009 Accepted; F3.1.0-V local candidate `06ec9cf` ready for architecture acceptance and publication review; F3.1.1+ not authorized
+> **Current GMUD implementation baseline:** F3.1.0 — ADO `7663883` (full SHA `766388393458f82fbdc2e0502b8c193d0a85e605`), published `feat/ado-repo-governance`  
+> **Current GMUD architecture baseline:** F3.0.1 — ADR-009 Accepted; F3.1.0 published as ACCEPTED IMPLEMENTED BASELINE; F3.1.1 planning authorized, implementation not authorized
 
 ## How to use this log
 
@@ -47,6 +47,7 @@ The canonical architecture and current construction state were imported at legac
 | F2.2.1      | Participant read            | requester/owner/responsible-team/admin; ADO `6e28611`                                  |
 | F3.0        | Authorization architecture  | ADR-009 proposed; no implementation                                                    |
 | F3.0.1      | Authorization convergence   | ADR-009 Accepted; no implementation                                                    |
+| F3.1.0      | Authorization ledger foundation | domain types, pure evaluators, append-only ledger tables, legacy/cutover semantics; published ADO `7663883` (review evidence: `be16ffb`→`7a9347e`→`06ec9cf`) |
 
 The original detailed F1–F3.0.1 diary is preserved in the legacy bridge at `docs/backstage/implementation-progress.md` for historical investigation only. This file is the active continuation point.
 
@@ -332,6 +333,130 @@ the three commits is accepted, merged, or published to ADO by this checkpoint. T
 accepted implementation baseline remains F2.2.1 at `6e28611`.
 
 **NO-GO for F3.1.1–F3.1.4** until F3.1.0 is explicitly accepted.
+
+---
+
+## F3.1.0-P — Publication & baseline promotion
+
+Implementation repository/branch/SHA: `platform-devops-developer-portal` /
+`feat/ado-repo-governance` / **`7663883`** (full SHA
+`766388393458f82fbdc2e0502b8c193d0a85e605`)
+Documentation baseline SHA (start of checkpoint): `f5df375fb332bbb9eb2d8f76c973674b1d53c87f`
+
+### Objective
+
+Promote the architecture-accepted F3.1.0 final state (`06ec9cf`) from local review
+candidate to an official, clean, published ADO implementation baseline — without
+carrying the three-commit review lineage (`be16ffb` → `7a9347e` → `06ec9cf`) into
+official history, and without any force operation.
+
+### Pre-publication verification
+
+- ADO remote `origin/feat/ado-repo-governance` was at `0b9cb38` at checkpoint
+  start — one commit **behind** the already-accepted F2.2.1 baseline `6e28611`
+  (F2.2.1 itself had never been pushed). `0b9cb38` confirmed an ancestor of
+  `6e28611` via `git merge-base --is-ancestor` → publication was fast-forward-safe.
+- Candidate ancestry independently re-verified: `6e28611` → `be16ffb` → `7a9347e`
+  → `06ec9cf`, each a direct ancestor of the next.
+- SSH transport to Azure DevOps (`git@ssh.dev.azure.com`) failed with
+  `remote: One or more errors occurred` despite successful publickey
+  authentication (server-side condition, not a credentials problem). HTTPS with
+  an already-provisioned PAT worked for both read and write and was used via an
+  ephemeral `credential.helper`, without altering the persistent `origin` remote
+  URL. **Follow-up: repair ADO SSH access separately.**
+
+### Clean candidate construction
+
+- Isolated worktree/branch `publish/f3-1-0-ledger-foundation` created **exactly**
+  from `6e28611` (not from any review commit).
+- Final state transferred by `git checkout 06ec9cf -- .` — the three review
+  commits were **not** cherry-picked, replayed, or merged.
+- Equivalence proof: `git diff 06ec9cf` empty; `git write-tree` on the staged
+  result equalled `ad970c288f7d983de1210e34987de52851fb0c86`, `06ec9cf`'s exact
+  tree hash. `git diff --name-status 6e28611` showed exactly the 22 F3.1.0-scoped
+  paths (migrations + `changeManagement`/`authorization`), confirming no
+  unrelated candidate-branch files were included.
+
+### Tests / functional verification (clean candidate, before commit)
+
+- Change Management module (15 test files under `modules/changeManagement/`):
+  **153/153 tests PASS**, `CI=true`, natural exit code 0, no `--forceExit`.
+- SQLite: PASS (in-process).
+- PostgreSQL 16 (disposable `postgres:16` Docker container, torn down after the
+  run, `CHANGE_MANAGEMENT_TEST_POSTGRES_URL` set so `authorization/postgres.test.ts`
+  actually ran rather than skipping): PASS.
+- `yarn workspace backend lint`: PASS. `yarn workspace backend build`: PASS.
+- `yarn tsc` repo-wide: 6 errors, and the exact error identifiers (file:line:col
+  + code) are byte-identical across `06ec9cf`, this clean candidate, and (after
+  push) the published commit. 5 are pre-existing `Knex` cross-package
+  type-identity errors in `changeManagementPlugin.ts`, independently reproduced
+  on baseline `6e28611` (5 errors there too). The 6th (`TS2304` missing `Knex`
+  type import in `KnexAuthorizationLedgerRepository.test.ts:389`) was already
+  present in the architecture-accepted `06ec9cf` candidate itself — not a
+  regression introduced by this publication. **No new TypeScript error.**
+
+### Publication
+
+- One commit created on the clean branch: `feat(gmud): add authorization ledger
+  foundation`, parent exactly `6e28611`, SHA `766388393458f82fbdc2e0502b8c193d0a85e605`.
+- Immediately before push, `origin/feat/ado-repo-governance` re-verified via
+  `git ls-remote` over HTTPS: still `0b9cb38`, unchanged.
+- Pushed as a plain fast-forward: `0b9cb38..7663883`. **No `--force`, no
+  `--force-with-lease`.**
+- Post-push verification via two independent channels — `git ls-remote` and the
+  Azure DevOps REST API (`repo_branch.get`) — both returned
+  `766388393458f82fbdc2e0502b8c193d0a85e605` for `refs/heads/feat/ado-repo-governance`.
+- Local branch `feat/ado-repo-governance` (previously at `be16ffb`) moved to the
+  published SHA via `git reset --soft` (branch was checked out in the primary
+  worktree, which also carries substantial unrelated uncommitted work from
+  another workstream — `git branch -f` was refused for safety). Working-tree
+  content for the `changeManagement`/migration paths was then restored from the
+  new HEAD via `git checkout HEAD -- <paths>` to remove the stale pre-fix
+  `be16ffb`-era migration content that the reset had left staged; content
+  verified byte-identical to the pre-reset working tree before the fix, and the
+  primary worktree's unrelated 40 files of in-progress work were confirmed
+  untouched throughout. `be16ffb` / `7a9347e` / `06ec9cf` remain fully reachable
+  via local branch `review/f3-1-0-cutover-safety` and reflog — preserved as
+  review/audit evidence, not deleted.
+
+### Deviations and process record (carried forward, unchanged)
+
+- `buildChange()` is still called twice in `ChangeManagementService.createChange`
+  — **MUST FIX BEFORE F3.1.2**. Not addressed in F3.1.0-P; equivalence with
+  `06ec9cf` did not require it.
+- Configured RBAC policy files remain absent from ADO HEAD — prerequisite for
+  F3.1.4, not F3.1.0/F3.1.1.
+- **F3.1.2 mandatory design invariant:** one logical idempotent submission never
+  changes authorization regime across a retry, including across a deployment
+  boundary. For an *existing* reservation the persisted mode wins — a
+  `LEGACY_PRE_F3` reservation must resume legacy semantics; F3.1.2 must not
+  attempt to re-reserve it as `LEDGER_REQUIRED` and must not return a misleading
+  conflict merely because the application version changed. Only a *new*
+  reservation may select `LEDGER_REQUIRED`. Regime must never be inferred from
+  application version, deployment date, schema version, current default, or the
+  mere existence of ledger tables.
+
+### Model C / invariant reconfirmation
+
+`ChangeIndexRepository`, `ProviderRegistry`, `IChangeManagementProvider`, and
+`DevelopmentProvider` all remain active and unmodified in the published commit;
+the authorization ledger sits adjacent to the canonical index, not inside a
+monolithic platform-owned Change repository. No provider-specific authorization
+semantics, Azure DevOps approval identifiers, Teams identifiers, or CAB
+implementation were introduced. `ChangeManagementService` still only sets
+`authorizationMode = 'LEGACY_PRE_F3'` on `POST /changes` — no `AuthorizationRound`
+is created by F3.1.0.
+
+### Gate
+
+**F3.1.0 promoted from LOCAL REVIEW CANDIDATE to ACCEPTED IMPLEMENTED BASELINE**
+at ADO `7663883` (full SHA `766388393458f82fbdc2e0502b8c193d0a85e605`). `06ec9cf`
+and its ancestors (`be16ffb`, `7a9347e`) are now historical review evidence only,
+retained on `review/f3-1-0-cutover-safety`, and excluded from official
+first-parent history.
+
+**GO for F3.1.1 architecture/implementation planning.**
+**NO-GO for F3.1.1 implementation** (or any later slice) until its own checkpoint.
 
 ---
 

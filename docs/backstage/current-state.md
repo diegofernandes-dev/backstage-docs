@@ -184,7 +184,8 @@ Historical F1/F2 screenshots remain supporting evidence in the legacy POC reposi
 | F2.1.3 commit                                    | `75da44fb46d308e23b1c987e2093636fa4811b92` (execution plan wired to real backend)    |
 | F2.2 commit                                      | `0b9cb38` (My Changes List + Change Detail)                                          |
 | **F2.2.1 commit**                                | **`6e28611`** (participant read policy)                                              |
-| **F3.1.0 official commit**                       | **`7663883`** (full SHA `766388393458f82fbdc2e0502b8c193d0a85e605`) — published, direct child of `6e28611`, ACCEPTED IMPLEMENTED BASELINE |
+| F3.1.0 commit (superseded)                       | `7663883` (full SHA `766388393458f82fbdc2e0502b8c193d0a85e605`) — published, direct child of `6e28611`; superseded by F3.1.0-H below after a TypeScript typing regression was found in publication review |
+| **F3.1.0-H official commit**                     | **`4bad41d`** (full SHA `4bad41d058edf5c5314d17275e0c8bdb5abf690f`) — direct child of `7663883`, typing-only hotfix, ACCEPTED IMPLEMENTED BASELINE |
 | F3.1.0 review-only candidates (not official history) | `be16ffb` (unreviewed) → `7a9347e` (cutover-safety correction) → `06ec9cf` (F3.1.0-V closure, architecture-accepted final state) — all on local branch `review/f3-1-0-cutover-safety`, retained as review/audit evidence only |
 | Legacy bridge final architecture import baseline | `poc-teams-approval@fe4f807`                                                         |
 | New documentation bridge                         | `diegofernandes-dev/backstage-docs@main`                                             |
@@ -198,4 +199,5 @@ Historical F1/F2 screenshots remain supporting evidence in the legacy POC reposi
 | ADR-008 "responsibleRef grants no read access" (F2.1.2)             | Superseded for read visibility by ADR-006 "Participant read scope (F2.2.1)"                                        |
 | F3.0.1 architecture convergence gate                                | Superseded by F3.1.0 publication below                                                                             |
 | F3.1.0 review candidate lineage (`be16ffb`/`7a9347e`/`06ec9cf`)     | Superseded as implementation reference by published commit `7663883` — retained only as review/audit history on `review/f3-1-0-cutover-safety` |
-| F3.1.0 publication gate                                              | **GO for F3.1.1 planning; NO-GO for F3.1.1 implementation** — F3.1.0 is the accepted implemented baseline at ADO `7663883` |
+| F3.1.0 commit `7663883`                                              | Superseded as implementation reference by F3.1.0-H commit `4bad41d` — publication review found a TypeScript regression (`TS2304` in `KnexAuthorizationLedgerRepository.test.ts`) against the accepted `6e28611` baseline; `7663883` remains historically accurate architectural content, only its typing was corrected |
+| F3.1.0-H publication gate                                            | **F3.1.0 CLOSED. GO for F3.1.1 planning; NO-GO for F3.1.1 implementation** — accepted implemented baseline is ADO `4bad41d` (child of `7663883`) |

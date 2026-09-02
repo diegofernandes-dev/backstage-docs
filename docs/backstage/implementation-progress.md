@@ -455,8 +455,100 @@ and its ancestors (`be16ffb`, `7a9347e`) are now historical review evidence only
 retained on `review/f3-1-0-cutover-safety`, and excluded from official
 first-parent history.
 
+Superseded below by **F3.1.0-H** — see next section. `7663883` remains the
+architectural F3.1.0 Authorization Ledger Foundation content; only its TypeScript
+typing was corrected.
+
+---
+
+## F3.1.0-H — TypeScript baseline restoration (typing hotfix)
+
+Implementation repository/branch/SHA: ADO `platform-devops-developer-portal`,
+`feat/ado-repo-governance`, `4bad41d` (full SHA
+`4bad41d058edf5c5314d17275e0c8bdb5abf690f`), direct child of `7663883`.
+Documentation baseline SHA: `af215f775b270277a6887edf931b7337f6cb8b5e`.
+
+### Objective
+
+The F3.1.0 publication checkpoint compared the wrong baseline pair (`06ec9cf` vs
+`7663883`) and incorrectly waived a new TypeScript error as pre-existing. The
+correct comparison is the accepted F2.2.1 baseline `6e28611` vs the published
+`7663883`, under which the error is a genuine F3.1.0 regression. This checkpoint
+is a typing-only micro-hotfix: restore the repository-wide TypeScript error set
+to exactly the historical five and re-verify all F3.1.0 gates. No architectural,
+domain, or behavioral change.
+
+### Regression
+
+`TS2304: Cannot find name 'Knex'` in
+`KnexAuthorizationLedgerRepository.test.ts:389:37` (`insertIndexRow(knex: Knex, ...)`),
+a file added by `7663883`, with no `knex` import. Correction: added
+`import type { Knex } from 'knex';`, matching the convention already used by 15+
+files in the module (e.g. `ChangeManagementService.list.test.ts`,
+`KnexAuthorizationLedgerRepository.ts`). One file, one line changed.
+
+### TypeScript baseline comparison
+
+Repository-wide `tsc --noEmit`, errors compared by file/line/column/code, not
+just count, in an isolated worktree per commit:
+
+| Commit | Errors | Notes |
+| --- | --- | --- |
+| `6e28611` (F2.2.1, accepted) | 5 | Pre-existing duplicate-Knex-types mismatch in `packages/backend/src/plugins/changeManagementPlugin.ts` (unrelated to this ledger work; not touched) |
+| `7663883` (F3.1.0, published) | 6 | The 5 above + the new `TS2304` regression |
+| `4bad41d` (F3.1.0-H, hotfix) | 5 | **Set-identical** to `6e28611` — confirmed by diff, not just count |
+
+No historical TypeScript debt was fixed in this checkpoint.
+
+### Tests / functional verification
+
+- Change Management backend suites, CI mode (`CI=1`, `--ci --runInBand`, no
+  `--forceExit`): 15 suites, 109 tests, all passed, exit code 0.
+- SQLite (in-memory `better-sqlite3`): covered by the same run, passed.
+- PostgreSQL: disposable `postgres:16-alpine` container,
+  `CHANGE_MANAGEMENT_TEST_POSTGRES_URL` exported; `authorization/postgres.test.ts`
+  ("F3.1.0 PostgreSQL contract") confirmed executed (not skipped) and passed —
+  migration behavior, authorization ledger tests, idempotency authorization mode
+  coverage. Container removed after the run (clean teardown).
+- `yarn workspace backend lint`: passed, no output.
+- `yarn workspace backend build`: passed, `dist/bundle.tar.gz` produced.
+
+### Model C / invariant reconfirmation
+
+Re-verified after the hotfix: `ChangeIndexRepository` (`KnexChangeIndexRepository`)
+and `AuthorizationLedgerRepository` (`KnexAuthorizationLedgerRepository`) remain
+separate, adjacent classes — no monolithic Change repository. `ProviderRegistry`,
+`IChangeManagementProvider`, and `DevelopmentProvider` all remain active and
+unmodified. No Teams, CAB Workbench, Azure DevOps approval integration, policy
+runtime, selector resolution, or F3.1.1 behavior was introduced.
+
+### Deviations (unchanged, carried forward)
+
+- `buildChange()` is still called twice in `ChangeManagementService.createChange`
+  — **MUST FIX BEFORE F3.1.2**. Not touched by F3.1.0-H.
+- Configured RBAC policy files remain absent from ADO HEAD — prerequisite for
+  F3.1.4, not F3.1.0/F3.1.1.
+
+### Publication
+
+Pushed as a normal fast-forward: pre-push remote was verified as exactly
+`766388393458f82fbdc2e0502b8c193d0a85e605` (`7663883`); push
+`7663883..4bad41d` was a fast-forward (no `+`, no force); post-push fetch
+confirmed `origin/feat/ado-repo-governance` == `4bad41d058edf5c5314d17275e0c8bdb5abf690f`
+with `7663883` as its direct parent. `06ec9cf`/`7a9347e`/`be16ffb` remain outside
+official first-parent history.
+
+### Gate
+
+**F3.1.0-H promoted — official implementation baseline is now**
+`4bad41d` (full SHA `4bad41d058edf5c5314d17275e0c8bdb5abf690f`), a direct child of
+`7663883`. This remains the same F3.1.0 Authorization Ledger Foundation
+architectural slice with a typing correction only — not a new slice.
+
+**F3.1.0 is CLOSED.**
+
 **GO for F3.1.1 architecture/implementation planning.**
-**NO-GO for F3.1.1 implementation** (or any later slice) until its own checkpoint.
+**NO-GO for F3.1.1 implementation** until its own planning checkpoint.
 
 ---
 

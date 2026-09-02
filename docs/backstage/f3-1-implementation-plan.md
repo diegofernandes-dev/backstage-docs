@@ -266,6 +266,22 @@ review-only evidence (candidate, cutover-safety correction, closure) on
 publication history. `06ec9cf` is now historical review evidence only — do not
 continue referring to it as the implementation baseline.
 
+**Superseded by F3.1.0-H.** Publication review found a repository-wide
+TypeScript regression in `7663883` against the accepted F2.2.1 baseline
+`6e28611` (`6e28611` = 5 errors; `7663883` = 6 errors — an added `TS2304:
+Cannot find name 'Knex'` in `KnexAuthorizationLedgerRepository.test.ts:389`,
+missing `import type { Knex } from 'knex';`). A one-line typing-only hotfix,
+`4bad41d` (full SHA `4bad41d058edf5c5314d17275e0c8bdb5abf690f`), was published
+as a direct child of `7663883` — normal fast-forward push, no rewrite of
+`7663883`, no history rewrite. Repository-wide TypeScript errors after the
+hotfix: 5, an exact match (file/line/column/code) to the `6e28611` baseline set;
+no historical TypeScript debt was fixed. Change Management backend tests
+(SQLite + PostgreSQL, CI mode), lint, and build all passed on `4bad41d` with no
+F3.1.0 authorization/domain/architecture behavior changed. **The accepted
+implemented baseline is now `4bad41d`**, on branch `feat/ado-repo-governance` —
+still the same F3.1.0 Authorization Ledger Foundation architectural slice, not a
+new one. **F3.1.0 is now CLOSED.**
+
 **GO for F3.1.1 architecture/implementation planning.** F3.1.1 implementation
 itself remains **NO-GO** until that planning checkpoint completes: no policy
 publication runtime, selector resolution runtime, organizational approver

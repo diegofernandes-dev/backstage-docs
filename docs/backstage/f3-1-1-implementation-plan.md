@@ -1,24 +1,39 @@
 # GMUD F3.1.1 — Published Policy & Selector Resolution implementation plan
 
-- Status: **PLAN CORRECTED / UNDER REVIEW — IMPLEMENTATION NOT AUTHORIZED**
-- Date: 2026-09-02
+- Status: **PLAN CORRECTED (R2) / UNDER FINAL REVIEW — IMPLEMENTATION NOT AUTHORIZED**
+- Date: 2026-09-03 (F3.1.1-R2); prior revision 2026-09-02 (F3.1.1-R)
 - ADO implementation baseline (verified): `platform-devops-developer-portal@4bad41d`
   (full SHA `4bad41d058edf5c5314d17275e0c8bdb5abf690f`), branch `feat/ado-repo-governance`.
-  `origin/feat/ado-repo-governance` confirmed identical to local `HEAD`; ADO has not moved
-  since F3.1.0-H closure.
-- Documentation baseline used to produce this correction: `backstage-docs@75abd9d60facc6ff1dfc54af4a46192f4c287c9e`
-  (the prior F3.1.1 planning checkpoint this document corrects).
-- Architecture authority: [ADR-009](../adr/ADR-009-change-authorization-model.md) (unchanged by this checkpoint)
+  Re-verified for R2 **against the Azure DevOps REST API** (`refs/heads/feat/ado-repo-governance`
+  → `objectId 4bad41d058edf5c5314d17275e0c8bdb5abf690f`), not merely against a local
+  `origin/*` ref; ADO has not moved since F3.1.0-H closure.
+- Documentation baseline used to produce this R2 correction: `backstage-docs@d5fc3ff93a8916932860f0c18ad5f3863f9f163c`
+  (the F3.1.1-R checkpoint this revision corrects). The prior R revision was produced
+  from `75abd9d60facc6ff1dfc54af4a46192f4c287c9e`.
+- Architecture authority: [ADR-009](../adr/ADR-009-change-authorization-model.md) (unchanged by this checkpoint — see [§0a](#0a-what-changed-in-r2-and-why))
 - Prior checkpoint: [F3.1.0 implementation plan](./f3-1-implementation-plan.md) — **F3.1.0 CLOSED**
 
-## Correction notice (F3.1.1-R)
+## Correction notice (F3.1.1-R, superseded by R2 below)
 
-This is a **corrective revision** of the F3.1.1 plan previously published at
+This document was first a **corrective revision** of the F3.1.1 plan published at
 `75abd9d`. Architecture review found three defects in that version, described in
 [§0](#0-what-changed-and-why) below. The plan is corrected in place — sections
 are renumbered where the correction reshapes the model; the F3.1.1 scope,
 decomposition, and non-goals are otherwise preserved. **F3.1.1a implementation
 remains unauthorized**; nothing in ADO was touched to produce this correction.
+
+## Correction notice (F3.1.1-R2 — current)
+
+Architecture review of the R revision (`d5fc3ff`) found **three further contract
+gaps**, corrected here and described in [§0a](#0a-what-changed-in-r2-and-why):
+undefined first-publication (genesis) semantics, unversioned evaluator
+semantics, and shallow runtime immutability. **The accepted R direction is
+preserved and not redesigned** — policy versions remain serializable data, one
+generic evaluator is shared, behavior lives in typed `rules`, input remains
+`{classification, risk}`, output remains `RequirementDefinition[]`, the manifest
+remains append-only, and the F3.1.1a/F3.1.1b split is unchanged. **F3.1.1a
+implementation remains unauthorized**; no ADO source, test, config, script,
+migration, pipeline, or runtime behavior was modified to produce this revision.
 
 ## Objective
 
@@ -87,7 +102,7 @@ source files for tokens including `manager`, an ordinary software word.
 **Correction:** replaced with guards over domain shape and published-artifact
 *content* — forbidden canonical field names, ref-kind checks, no e-mail-shaped
 values — never English source tokens. A variable named `manager` must pass —
-§17, §26.I.
+§17, §26.N.
 
 Two further corrections fall out of A–C:
 
@@ -96,6 +111,74 @@ Two further corrections fall out of A–C:
   longer contains a selector only that inactive policy references — §11, §16.
 - **Three separated failure domains** — CI/publication, runtime startup,
   submission — previously blended into one failure table — §16.
+
+## 0a. What changed in R2, and why
+
+Three further gaps found in the `d5fc3ff` (R) plan, and the corrections applied.
+Each correction is narrow; none reopens the R direction.
+
+**Gap A — first-publication (genesis) semantics were undefined.** R's §6
+requires the baseline manifest to be read via
+`git show <baseline-ref>:<manifest-path>`, but the trusted implementation
+baseline `4bad41d` **predates the manifest**, so that path does not exist at
+that ref. The plan never said what happens then. The obvious repair — "file
+missing means empty baseline" — would be a **permanent append-only bypass**:
+anyone could delete the manifest and re-publish an existing identity against a
+synthesized empty baseline. **Correction:** an explicit, narrow, self-closing
+**genesis** rule, bound to one compiled-in approved baseline SHA, with generic
+missing-file-means-empty behavior forbidden outright — §5a, §6.
+
+**Gap B — shared evaluator semantics can drift, silently reinterpreting history.**
+R correctly replaced per-version `evaluate()` closures with published `rules` +
+a shared `evaluatePolicy()`. But `evaluatePolicy()` is described as shared,
+**unversioned** application code. So an old policy artifact can stay
+byte-identical, with an identical `policyArtifactSha256`, while a future change
+to the evaluator changes what those same rules *mean*:
+
+```text
+2026: policy v1 rules = R, digest = AAA, evaluator semantics = S1
+2027: policy v1 rules = R, digest = AAA, evaluator semantics = S2   ← same identity, different meaning
+```
+
+**Correction:** an explicit `policyModelVersion` interpretation contract,
+included in the artifact digest, dispatched explicitly, and **append-only in its
+semantics** — §1, §2a, §12, §13a.
+
+**Gap C — runtime immutability was shallow.** R's registry freezes with
+`Object.freeze(policy)`, which leaves every nested structure mutable:
+`policy.rules[0].requirements.push(…)` still succeeds. TypeScript `readonly` is
+compile-time only and disappears at runtime. **Correction:** a small
+`deepFreezeSerializable` utility applied after digest computation, with explicit
+nested-mutation tests — §17a, §17b, §26.L.
+
+Two dependent corrections fall out of A–C:
+
+- **Historical retention was over-promised.** R's §1/§8 claim the registry
+  "never evicts" a version and that every published version is "always available
+  for historical-round replay." That would make application binaries an
+  ever-growing archive, and — verified against ADR-009 and the shipped F3.1.0
+  schema — **no ADR-009 clause requires executable replay**. Withdrawn and
+  replaced with an explicit three-layer retention model — §29, §30.
+- **Publication *capability* is not publication *enforcement*.** R already
+  deferred CI wiring, but its failure table was headed "CI / publication
+  validation," implying a gate that does not exist. Relabelled, with the
+  distinction stated explicitly — §16, §21a.
+
+### ADR-009 reconciliation (required before correcting §29)
+
+ADR-009 is **not modified**, and this checkpoint proposes no amendment. The
+relevant clauses were read in full and are satisfied by the corrected model:
+
+| ADR-009 clause | What it requires | How the corrected model satisfies it |
+|---|---|---|
+| *Canonical persisted facts* — persists "the minimum immutable evidence required to **reproduce** authorization, governance, and execution-eligibility outcomes", explicitly including "**immutable effective requirements and their source**" | Evidence sufficient to reproduce outcomes | The F3.1.0 ledger already persists it — verified in ADO `authorization/types.ts`, see §29 |
+| *Audit requirements* — "An auditor must be able to **reconstruct**, in order: submission; policy version and input; round; requirements; selector resolution; …" | Reconstruction **from the ledger** | Ledger is self-contained; no re-execution of a historical artifact is implied |
+| *Authorization policy and publication* — "Existing rounds remain bound to their recorded versions; a **mutable 'current policy' is never consulted to reinterpret history**" | **Forbids** reinterpretation | Model B never reinterprets: a round's recorded identity/digest/requirements are authoritative. `policyModelVersion` (§13a) additionally forbids reinterpretation by evaluator drift |
+
+**"Reproduce" and "reconstruct" are satisfied by retained evidence, not by
+retained executable code.** ADR-009 nowhere requires the runtime to hold every
+historical policy artifact forever. R's "never evicts … forever" was therefore a
+self-imposed constraint, not an ADR obligation, and is withdrawn in §29.
 
 ## 1. Policy model
 
@@ -132,8 +215,9 @@ type PolicyRule = {
 };
 
 // The published, hashed artifact. Identity fields are NOT part of the hash
-// (see §12); `rules` IS the hash (see §12).
+// (see §12); `{ policyModelVersion, rules }` IS the hash (see §12).
 type PublishedAuthorizationPolicy = {
+  policyModelVersion: 1;                 // interpretation contract — see §2a, §13a
   policyKey: string;                     // identity metadata
   version: string;                       // identity metadata, e.g. '2026-09-02.1'
   provenance: string;                    // publication metadata (reviewing PR/commit)
@@ -152,6 +236,11 @@ type PolicyEvaluationResult = {
 };
 ```
 
+- **policyModelVersion**: the **technical interpretation contract** for the
+  artifact's shape and the meaning of its `rules` — distinct from, and never
+  conflated with, the business `version` below. See §2a (dispatch), §12
+  (hashed), §13a (append-only semantics). **`1` is the only model version in
+  F3 MVP.**
 - **policyKey**: a stable identifier, e.g. `default-change-authorization`.
 - **policyVersion**: an opaque, monotonically-meaningless string, e.g.
   `2026-09-02.1`. No syntax is prescribed beyond "unique per key, never reused
@@ -183,9 +272,38 @@ type PolicyEvaluationResult = {
   `PublishedAuthorizationPolicy`, registered alongside old ones, and appended
   to the publication manifest — never editing an existing version's file or
   manifest entry.
-- **Old versions remain interpretable**: the registry never evicts a
-  registered version; `registry.get(key, version)` is always available for
-  historical-round replay/audit, for the lifetime of the deployed application.
+- **Old versions remain interpretable — but only conditionally.** **Corrected
+  in R2** (R claimed the registry "never evicts a registered version" and that
+  `registry.get` is "always available … for the lifetime of the deployed
+  application"; that over-promise is withdrawn — §0a, §29). A historical policy
+  is *executably* interpretable only while **all** of:
+  1. its policy artifact is still retained/shipped in the build;
+  2. its `policyModelVersion` is still supported by the evaluator (§2a);
+  3. that model version's semantics are unchanged (§13a).
+
+  Historical *audit* does **not** depend on any of the three: the ledger
+  already snapshots the round's policy identity, artifact digest, input,
+  matched-rule provenance, effective requirements, and resolved principals
+  (§29). Audit is always available; executable re-evaluation is not promised.
+
+### Business version vs. model version
+
+These two axes are independent and must never be conflated:
+
+| Concept | Meaning | Changes when |
+|---|---|---|
+| `version` (**policy version**) | **business** policy publication identity | the authorization *policy* changes (different requirements for a pair) |
+| `policyModelVersion` | **technical** interpretation semantics of the artifact shape and rule meaning | the *contract for interpreting rules* changes |
+
+```text
+default-change-authorization@2026-09-02.1   policyModelVersion = 1   ← MVP
+default-change-authorization@2026-10-01.1   policyModelVersion = 1   ← business policy change
+default-change-authorization@2028-01-01.1   policyModelVersion = 2   ← future semantic-model change
+```
+
+A business policy change bumps `version` and keeps `policyModelVersion: 1`. Only
+a change to *what the rule shape means* introduces `policyModelVersion: 2`, with
+a new rule shape and/or a new evaluator (§13a).
 
 ## 2. The generic evaluator
 
@@ -196,7 +314,8 @@ function evaluatePolicy(
 ): PolicyEvaluationResult;
 ```
 
-One function, shared by every published version. It:
+One function, shared by every published version. It dispatches on the
+interpretation contract (§2a), then, for model version 1:
 
 1. finds the single `PolicyRule` in `policy.rules` whose `match` equals
    `input` (totality guaranteed at load time — §16, §26.C — so this lookup
@@ -207,8 +326,54 @@ One function, shared by every published version. It:
 
 This directly answers §12's original concern: because `rules` — not an
 `evaluate` closure — is what a policy version *is*, `policyArtifactSha256`
-covering `rules` now covers **all** policy-specific behavior. `evaluatePolicy`
+covering `{ policyModelVersion, rules }` now covers **all** policy-specific
+behavior *and* the contract under which it is interpreted. `evaluatePolicy`
 itself is identical, reviewed, tested once, and never varies per version.
+
+## 2a. Model-version dispatch (new in R2)
+
+Gap B (§0a): a shared evaluator whose semantics are unversioned can silently
+change the meaning of an unchanged, identically-hashed artifact. Dispatch makes
+the interpretation contract explicit and fails closed on anything unsupported.
+
+```ts
+function evaluatePolicy(
+  policy: PublishedAuthorizationPolicy,
+  input: PolicyInput,
+): PolicyEvaluationResult {
+  switch (policy.policyModelVersion) {
+    case 1:
+      return evaluatePolicyModelV1(policy, input);
+    default:
+      throw new Error(
+        `Unsupported policyModelVersion: ${String(
+          (policy as { policyModelVersion: unknown }).policyModelVersion,
+        )}`,
+      );
+  }
+}
+```
+
+**Bounds — this is deliberately not a framework (review prompt §15):**
+
+- Only **model version 1** exists in F3 MVP. `evaluatePolicyModelV1` is one
+  ordinary function.
+- **No** plugin registry, **no** dynamic evaluator loading, **no** generic
+  schema interpreter, **no** rules engine, **no** arbitrary version adapters.
+- One `case`, one function. The sole purpose is historical semantic stability.
+- Do **not** implement model v2 in F3.1.1a. It exists only as the documented
+  escape hatch in §13a.
+
+Because `policyModelVersion` is the **literal type `1`**, the `default` branch is
+unreachable from well-typed code — it is reachable only from a deliberately cast
+fixture, which is exactly what test §26.E constructs. The branch is kept
+regardless: it is the fail-closed boundary for any artifact that ever reaches the
+evaluator without passing the compiler (a future config-loaded or
+differently-shipped artifact).
+
+**Runtime enforcement (§16):** an unsupported `policyModelVersion` on the
+**active** policy fails application **startup**, not merely the individual
+evaluation — the same fail-closed posture as every other structural defect.
 
 ## 3. Policy publication / version registry — recommended approach
 
@@ -324,6 +489,90 @@ Design choices, each answering a §0/Defect-A concern:
 `digest` for a `policy` entry is `policyArtifactSha256` (§12). `digest` for a
 future `selector-bundle` entry (F3.1.1b) is that bundle's `contentDigest`.
 
+**Manifest location — reviewed and kept in R2.** The path above still satisfies
+all four required properties: the runtime can read the candidate manifest
+(`resolveJsonModule: true`, confirmed at `4bad41d`); the repository validator can
+read the baseline manifest via `git show <ref>:<path>`; F3.1.1b reuses the same
+file for selector bundles; and no database is involved. No change.
+
+## 5a. Genesis — the first publication (new in R2)
+
+Gap A (§0a): the manifest does not exist at the trusted baseline `4bad41d`, so
+the very first F3.1.1a publication has no baseline to compare against.
+
+**Generic "manifest missing ⇒ empty baseline" behavior is forbidden.** It would
+let anyone delete the manifest and re-publish an existing identity against a
+synthesized empty baseline — defeating the entire append-only mechanism this
+manifest exists to provide.
+
+Instead, an empty baseline may be synthesized **only** under an intentionally
+narrow, explicitly requested, one-time genesis rule.
+
+### The approved genesis baseline
+
+```ts
+/** The one pre-manifest baseline from which a genesis publication is allowed. */
+const AUTHORIZED_GENESIS_BASELINE_SHA =
+  '4bad41d058edf5c5314d17275e0c8bdb5abf690f';
+```
+
+This is a **compiled-in constant in reviewed source**, not caller input.
+
+> If implementation realities require a different direct descendant to become
+> the pre-manifest baseline before F3.1.1a lands (e.g. an intervening authorized
+> commit), the constant is updated to that exact SHA **in the F3.1.1a
+> implementation PR**, as a reviewed one-line change. The invariant is unchanged:
+> exactly one approved SHA, at which the manifest is absent.
+
+### The five conditions
+
+An empty baseline is synthesized **only when all five hold**:
+
+1. the caller **explicitly** declared genesis mode (`--allow-genesis-from <sha>`);
+2. that supplied `<sha>` equals `AUTHORIZED_GENESIS_BASELINE_SHA`;
+3. the resolved `--baseline-ref` full commit SHA **also** equals that constant;
+4. the manifest path is **absent** at that trusted ref;
+5. the candidate manifest passes **full** structural and duplicate-identity
+   validation (§6).
+
+### Why the flag is an acknowledgement, not an authority
+
+Conditions 1 and 2 are deliberately separate. If the caller-supplied flag alone
+authorized genesis, an attacker could delete the manifest, pass
+`--allow-genesis-from <whatever-sha-they-are-building-on>`, and obtain an empty
+baseline — reintroducing exactly the bypass this rule closes. Requiring the flag
+to match a **compiled-in constant** *and* the constant to match the **resolved
+baseline ref** means the flag can only ever *acknowledge* a genesis that the
+reviewed source already authorizes. It can never create one.
+
+### Genesis is never inferred
+
+Genesis is **never** inferred from any of: file-not-found alone; empty repository
+state; branch name; current date; application version; `manifestVersion`; or an
+environment variable without an explicit trusted baseline. Only the five
+conditions above.
+
+### Genesis is one-time and self-closing
+
+Once the manifest exists in the trusted baseline history, the branch becomes
+unreachable **by construction**, not by convention: every baseline ref at or
+after that commit has the file present, so condition 4 can never hold again.
+
+```text
+approved pre-manifest baseline + explicit genesis + file absent  →  baseline = EMPTY
+any normal baseline after genesis + file absent                  →  FAILURE
+```
+
+`manifest missing → FAIL` is the permanent rule; genesis is the single, narrow,
+already-closed exception.
+
+**Retention decision:** the genesis code path, its constant, and its tests are
+**retained permanently**. The branch is dead once the manifest lands, but keeping
+it preserves security cases B/C/D (§6a) under regression, rather than deleting
+the cases along with the code that enforced them, and keeps the validator
+self-contained if a future repository split or a new artifact kind ever needs its
+own genesis.
+
 ## 6. Append-only publication-history validation
 
 Merely checking "current manifest vs. current artifacts" is insufficient (per
@@ -342,40 +591,86 @@ type PublicationViolation =
   | { code: 'IDENTITY_REMOVED'; entry: ManifestEntry }
   | { code: 'DIGEST_CHANGED'; entry: ManifestEntry; candidateDigest: string }
   | { code: 'DUPLICATE_IDENTITY'; entry: ManifestEntry }
-  | { code: 'MALFORMED_MANIFEST'; reason: string };
+  | { code: 'MALFORMED_MANIFEST'; reason: string }
+  // new in R2 — see §5a
+  | { code: 'BASELINE_MANIFEST_MISSING'; baselineSha: string }
+  | { code: 'GENESIS_NOT_AUTHORIZED'; baselineSha: string; reason: string };
+
+/**
+ * Corrected in R2: the baseline is a *resolution*, not a manifest that may or
+ * may not exist. Absence is a first-class, explicitly handled input — never an
+ * implicit empty default.
+ */
+type BaselineResolution =
+  | { present: true; manifest: { published: ManifestEntry[] } }
+  | { present: false };
 
 function validatePublishedManifest(args: {
-  baseline: { published: ManifestEntry[] };
+  baselineSha: string;             // resolved full commit SHA of --baseline-ref
+  baseline: BaselineResolution;
   candidate: { published: ManifestEntry[] };
+  genesis?: { allowedBaselineSha: string };
 }): { ok: true } | { ok: false; violations: PublicationViolation[] };
 ```
 
-Rules (pure, no I/O — the caller supplies both manifests already parsed):
+Rules (pure, no I/O — the caller resolves and parses; the function decides):
 
 | Case | Result |
 |---|---|
-| baseline identity present in candidate, same digest | OK |
-| candidate contains an identity absent from baseline | OK (append) |
-| baseline identity absent from candidate | **FAIL** `IDENTITY_REMOVED` |
-| baseline identity present in candidate with a different digest | **FAIL** `DIGEST_CHANGED` |
+| baseline present, identity present in candidate, same digest | OK |
+| baseline present, candidate contains an identity absent from baseline | OK (append) |
+| baseline present, baseline identity absent from candidate | **FAIL** `IDENTITY_REMOVED` |
+| baseline present, baseline identity present with a different digest | **FAIL** `DIGEST_CHANGED` |
 | duplicate `(artifact,key,version)` within either manifest | **FAIL** `DUPLICATE_IDENTITY` |
 | malformed manifest (bad `manifestVersion`, non-sha256 digest, missing field) | **FAIL** `MALFORMED_MANIFEST` |
+| **baseline absent, no `genesis` supplied** | **FAIL** `BASELINE_MANIFEST_MISSING` |
+| **baseline absent, `genesis.allowedBaselineSha` ≠ compiled-in constant** | **FAIL** `GENESIS_NOT_AUTHORIZED` |
+| **baseline absent, `genesis` authorized but `baselineSha` ≠ constant** | **FAIL** `GENESIS_NOT_AUTHORIZED` |
+| **baseline absent, all five §5a conditions hold** | baseline treated as `{ published: [] }`, then the rules above apply normally |
+
+Two properties of the genesis row, both deliberate:
+
+- **`genesis` is ignored when the baseline is present.** It can only ever relax
+  the missing-baseline case; it never weakens append-only validation against a
+  baseline that exists. This is what makes case D (§6a) fail regardless of what
+  flags the caller passes.
+- **Genesis relaxes *only* the missing-baseline case.** The synthesized empty
+  baseline still runs the full candidate validation — structural checks and
+  duplicate-identity detection both apply (§5a condition 5). A genesis candidate
+  **may carry more than one entry**: the constraint is validity, not entry count,
+  so F3.1.1b can seed a `selector-bundle` entry the same way without amending
+  the validator. Append-only applies strictly from the genesis commit onward.
+
+SHA comparisons are normalized to lowercase and compared as **exact full
+40-character commit SHAs** — never abbreviated, never prefix-matched.
 
 **Trusted-baseline sourcing — the part that actually proves append-only
 history:** the baseline is never the working tree. A repository command:
 
 ```
-yarn validate:policy-publication --baseline-ref <git-ref>
+yarn validate:policy-publication --baseline-ref <git-ref> [--allow-genesis-from <exact-sha>]
 ```
 
 implemented as `scripts/validate-policy-publication.mjs`:
 
-1. reads the **baseline** manifest via `git show <baseline-ref>:packages/backend/src/modules/changeManagement/authorization/policy/published-manifest.json`;
-2. reads the **candidate** manifest from the working tree;
-3. calls the pure `validatePublishedManifest` above (loaded via
+1. resolves `--baseline-ref` to a **full commit SHA** via
+   `git rev-parse <ref>^{commit}` — so a symbolic ref (`origin/main`, a tag,
+   `git merge-base origin/main HEAD`) can be compared against the §5a constant;
+2. reads the **baseline** manifest via `git show <resolved-sha>:packages/backend/src/modules/changeManagement/authorization/policy/published-manifest.json`,
+   producing `{ present: true, manifest }`, or — **only** when git reports the
+   path does not exist at that ref — `{ present: false }`. Any other git failure
+   (bad ref, not a repository, I/O error) is a hard error, **never** an absent
+   baseline;
+3. reads the **candidate** manifest from the working tree;
+4. calls the pure `validatePublishedManifest` above (loaded via
    `node --experimental-strip-types`, available on node 22.21+/24, already the
-   engine range this repo declares — confirmed locally);
-4. exits non-zero and prints every violation if `ok: false`.
+   engine range this repo declares — confirmed locally), passing `genesis` only
+   when `--allow-genesis-from` was supplied;
+5. exits non-zero and prints every violation if `ok: false`.
+
+Step 2's narrowing matters: absence must mean *"this specific path is not in
+that tree"*, not *"something went wrong reading it."* Collapsing the two would
+turn any transient git error into a synthesized empty baseline.
 
 `--baseline-ref` is **required** — there is no default and no environment
 autodetection, per the review prompt's explicit instruction not to hide this
@@ -383,9 +678,33 @@ behind vague statements. In PR/CI validation the caller supplies the trusted
 target branch or `git merge-base origin/main HEAD`; a developer working
 locally supplies an explicit ref (e.g. `origin/main`, a tag, a prior commit).
 
+`--allow-genesis-from` is **optional and, after the first publication,
+permanently useless** (§5a). It is never defaulted, never inferred, and never
+read from the environment.
+
+## 6a. Genesis security cases (new in R2)
+
+These are contract cases, not merely tests — each is required by §5a and gated
+by §26.J.
+
+| # | Scenario | Result |
+|---|---|---|
+| **A** | approved genesis baseline + manifest missing + explicit genesis flag | **OK** — compare against an empty baseline |
+| **B** | approved genesis baseline + manifest missing + **no** genesis flag | **FAIL** `BASELINE_MANIFEST_MISSING` |
+| **C** | **unapproved** baseline + manifest missing + genesis flag | **FAIL** `GENESIS_NOT_AUTHORIZED` |
+| **D** | normal post-genesis baseline + manifest missing | **FAIL** `BASELINE_MANIFEST_MISSING` — regardless of any flag passed |
+| **E** | normal post-genesis baseline + manifest present | normal append-only validation (§6) |
+| **F** | candidate first manifest malformed | **FAIL** `MALFORMED_MANIFEST` |
+| **G** | candidate first manifest contains duplicate identities | **FAIL** `DUPLICATE_IDENTITY` |
+
+Case C has two distinct sub-cases, both failing, distinguished by the violation's
+`reason`: the flag names a SHA that is not the approved constant, or the flag
+matches the constant but `--baseline-ref` resolves somewhere else. Cases F and G
+prove genesis does **not** relax candidate validation.
+
 **Fallback if `--experimental-strip-types` proves unworkable at
 implementation time:** keep `validatePublishedManifest` as a plain `.ts` unit
-under jest (already exercised by §26.G tests) and give the `.mjs` script a
+under jest (already exercised by §26.I tests) and give the `.mjs` script a
 small hand-written re-implementation of the same table-driven rules, with a
 fixture test asserting the two stay in lockstep. This is a documented
 fallback, not the primary plan.
@@ -410,7 +729,8 @@ function createPolicyRegistry(
     if (map.has(id)) {
       throw new Error(`Duplicate published policy version: ${id}`);
     }
-    map.set(id, Object.freeze(v));
+    // R2: was Object.freeze(v) — shallow, see §0a Gap C / §17a.
+    map.set(id, deepFreezeSerializable(v));
   }
   return {
     get(key, version) {
@@ -439,13 +759,18 @@ in app-config names exactly one published version. This is the *only* mutable
 runtime input to policy selection, and it selects only for **new**
 submissions.
 
-The registry is a frozen, in-memory map built at startup from every
+The registry is a deep-frozen (§17a), in-memory map built at startup from every
 `PublishedAuthorizationPolicy` the application ships — not filtered to the
-active pin. `registry.get(key, version)` is always available for any
-previously-published version, so a historical `AuthorizationRound`'s
-`(policyKey, policyVersion)` is always re-derivable/auditable, satisfying
-ADR-009's "existing rounds remain bound to their recorded versions; a mutable
-'current policy' is never consulted to reinterpret history."
+active pin, so a shipped non-active version stays retrievable for rollback.
+
+**Corrected in R2.** R continued: *"`registry.get(key, version)` is always
+available for any previously-published version."* That is withdrawn — it holds
+only for versions this build actually **ships** (§29, §30). ADR-009's clause
+*"existing rounds remain bound to their recorded versions; a mutable 'current
+policy' is never consulted to reinterpret history"* is satisfied regardless,
+because it **forbids reinterpretation** rather than requiring runtime
+availability: a historical round's authoritative record is the ledger snapshot
+it already carries (§29), never a re-lookup.
 
 F3.1.2 obtains `selectedPolicy` as: `registry.get(activePolicy.key,
 activePolicy.version)`, evaluated once at submission time via `evaluatePolicy`
@@ -474,7 +799,7 @@ the canonical `Change` type. Nothing else is a policy input:
   `architecture.test.ts` `FORBIDDEN_FIELDS` guard already forbids
   `repositoryId`, `pipelineId`, `buildId`, `deploymentId`, `environmentId`,
   `adoApprovalId`, `teamsUserId` and must be extended to cover the new
-  `policy/` source directory (§16, §26.H).
+  `policy/` source directory (§16, §26.O).
 
 The full Change snapshot is independently hashed into
 `AuthorizationRound.changeSnapshotSha256` already — policy input fingerprinting
@@ -506,8 +831,10 @@ exists once a round is created.
 active bundle," validated at startup for *all* registered versions. This
 conflated two different needs:
 
-- **A. Needing old policy identity/content for audit/replay** — always true,
-  satisfied simply by the registry never evicting a version (§8).
+- **A. Needing old policy identity/content for audit** — always true, and
+  satisfied by the **ledger's** self-contained round evidence (§29), *not* — as
+  R claimed — by the registry never evicting a version (corrected in R2, §29,
+  §30).
 - **B. Needing every old policy to participate in startup validation against
   the *current* active selector bundle** — not true, and actively harmful: it
   means an inactive historical policy can crash application startup solely
@@ -533,14 +860,32 @@ references selector absent from active bundle → **NOT** a startup failure."
 
 ## 12. Policy artifact hash — exact semantics
 
-`policyArtifactSha256 = sha256Canonical(policy.rules)`.
+**Corrected in R2** (Gap B, §0a). The digest now binds the interpretation
+contract alongside the behavior it governs:
+
+```ts
+policyArtifactSha256 = sha256Canonical({
+  policyModelVersion: policy.policyModelVersion,
+  rules: policy.rules,
+});
+```
 
 | Field | Hashed? | Reason |
 |---|---|---|
-| `policy.rules` | **Yes** — this *is* the digest | The entire behavioral surface: which `PolicyRequirementRule`s a given `{classification, risk}` produces (§1, §2) |
+| `policy.policyModelVersion` | **Yes** — new in R2 | The interpretation contract contributes to policy-specific behavior: identical `rules` under a different model version may mean something different (§0a Gap B, §2a, §13a) |
+| `policy.rules` | **Yes** | The entire behavioral surface: which requirements a given `{classification, risk}` produces (§1, §2) |
 | `policy.policyKey` | No — identity metadata | Renaming would not change behavior; identity/digest binding is the manifest's job (§5), not the digest's |
 | `policy.version` | No — identity metadata | Same reasoning; also avoids a self-referential hash (the version string naming itself) |
 | `policy.provenance` | No — publication metadata | A corrected PR link or commit citation must never read as a behavior change — see §13 |
+
+Field order in the hashed literal is irrelevant: `canonicalJson` sorts keys
+(verified in `authorization/canonical.ts` at `4bad41d`).
+
+**Migration impact: none.** This changes the digest relative to R, but **nothing
+has been published yet** — no manifest entry exists to revise. F3.1.1a simply
+computes the seeded entry under the corrected formula. Had a version already been
+published, changing the hash formula would have required a new policy version,
+not an edited digest (§5, §6).
 
 Corrections from the prior model, both closing gaps the review prompt raised:
 
@@ -560,6 +905,8 @@ Corrections from the prior model, both closing gaps the review prompt raised:
   verbatim (§14) — no second canonicalization algorithm, and no hashing of
   `undefined` fields (confirmed `canonicalJson` throws on those — the rule
   literal must omit rather than set-to-undefined any absent optional).
+- **Deep-freezing does not change the digest** — see §17b for the verified
+  argument and §26.M for the test.
 
 ## 13. Policy rule model is not a DSL
 
@@ -585,6 +932,43 @@ bind (e.g. a mapped-type exhaustiveness check) so that adding a future union
 member fails the build until a new rule is added — not merely a runtime
 assertion.
 
+## 13a. Model-version semantics are append-only (new in R2)
+
+**Invariant: `policyModelVersion = 1` must keep the same interpretation
+forever.**
+
+This is the counterpart to publication immutability. The manifest (§5, §6) makes
+a published *artifact* immutable; this invariant makes the *contract for
+interpreting* that artifact immutable. Without both, an unchanged artifact with
+an unchanged digest can still change meaning (§0a Gap B).
+
+Consequences:
+
+- **V1 semantics are never edited in place.** Not to fix a perceived
+  infelicity, not to add a field's meaning, not to change how a rule matches.
+- **When semantics must change, introduce `policyModelVersion = 2`** with its own
+  rule shape and/or its own `evaluatePolicyModelV2`, dispatched by §2a. Existing
+  V1 artifacts keep resolving to `evaluatePolicyModelV1`, unchanged.
+- **The registry/runtime must never silently reinterpret `policyModelVersion: 1`
+  through changed semantics** — an unsupported model version fails closed (§2a,
+  §16) rather than falling back to the nearest implementation.
+- Ordinary bug fixes to V1 that are provably semantics-preserving (a performance
+  change, a clearer error message) remain allowed. Anything that could change an
+  output for any input is a new model version, not a fix.
+
+**Scope of enforcement.** This is an **application-code architecture
+invariant**. It does **not** require a second publication manifest for evaluator
+code in F3 MVP, and none is proposed. It is protected by:
+
+- the V1 behavioral test matrix (§26.A–D), which pins V1 outputs for all six
+  pairs and fails if any V1 output ever changes;
+- the semantic architecture guards (§17);
+- architecture review of any PR touching `evaluatePolicyModelV1`.
+
+If a future slice finds those insufficient, versioning the evaluator artifact
+itself is the escalation — deliberately **not** taken now, per the "do not build
+a framework" bound (§2a).
+
 ## 14. Hashing / canonicalization (unchanged mechanism, corrected inputs)
 
 No second canonicalization scheme. Every hash in F3.1.1 reuses
@@ -593,7 +977,7 @@ verbatim (`canonicalJson`, `sha256Canonical`, `assertSha256`):
 
 | Value | Computed as |
 |---|---|
-| `policyArtifactSha256` | `sha256Canonical(policy.rules)` — see §12 (corrected: `rules` data, not a matrix description of a function) |
+| `policyArtifactSha256` | `sha256Canonical({ policyModelVersion, rules })` — see §12 (R2: now binds the interpretation contract as well as the rule data) |
 | `policyInputSha256` | `sha256Canonical({ classification, risk })` |
 | `selectorBundleSha256` / bundle `contentDigest` (F3.1.1b) | `sha256Canonical(bundle.selectors)` |
 | `selectorDigest` (per requirement, F3.1.1b) | `sha256Canonical({ selectorKey, selectorVersion, principalType, principalRef })` |
@@ -642,28 +1026,40 @@ this document, and one field removal cascades in from §12
 ## 16. Failure model — three separated domains
 
 **Corrected.** The prior plan's single "prevents startup / rejects submission"
-table did not have a CI/publication row at all, since the append-only manifest
-did not exist. The failure model now has three explicitly separated domains,
-each owned by a different actor at a different time:
+table did not have a publication row at all, since the append-only manifest did
+not exist. The failure model now has three explicitly separated domains, each
+owned by a different actor at a different time.
 
-### CI / publication validation (`yarn validate:policy-publication`, §6)
+### Publication-integrity validation (command-invoked — `yarn validate:policy-publication`, §6)
+
+**Relabelled in R2.** This domain was headed "CI / publication validation,"
+which implied a gate that does not exist. The command must be *invoked* to
+fail anything — see §21a for the capability-vs-enforcement distinction.
 
 | Failure | Result |
 |---|---|
-| PR/commit changes an existing published policy digest | **FAIL** — `DIGEST_CHANGED` |
-| PR/commit removes a previously published version | **FAIL** — `IDENTITY_REMOVED` |
-| PR/commit duplicates an existing `(artifact,key,version)` | **FAIL** — `DUPLICATE_IDENTITY` |
-| PR/commit appends a new, previously-unseen version | **OK** |
+| Commit changes an existing published policy digest | **FAIL** — `DIGEST_CHANGED` |
+| Commit removes a previously published version | **FAIL** — `IDENTITY_REMOVED` |
+| Commit duplicates an existing `(artifact,key,version)` | **FAIL** — `DUPLICATE_IDENTITY` |
+| Commit appends a new, previously-unseen version | **OK** |
 | Manifest malformed | **FAIL** — `MALFORMED_MANIFEST` |
+| **Baseline manifest missing, no authorized genesis** (R2) | **FAIL** — `BASELINE_MANIFEST_MISSING` |
+| **Genesis requested from an unauthorized baseline** (R2) | **FAIL** — `GENESIS_NOT_AUTHORIZED` |
+| **Genesis authorized per all five §5a conditions** (R2) | **OK** — validate against an empty baseline |
 
 ### Runtime startup validation (pure, no I/O)
 
 | Failure | Result |
 |---|---|
 | No active policy configured / unknown `activePolicy` pin | Startup fails |
+| **Active policy pin names a version not shipped in this build** (R2) | Startup fails — §29 |
 | Duplicate `policyKey@version` registered in this build | Startup fails |
 | Active policy matrix not total over classification×risk | Startup fails |
-| Active `policyArtifactSha256` (computed from shipped `rules`) disagrees with the manifest's entry for that `key@version` | Startup fails — content/manifest drift within one deploy |
+| **Unsupported `policyModelVersion` on a shipped policy** (R2) | Startup fails — fails closed, §2a, §13a |
+| Active `policyArtifactSha256` (computed from shipped `{policyModelVersion, rules}`) disagrees with the manifest's entry for that `key@version` | Startup fails — content/manifest drift within one deploy |
+| **A shipped policy has no manifest entry at all** (R2) | Startup fails — §28a |
+| **A manifest entry has no shipped policy module** (R2) | **Startup succeeds** — publication history, not a runtime obligation, §28a, §29 |
+| **Nested mutation attempted on a registered artifact** (R2) | Impossible / throws — §17a, §26.L |
 | Active policy references a `selectorKey` absent from the **active** selector bundle | Startup fails (§11) |
 | **Inactive historical** policy references a selector absent from the active bundle | **Startup succeeds** — corrected, see §11 |
 | Duplicate selector key in active bundle (F3.1.1b) | Startup fails |
@@ -718,7 +1114,115 @@ idiom (confirmed against `4bad41d`) rather than inventing a new mechanism:
 - **Explicit acceptance criterion:** a local variable, parameter, or comment
   containing the word `manager` (or `director`, `cto`, etc.) anywhere in any
   guarded source file must **not** fail any guard. This is a required test
-  case in §26.I, not merely an assumption.
+  case in §26.N, not merely an assumption.
+
+## 17a. Runtime deep immutability (new in R2)
+
+Gap C (§0a): `Object.freeze(policy)` freezes only the top-level object.
+Everything reachable below it stays mutable:
+
+```ts
+policy.policyKey = 'x';                       // blocked by Object.freeze
+policy.rules.push(extraRule);                 // NOT blocked
+policy.rules[0].match.risk = 'low';           // NOT blocked
+policy.rules[0].requirements.push(extraReq);  // NOT blocked
+policy.rules[0].requirements[0].sla.durationSeconds = 1; // NOT blocked
+```
+
+TypeScript `readonly` does not help: it is erased at compile time and constrains
+only well-typed call sites. A *published immutable artifact* must be immutable at
+runtime, against any caller.
+
+**Recommended mechanism — one small reusable utility** (direction A of the review
+prompt's §17: a validated deep-freeze, not immutable reconstruction, which would
+allocate a parallel object graph for no added guarantee):
+
+```ts
+// packages/backend/src/modules/changeManagement/authorization/immutable.ts
+export function deepFreezeSerializable<T>(value: T): T;
+```
+
+Properties:
+
+- recursively freezes plain objects **and** arrays, bottom-up, returning the
+  same reference;
+- accepts **exactly** `canonicalJson`'s value domain — `string`, finite
+  `number`, `boolean`, `null`, arrays, and plain objects (prototype
+  `Object.prototype` or `null`) — and **throws** on anything else: functions,
+  class instances, `Map`/`Set`/`Date`, and `undefined`;
+- tracks visited nodes in a `WeakSet`, so it is cycle-safe and terminates.
+
+**Placement — `authorization/immutable.ts`, beside `canonical.ts`, not inside
+`policy/`.** F3.1.1b's selector bundles need the same guarantee; putting the
+utility next to the canonicalization primitive it mirrors means the second
+artifact kind reuses it instead of growing a second, subtly different freeze.
+
+**Why the value domain is deliberately identical to `canonicalJson`'s.** The
+same objects are both hashed and frozen. Sharing one domain makes "freezable"
+and "hashable" the same invariant, so an artifact can never be publishable but
+not freezable (or vice versa), and the utility doubles as a serializability
+assertion at load time. Verified against `authorization/canonical.ts` at
+`4bad41d`: it rejects non-plain prototypes and `undefined` properties, and
+accepts only finite numbers.
+
+**A `WeakSet`, not an `Object.isFrozen` short-circuit.** Short-circuiting on
+`isFrozen` would wrongly skip a subtree whose root happens to be shallow-frozen
+already — precisely the bug this section exists to fix.
+
+**Consequence for the published artifact module (§24):** it exports a **plain
+literal**, no longer an `Object.freeze`d one. A pre-frozen top level would be a
+second, shallower freeze mechanism sitting in front of the real one, and would
+be exactly the subtree the `isFrozen` trap above describes.
+
+### Strict-mode semantics
+
+Backstage backend sources compile to ES modules, which are always strict, so an
+assignment to a frozen property **throws `TypeError`** rather than failing
+silently. `Array.prototype.push` on a frozen array throws regardless of
+strictness. §26.L therefore asserts **both** that the mutation throws **and**
+that the value is unchanged — the second assertion is a semantics-independent
+backstop if emitted test code is ever non-strict.
+
+## 17b. Freeze ordering and digest invariance (new in R2)
+
+**Required order:**
+
+```text
+load policy data
+  ↓
+validate shape / totality / model version   (§16)
+  ↓
+compute and check digest against manifest   (§12, §28a)
+  ↓
+deep freeze                                 (§17a)
+  ↓
+register                                    (§7)
+```
+
+Freezing happens **inside `createPolicyRegistry`**, after validation and digest
+verification, replacing today's `Object.freeze(v)` (§7). The artifact is never
+mutated after its digest is computed — there is no normalization, defaulting, or
+back-filling step between digest and freeze.
+
+Validation runs **before** the freeze, not after: freezing first would add no
+guarantee (validation is read-only) and would only complicate any future
+validator that wanted to normalize.
+
+### Deep-freezing cannot change the digest
+
+This is a **verified property**, not an assumption. Read against
+`authorization/canonical.ts` at `4bad41d`, `canonicalJson` depends on exactly
+four things, and `Object.freeze` changes none of them:
+
+| `canonicalJson` depends on | Effect of `Object.freeze` |
+|---|---|
+| `typeof` / `value === null` | unchanged |
+| `Array.isArray(value)` | unchanged — freezing an array leaves it an array |
+| `Object.getPrototypeOf(value)` (must be `Object.prototype` or `null`) | unchanged — freezing does not alter the prototype |
+| `Object.keys(record).sort()` and each property's value | unchanged — freezing alters neither enumerability nor values |
+
+Therefore `digest(before freeze) === digest(after freeze)`, deterministically.
+Pinned by test §26.M.
 
 ## 18. Selector bundle publication integrity (F3.1.1b direction — not built here)
 
@@ -803,6 +1307,31 @@ cross-referenced to the corrected sections above:
 - **Persistence decision**: no new database tables, routes, or UI — confirmed
   against §20 and the §4 field mapping.
 
+## 21a. Publication capability vs. publication enforcement (new in R2)
+
+The review found R's wording could be read as promising an automatic gate. It
+does not exist. The distinction is now explicit and must be preserved in any
+downstream summary:
+
+| Statement | True after F3.1.1a? |
+|---|---|
+| "A publication-integrity **mechanism exists**" | **Yes** — manifest (§5), genesis rule (§5a), pure validator (§6), repository command, tests |
+| "The publication **gate is mandatory in CI**" | **No** |
+
+**Why not:** the repository has **no CI pipeline definition at `4bad41d`** —
+re-verified for R2 via `git ls-tree -r HEAD`: no `.github/`, no `.azuredevops/`,
+no root `azure-pipelines.yml`; root `scripts/` contains only
+`build-showcase-techdocs.sh`. The only `azure-pipelines.yml` files present belong
+to `templates/` scaffolding output, not this repository's own build.
+
+Append-only publication becomes **enforced** only once a pipeline or branch
+policy actually invokes `yarn validate:policy-publication --baseline-ref …`.
+Until then it is a capability an author or reviewer runs deliberately.
+
+**Creating that pipeline is out of scope for F3.1.1a** and is forbidden by this
+checkpoint's STOP conditions. It is a follow-up, separately authorized, once a
+pipeline exists to integrate into.
+
 ## 22. Performance / caching (unchanged)
 
 Policy evaluation is pure/in-memory — no caching needed or beneficial.
@@ -813,14 +1342,21 @@ otherwise-immutable round snapshot.
 
 ## 23. F3.1.1 decomposition — re-evaluated, unchanged
 
-The two-slice decomposition remains correct after these corrections. The
-manifest and validator (§5, §6) are new work but have no independent
-reviewable I/O boundary of their own — a manifest is meaningless without the
-policy artifact it hashes, so it belongs inside F3.1.1a, not a third slice.
+The two-slice decomposition remains correct after these corrections, and R2
+does not reopen it. The manifest and validator (§5, §6) are new work but have no
+independent reviewable I/O boundary of their own — a manifest is meaningless
+without the policy artifact it hashes, so it belongs inside F3.1.1a, not a third
+slice.
+
+**R2 re-check:** none of the three corrections adds an I/O boundary. Genesis
+(§5a) is a rule inside the existing validator; `policyModelVersion` (§2a) is a
+field plus a `switch`; deep freeze (§17a) is a pure in-memory utility. The slice
+grows slightly; it does not split. Neither slice integrates with
+`POST /changes` — **F3.1.2** performs submission integration.
 
 | Slice | Scope | I/O boundary |
 |---|---|---|
-| **F3.1.1a — Policy domain + registry + publication integrity** | `PolicyInput`, `RequirementDefinition`, `PolicyRule`, `PublishedAuthorizationPolicy`, `PolicyEvaluationResult` types; the published `default-change-authorization@2026-09-02.1` data artifact implementing the ADR-009 matrix; `evaluatePolicy`; `createPolicyRegistry`; `policyArtifactDigest`; `published-manifest.json`; `validatePublishedManifest`; `scripts/validate-policy-publication.mjs`; corrected semantic architecture guards | None at runtime — pure, no config read, no Catalog, no DB. The manifest validator reads git history via a script, not via the application |
+| **F3.1.1a — Policy domain + registry + publication integrity** | `PolicyInput`, `RequirementDefinition`, `PolicyRule`, `PublishedAuthorizationPolicy` (with `policyModelVersion: 1`), `PolicyEvaluationResult` types; the published `default-change-authorization@2026-09-02.1` data artifact implementing the ADR-009 matrix; `evaluatePolicy` + model-version dispatch (§2a); `createPolicyRegistry`; `deepFreezeSerializable` (§17a); `policyArtifactDigest` over `{policyModelVersion, rules}`; `published-manifest.json`; `validatePublishedManifest` incl. genesis (§5a); `scripts/validate-policy-publication.mjs`; corrected semantic architecture guards | None at runtime — pure, no config read, no Catalog, no DB. The manifest validator reads git history via a script, not via the application |
 | **F3.1.1b — Selector bundle + resolver + selector publication integrity** | `SelectorBundle`/`SelectorEntry` types; `readAuthorizationConfig(config)` reader; startup validation (digest, coverage against the **active** policy only — §11, A/B individual-kind, duplicate keys); Catalog-backed resolver producing `PrincipalResolutionSnapshot`; environment-scoped bundle identities (§19); selector-bundle entries appended to the same manifest (§18); plugin wiring to add `coreServices.auth` | Config + Catalog (via `auth.getOwnServiceCredentials()`) |
 
 Both slices remain fully unwired from `POST /changes`; F3.1.2 is the only
@@ -849,21 +1385,32 @@ New directory:
 New files:
 
 - `types.ts` — `PolicyInput`, `RequirementDefinition`, `PolicyRule`,
-  `PublishedAuthorizationPolicy`, `PolicyEvaluationResult` (§1).
+  `PublishedAuthorizationPolicy` (incl. `policyModelVersion: 1`),
+  `PolicyEvaluationResult` (§1).
 - `published/default-change-authorization.2026-09-02.1.ts` — one exported
   `PublishedAuthorizationPolicy` **data** artifact implementing the six-row
-  matrix (§1, §26.A), `Object.freeze`d, no functions.
-- `evaluatePolicy.ts` — the single generic evaluator (§2) plus
+  matrix (§1, §26.A), carrying `policyModelVersion: 1`, **a plain literal — no
+  `Object.freeze`** (the registry deep-freezes it, §17a), no functions.
+- `evaluatePolicy.ts` — the generic evaluator with explicit model-version
+  dispatch (§2, §2a): `evaluatePolicy` + `evaluatePolicyModelV1`, plus
   `policyInputSha256` computation via `canonical.ts`.
-- `registry.ts` — `createPolicyRegistry` (§7).
-- `policyArtifactDigest.ts` — `sha256Canonical(policy.rules)` (§12).
+- `registry.ts` — `createPolicyRegistry` (§7), deep-freezing at registration
+  in the §17b order.
+- `policyArtifactDigest.ts` — `sha256Canonical({ policyModelVersion, rules })`
+  (§12).
 - `published-manifest.json` — the append-only manifest (§5), seeded with the
   one policy entry above.
 - `publication/validateManifestHistory.ts` — the pure
-  `validatePublishedManifest` (§6).
+  `validatePublishedManifest` (§6), including `BaselineResolution`, the genesis
+  rule, and `AUTHORIZED_GENESIS_BASELINE_SHA` (§5a).
 - `scripts/validate-policy-publication.mjs` (repo-root `scripts/`, matching
   the existing convention alongside `build-showcase-techdocs.sh`) — the
-  `--baseline-ref` CLI wrapper (§6).
+  `--baseline-ref` / `--allow-genesis-from` CLI wrapper (§6).
+
+**One new file outside `policy/`:**
+
+- `authorization/immutable.ts` — `deepFreezeSerializable` (§17a), placed beside
+  `canonical.ts` so F3.1.1b's selector bundles reuse it.
 - Root `package.json` — one new script:
   `"validate:policy-publication": "node scripts/validate-policy-publication.mjs"`.
 
@@ -871,16 +1418,37 @@ Test files (co-located, matching existing repo convention):
 
 - `published/default-change-authorization.2026-09-02.1.test.ts` — matrix
   coverage (§26.A), determinism (§26.B), totality (§26.C).
-- `registry.test.ts` — duplicate detection, unknown-version lookup (§26.F).
+- `registry.test.ts` — duplicate detection, unknown-version lookup (§26.K), and
+  deep runtime immutability after registration (§26.L).
 - `policyArtifactDigest.test.ts` — hash stability, identity-metadata exclusion
-  (§26.E).
+  (§26.G, §26.H), `policyModelVersion` inclusion (§26.F), freeze/digest
+  invariance (§26.M).
+- `evaluatePolicy.test.ts` — generic-evaluator behavior across versions
+  (§26.D) and fail-closed unsupported `policyModelVersion` (§26.E).
 - `publication/validateManifestHistory.test.ts` — the full table in §6
-  (§26.G).
+  (§26.I) **and all seven genesis security cases** (§6a, §26.J).
+- `../immutable.test.ts` — `deepFreezeSerializable` unit behavior, including
+  its rejected value domain (§26.L).
 
 ### Expected types/interfaces
 
-Exactly the types in §1, §2, §5, §6, and §7 of this plan — no additions beyond
-what's specified there.
+Exactly the types in §1, §2, §2a, §5, §5a, §6, §7, and §17a of this plan — no
+additions beyond what's specified there.
+
+### R2 scope additions (relative to the R slice)
+
+- `policyModelVersion: 1` on the published artifact (§1).
+- Generic evaluator with explicit model-version dispatch and a fail-closed
+  default (§2a).
+- Canonical hash over `{ policyModelVersion, rules }` (§12).
+- Genesis/bootstrap semantics: `BaselineResolution`, the compiled-in
+  `AUTHORIZED_GENESIS_BASELINE_SHA`, the `--allow-genesis-from` flag, and the
+  two new violation codes (§5a, §6, §6a).
+- Runtime manifest/artifact agreement in the shipped ⇒ manifest direction
+  (§28a).
+- `deepFreezeSerializable` and the §17b freeze ordering (§17a).
+
+Everything else in the slice is carried forward from R unchanged.
 
 ### Source paths likely involved
 
@@ -893,7 +1461,7 @@ one new root `scripts/` file and one root `package.json` script entry.
 the `sources` array (currently `types.ts`, `evaluators.ts`,
 `AuthorizationLedgerRepository.ts`, `KnexAuthorizationLedgerRepository.ts`) to
 also read the new `policy/` files, and add the corrected semantic guards
-(§17, §26.I) in place of the removed job-title regex. The existing
+(§17, §26.N) in place of the removed job-title regex. The existing
 `FORBIDDEN_FIELDS` check already applies to any file added to that `sources`
 array, so it extends for free.
 
@@ -916,18 +1484,34 @@ and every migration file are untouched by this slice.
 
 ### Acceptance criteria
 
-- All items in §26.A–I pass (matrix, determinism, totality, generic
-  evaluator, hash stability, registry duplicates, manifest append-only rules,
-  manifest/artifact digest agreement, semantic guards).
+- All items in §26.A–Q pass (matrix, determinism, totality, generic evaluator,
+  model-version dispatch, hash stability, registry duplicates, manifest
+  append-only rules, genesis cases, manifest/artifact digest agreement, deep
+  immutability, freeze/digest invariance, semantic guards).
 - `architecture.test.ts` guard extensions pass, including on the new `policy/`
   sources, and including the "`manager` as a variable name passes" case.
 - All 15 pre-existing F3.1.0 Change Management suites remain green and
   unmodified.
 - `yarn workspace backend lint` passes.
 - `yarn workspace backend build` passes.
-- `yarn validate:policy-publication --baseline-ref <this-branch's-own-prior-commit>`
-  passes on the seeded single-entry manifest (trivially — nothing to compare
-  against yet beyond the initial publish).
+- **Corrected in R2 — the genesis invocation.** The seeding publish must be
+  validated as an explicit genesis, because the manifest does not exist at the
+  trusted baseline:
+
+  ```
+  yarn validate:policy-publication \
+    --baseline-ref 4bad41d058edf5c5314d17275e0c8bdb5abf690f \
+    --allow-genesis-from 4bad41d058edf5c5314d17275e0c8bdb5abf690f
+  ```
+
+  R's criterion — run it against "this branch's own prior commit … trivially,
+  nothing to compare against yet" — is **wrong** and is withdrawn: it is exactly
+  the undefined-genesis assumption of Gap A (§0a), and under the corrected rules
+  it fails `BASELINE_MANIFEST_MISSING` unless the baseline is the approved SHA
+  *and* genesis is explicitly declared.
+- The **negative** genesis invocations must also be demonstrated:
+  omitting `--allow-genesis-from` fails `BASELINE_MANIFEST_MISSING`, and
+  supplying a non-approved SHA fails `GENESIS_NOT_AUTHORIZED` (§6a cases B, C).
 - Repository-wide `tsc --noEmit` error set is **set-identical** (by
   file/line/column/code, not just count — per the F3.1.0-H precedent) to the
   5 pre-existing errors present at `4bad41d`.
@@ -958,9 +1542,13 @@ the next explicit authorization.
    remain absent from ADO HEAD — an F3.1.4 prerequisite, unrelated to
    F3.1.1/F3.1.2.
 
-## 26. Test strategy (revised)
+## 26. Test strategy (revised in R2)
 
-**A. Policy matrix**
+**Relabelled in R2 onto the canonical A–Q scheme.** R's ad-hoc lettering
+collided once genesis, model-version, and deep-immutability cases were added.
+Content is preserved; only the labels and the new R2 cases changed.
+
+**A. Policy matrix** — six pairs
 
 - `normal + low` → one `individual` requirement, `pre_execution`.
 - `normal + medium` → `individual` + `cab`, both `pre_execution`.
@@ -971,77 +1559,127 @@ the next explicit authorization.
   `separationOfDutyKey`) + one `cab` `post_execution` requirement carrying
   `sla`.
 
-**B. Determinism** — same immutable `PolicyInput` + same policy version ⇒
-byte-identical `policyInputSha256` and identical `RequirementDefinition[]`
-across repeated `evaluatePolicy` calls.
+**B. Totality** — every one of the 6 `{classification, risk}` pairs resolves to
+exactly one `PolicyRule`; no default fallthrough exists; a mapped-type
+compile-time check fails the build if a union member is added without a matching
+rule (§13).
 
-**C. Totality** — every one of the 6 `{classification, risk}` pairs resolves
-to exactly one `PolicyRule`; no default fallthrough exists; a mapped-type
-compile-time check fails the build if a union member is added without a
-matching rule (§13).
+**C. Determinism** — same immutable `PolicyInput` + same policy version ⇒
+byte-identical `policyInputSha256` and identical `RequirementDefinition[]` across
+repeated `evaluatePolicy` calls.
 
-**D. Generic evaluator** — `evaluatePolicy` behaves identically across two
-distinct published versions of the same `policyKey` given the same input
-shape but different `rules` content — proving the evaluator itself carries no
-version-specific behavior (§2).
+**D. Generic evaluator, model V1** — `evaluatePolicy` behaves identically across
+two distinct published versions of the same `policyKey` given the same input
+shape but different `rules` content, proving the evaluator carries no
+version-specific behavior (§2, §2a).
 
-**E. Artifact hash stability** — `policyArtifactDigest(policy)` is stable
-across repeated calls and across object-identity-different-but-content-equal
-`rules`; changing `policyKey`, `version`, or `provenance` alone (rules
-unchanged) does **not** change the digest (§12); changing any `rules` content
-does change it.
+**E. Unsupported `policyModelVersion` fails closed** — an artifact carrying a
+model version other than `1` (constructed via a deliberate cast, since the field
+is the literal type `1`) makes `evaluatePolicy` throw, and makes **startup fail**
+when shipped (§2a, §16). No fallback to V1, no nearest-match. *(New in R2.)*
 
-**F. Duplicate registry identity** — registering two versions with the same
-`key@version` string fails registry construction (§7); the older version
-remains retrievable via `registry.get` and evaluates identically to when it
-was active (version isolation).
+**F. Policy hash includes `policyModelVersion`** — holding `rules` fixed and
+changing only `policyModelVersion` **does** change `policyArtifactSha256` (§12).
+Pins the Gap B correction: the interpretation contract is part of policy
+identity. *(New in R2.)*
 
-**G. Publication manifest (§6)**
+**G. Identity/provenance changes do not alter the behavioral digest** — changing
+`policyKey`, `version`, or `provenance` alone (rules and model version unchanged)
+does **not** change the digest (§12). Digest stability also holds across repeated
+calls and across object-identity-different-but-content-equal `rules`.
+
+**H. Rule-content change alters the digest** — changing any `rules` content
+changes `policyArtifactSha256`.
+
+**I. Manifest append-only (§6)**
 
 - baseline entry present unchanged in candidate → `ok: true`.
 - candidate appends a new entry → `ok: true`.
-- baseline entry's digest changed in candidate → `ok: false`,
-  `DIGEST_CHANGED`.
+- baseline entry's digest changed in candidate → `ok: false`, `DIGEST_CHANGED`.
 - baseline entry absent from candidate → `ok: false`, `IDENTITY_REMOVED`.
 - duplicate `(artifact,key,version)` within one manifest → `ok: false`,
   `DUPLICATE_IDENTITY`.
 - malformed manifest (bad version, non-hex digest) → `ok: false`,
   `MALFORMED_MANIFEST`.
 
-**H. Policy artifact / manifest digest agreement** — the shipped policy's
-computed `policyArtifactDigest` must equal the `published-manifest.json`
-entry for its `key@version`; a deliberate mismatch (simulated in the test)
-fails.
+**J. Genesis / bootstrap (§5a, §6a)** — one case per security scenario.
+*(New in R2.)*
 
-**I. Semantic architecture guards (§17)**
+| Case | Setup | Expected |
+|---|---|---|
+| **J1** | baseline = approved SHA, manifest absent, genesis flag = approved SHA | `ok: true` — validated against an empty baseline |
+| **J2** | baseline = approved SHA, manifest absent, **no** genesis flag | `ok: false`, `BASELINE_MANIFEST_MISSING` |
+| **J3** | baseline = approved SHA, manifest absent, genesis flag = **some other** SHA | `ok: false`, `GENESIS_NOT_AUTHORIZED` |
+| **J4** | genesis flag = approved SHA but `baselineSha` resolves **elsewhere**, manifest absent | `ok: false`, `GENESIS_NOT_AUTHORIZED` |
+| **J5** | post-genesis baseline, manifest absent at that ref, genesis flag supplied | `ok: false`, `BASELINE_MANIFEST_MISSING` — genesis cannot rescue a non-approved baseline |
+| **J6** | genesis authorized, candidate malformed / containing duplicate identities | `ok: false`, `MALFORMED_MANIFEST` / `DUPLICATE_IDENTITY` — genesis does not relax candidate validation |
+| **J7** | genesis flag supplied but baseline **present** | flag ignored; normal append-only rules apply unchanged |
+
+J2–J5 are what make the genesis rule a rule rather than a bypass; J6–J7 pin its
+exact blast radius.
+
+**K. Artifact / manifest digest agreement** — the shipped policy's computed
+`policyArtifactDigest` must equal the `published-manifest.json` entry for its
+`key@version`; a deliberate mismatch (simulated) fails startup. Also asserts the
+§28a direction: a manifest entry with **no** shipped module does **not** fail
+startup, while a shipped policy with no manifest entry **does**.
+
+**L. Deep runtime immutability (§17a)** — after `createPolicyRegistry` returns,
+every one of these must fail, asserted at **nested** depth, not only top level.
+*(New in R2.)*
+
+| # | Attempted mutation |
+|---|---|
+| **L1** | `policy.policyKey = 'x'` |
+| **L2** | `policy.rules.push(rule)` |
+| **L3** | `policy.rules[0].match.risk = 'low'` |
+| **L4** | `policy.rules[0].requirements.push(req)` |
+| **L5** | `policy.rules[0].requirements[0].sla.durationSeconds = 1` |
+
+Each case asserts **both** that the operation throws **and** that the value is
+unchanged afterwards. The value-unchanged assertion is the semantics-independent
+backstop, so the suite still proves immutability if emitted test code is ever
+non-strict. Compile-time `readonly` alone is **not** accepted as evidence for any
+of L1–L5.
+
+Plus `deepFreezeSerializable` unit behavior: throws on a function, a class
+instance, a `Map`/`Date`, and an `undefined` property; accepts strings, finite
+numbers, booleans, `null`, arrays, and plain objects; cycle-safe; returns the
+same reference.
+
+**M. Freeze does not change the digest** — `policyArtifactDigest` computed before
+`deepFreezeSerializable` equals the digest computed after, for the shipped
+artifact and for a fixture exercising nested arrays and objects (§17b, §20).
+*(New in R2.)*
+
+**N. Semantic architecture guards (§17)**
 
 - Extended `FORBIDDEN_FIELDS` (`email`, `emailAddress`, `jobTitle`,
   `employeeName`, `displayName`-as-identity) absent from guarded `policy/`
   sources.
 - No e-mail-shaped string literal in the published artifact's `rules` data.
-- Every `selectorKey` in the published artifact matches the generic
-  identifier convention.
+- Every `selectorKey` in the published artifact matches the generic identifier
+  convention.
 - **A guarded source file containing a variable, parameter, or comment named
   `manager` (or `director`, `cto`, `superintendent`) passes all guards** —
   explicit regression test for the removed job-title regex (§0/Defect C).
 
-**J. No provider leakage** — the existing `FORBIDDEN_FIELDS` guard
+**O. No provider / Teams / ADO leakage** — the existing `FORBIDDEN_FIELDS` guard
 (`repositoryId`, `pipelineId`, `adoApprovalId`, `teamsUserId`, etc.) extended
-over the new `policy/` source files; no ADO/Teams-specific identifier appears
-in `PolicyInput`, `RequirementDefinition`, or `PublishedAuthorizationPolicy`.
+over the new `policy/` source files; no ADO/Teams-specific identifier appears in
+`PolicyInput`, `RequirementDefinition`, or `PublishedAuthorizationPolicy`.
 
-**K. SLA configuration validation** — a `RequirementDefinition` with `sla`
-present but missing `durationSeconds` or an `anchor` outside
-`'execution_completion'` fails startup validation.
-
-**L. Regression** — all 15 existing F3.1.0 Change Management suites remain
-green and are not modified by F3.1.1 changes (excluding the
-`architecture.test.ts` guard extensions in I/J, which extend rather than alter
-existing assertions).
-
-**M. TypeScript baseline** — repository-wide `tsc --noEmit` error set is
-set-identical to the 5 known errors at `4bad41d`, compared by
+**P. TypeScript baseline** — repository-wide `tsc --noEmit` error set is
+**set-identical** to the 5 known errors at `4bad41d`, compared by
 file/line/column/code, not count (§27).
+
+**Q. Existing F3.1.0 tests remain green** — all 15 existing Change Management
+suites pass and are unmodified by F3.1.1a (excluding the `architecture.test.ts`
+guard extensions in N/O, which extend rather than alter existing assertions).
+
+**R. SLA configuration validation** (carried forward from R's §26.K) — a
+`RequirementDefinition` with `sla` present but missing `durationSeconds`, or with
+an `anchor` outside `'execution_completion'`, fails startup validation.
 
 ## 27. TypeScript baseline (carried forward, restated per prompt §32)
 
@@ -1050,58 +1688,159 @@ historical errors. Any future F3.1.1a implementation must prove its candidate
 error set is identical to that baseline by file, line, column, and error
 code — not merely by count — per the F3.1.0-H precedent (§26.M).
 
-## 28. Required architecture review answers
+## 28. Required architecture review answers (R2)
+
+The R answer table is superseded by this one; every R answer not restated below
+remains valid and unchanged.
 
 | # | Question | Answer |
 |---|---|---|
-| 1 | What ADO baseline was verified? | `4bad41d058edf5c5314d17275e0c8bdb5abf690f`, `feat/ado-repo-governance` — confirmed unmoved |
-| 2 | What backstage-docs baseline was used? | `75abd9d60facc6ff1dfc54af4a46192f4c287c9e` (the plan this correction supersedes) |
-| 3 | Why is a self-declared digest insufficient for historical immutability? | It only detects "content changed, digest forgotten," not "content and digest both changed together under the same identity" — §0/Defect A, §5 |
-| 4 | What exactly is the trusted publication identity? | `(artifact, key, version) → digest`, one entry per published policy or selector-bundle version — §5 |
-| 5 | What is the policy publication manifest? | `published-manifest.json`, a checked-in JSON array of `{artifact, key, version, digest}` entries — §5 |
-| 6 | How is it proven append-only? | A pure `validatePublishedManifest(baseline, candidate)` function requiring every baseline entry present unchanged in the candidate — §6 |
-| 7 | Against what trusted baseline is it compared? | A previous **git ref** (`--baseline-ref`), read via `git show <ref>:<path>` — never the working tree alone — §6 |
-| 8 | What happens if an old identity disappears? | CI/publication validator fails: `IDENTITY_REMOVED` — §6, §16 |
-| 9 | What happens if an old digest changes? | CI/publication validator fails: `DIGEST_CHANGED` — §6, §16 |
-| 10 | Can a new version be appended? | Yes — new `(artifact,key,version)` entries always pass — §6 |
-| 11 | Does this require a database? | **No** — §20 |
-| 12 | Does this require a policy publishing API? | **No** — a checked-in file + a standalone script — §5, §6, §20 |
-| 13 | Is a policy version still represented by an arbitrary `evaluate()` function? | **No** — §1, §2 |
-| 14 | What serializable policy artifact replaces that model? | `PublishedAuthorizationPolicy { policyKey, version, provenance, rules }` — §1 |
-| 15 | What generic evaluator consumes it? | `evaluatePolicy(policy, input): PolicyEvaluationResult` — §2 |
-| 16 | Does `policyArtifactSha256` now cover all policy-specific behavior? | Yes — it hashes `rules`, which is the entire behavioral surface; the evaluator is shared, unversioned code — §2, §12 |
-| 17 | Is function serialization used? | **No** — §12 |
-| 18 | Does the rule model become a generic DSL? | **No** — closed literal `match` pairs only, 6 total rows — §13 |
-| 19 | What exact dimensions can the MVP policy express? | `classification ∈ {normal, emergency}` × `risk ∈ {low, medium, high}` → `RequirementDefinition[]` — §1, §13 |
-| 20 | How is totality proven? | Every one of 6 pairs has exactly one rule, checked at load time plus a compile-time exhaustiveness bind — §13, §26.C |
-| 21 | Is the active policy pin still used only for new submissions? | Yes — §8 |
-| 22 | Must inactive historical policies validate against the active selector bundle? | **No** — corrected — §11 |
-| 23 | What historical policy information must remain available? | Identity/content for audit/replay via `registry.get`, for the app's lifetime — §8, §11 |
-| 24 | What historical selector information is already snapshotted in the ledger? | Bundle identity/version/hash/provenance per round; selectorKey/version/principalType/resolvedPrincipalRef/resolverProvenance/selectorDigest per requirement — §15 (F3.1.0, unchanged) |
-| 25 | Does a self-declared selector digest alone prove historical immutability? | **No** — §18 |
-| 26 | What publication-integrity model is recommended for selector bundles? | The same manifest + validator used for policies (option A) — §18 |
-| 27 | Are environment-specific selector bindings still supported? | Yes — §19 |
-| 28 | How are they represented without mutating an existing bundle identity? | Each environment gets its own explicit bundle key/version/manifest entry; config only selects which is active — §19 |
-| 29 | Was source-wide job-title regex scanning removed from the plan? | **Yes** — §0/Defect C, §17 |
-| 30 | What semantic guards replace it? | Forbidden canonical field names + published-artifact data assertions (no e-mail shapes, generic selector keys, valid Catalog ref kinds) — §17 |
-| 31 | Can a normal variable named `manager` exist in source? | **Yes** — explicit test case §26.I |
-| 32 | Are emails canonical principals? | **No** |
-| 33 | Are job titles canonical authorization semantics? | **No** |
-| 34 | Are emergency A/B still individual-only for F3 MVP? | Yes — §15 |
-| 35 | Is CAB still one collective authority? | Yes — §15 |
-| 36 | Does F3.1.1 add DB tables? | **No** — §20 |
-| 37 | Does it add routes/UI/Teams/ADO integration? | **No** |
-| 38 | What is the revised F3.1.1 decomposition? | Unchanged two-slice split; F3.1.1a absorbs the manifest/validator (no independent third slice) — §23 |
-| 39 | What is the exact revised F3.1.1a scope? | §24 |
-| 40 | What tests gate F3.1.1a? | §26.A–M |
-| 41 | Is `buildChange()` still a pre-F3.1.2 blocker? | **Yes** — §25 |
-| 42 | Is cross-cutover idempotency preserved? | **Yes** — §25 |
-| 43 | Was any ADO implementation modified in this checkpoint? | **No** |
-| 44 | Is F3.1.1a implementation authorized by this checkpoint? | **No** |
-| 45 | What backstage-docs SHA records the corrected plan? | Recorded in the handoff after this commit is pushed (see `implementation-progress.md` checkpoint) |
-| 46 | Is the revised F3.1.1a ready for architecture acceptance? | Yes — ready for review; not authorized for implementation |
+| 1 | What ADO baseline was verified? | `4bad41d058edf5c5314d17275e0c8bdb5abf690f`, `feat/ado-repo-governance` — verified against the **Azure DevOps REST API**, not just a local `origin/*` ref. Unmoved |
+| 2 | What backstage-docs baseline was used? | `d5fc3ff93a8916932860f0c18ad5f3863f9f163c` (the F3.1.1-R checkpoint this revises) |
+| 3 | Why does the first manifest require a genesis rule? | The trusted baseline `4bad41d` **predates the manifest**, so `git show <ref>:<path>` finds nothing. Without an explicit rule the natural repair — "missing ⇒ empty" — is a permanent append-only bypass — §0a Gap A, §5a |
+| 4 | What exact baseline is authorized for genesis? | `4bad41d058edf5c5314d17275e0c8bdb5abf690f`, as a **compiled-in constant** `AUTHORIZED_GENESIS_BASELINE_SHA` — §5a |
+| 5 | Can generic "manifest missing = empty" behavior exist? | **NO** — forbidden outright. Missing baseline without authorized genesis is `BASELINE_MANIFEST_MISSING` — §5a, §6 |
+| 6 | How is genesis explicitly requested? | `--allow-genesis-from <exact-sha>` on `yarn validate:policy-publication`, plus `genesis: { allowedBaselineSha }` on the pure validator. Never inferred, never defaulted, never from env — §5a, §6 |
+| 7 | What happens if genesis is requested from the wrong SHA? | **FAIL** `GENESIS_NOT_AUTHORIZED` — whether the flag disagrees with the compiled-in constant, or the constant disagrees with the resolved `--baseline-ref` — §6, §6a case C |
+| 8 | What happens if a post-genesis baseline has no manifest? | **FAIL** `BASELINE_MANIFEST_MISSING`, regardless of any flag passed — §6a case D |
+| 9 | What is `policyModelVersion`? | The **technical interpretation contract** for the artifact's shape and the meaning of its `rules` — §1, §2a |
+| 10 | How is it different from `policyVersion`? | `version` is **business** policy publication identity; `policyModelVersion` is **evaluator/rule semantics**. Never conflated — §1 "Business version vs. model version" |
+| 11 | What model version exists in F3 MVP? | **1**, only — §2a |
+| 12 | Is `policyModelVersion` included in `policyArtifactSha256`? | **YES** — §12 |
+| 13 | What exact object is hashed? | `sha256Canonical({ policyModelVersion, rules })`. Excludes `policyKey`, `version`, `provenance` — §12 |
+| 14 | Is function serialization used? | **NO** — `rules` is plain data; no closure, no runtime object identity, no timestamps — §12 |
+| 15 | Can evaluator V1 semantics be edited in place later? | **NO** — model-version semantics are append-only — §13a |
+| 16 | What happens when semantics must change? | Introduce **`policyModelVersion = 2`** with its own evaluator; V1 artifacts keep resolving to V1 — §13a |
+| 17 | Does this create a plugin/rules framework? | **NO** — one `case`, one function. No plugin registry, dynamic loading, schema interpreter, or version adapters — §2a |
+| 18 | Is `Object.freeze` alone sufficient? | **NO** — it is shallow; nested arrays/objects stay mutable, and `readonly` is compile-time only — §0a Gap C, §17a |
+| 19 | What runtime deep-immutability mechanism is recommended? | One small reusable `deepFreezeSerializable(value)` in `authorization/immutable.ts`, accepting exactly `canonicalJson`'s value domain, `WeakSet` cycle-safe — §17a |
+| 20 | At what point is the artifact deep-frozen? | load → validate → compute/check digest → **deep freeze** → register, inside `createPolicyRegistry` — §17b |
+| 21 | Are nested arrays/objects immutable after registration? | **YES** — proven at nested depth by §26.L1–L5, each asserting both a throw and an unchanged value |
+| 22 | Does freeze change the digest? | **NO** — verified against `canonical.ts`: freezing changes neither prototype, `Array.isArray`, key enumeration, nor values — §17b, §26.M |
+| 23 | Is publication append-only automatically CI-enforced today? | **NO** — the repository has **no CI pipeline at `4bad41d`** (re-verified via `git ls-tree`) — §21a |
+| 24 | What exists after F3.1.1a? | A publication-integrity **mechanism + command + tests** — *not* mandatory CI wiring. The gate becomes mandatory only once a pipeline or branch policy invokes the command — §21a |
+| 25 | Does the manifest retain historical identities forever? | **YES** — append-only publication identity/digest history — §5, §30 |
+| 26 | Must runtime ship every historical policy forever? | **NO** — R's "never evicts … forever" is **withdrawn** — §29, §30 |
+| 27 | What historical evidence is already retained by the ledger? | Policy identity, artifact hash, provenance, policy input + fingerprint, matched-rule provenance, **full effective requirements**, resolved principal snapshots, and the Change snapshot + hash — verified in ADO `authorization/types.ts` — §29 |
+| 28 | What is the recommended runtime registry retention model? | **Model B** — manifest keeps identity history forever, ledger keeps round evidence forever, runtime ships only the active version plus deliberately retained rollback versions — §30 |
+| 29 | What happens if active config references a policy not shipped? | **Startup fails** — fail-closed, never a silent wrong-policy evaluation — §16, §30 |
+| 30 | Do inactive manifest entries need runtime modules? | **NO** — shipped ⇒ manifest entry, but manifest entry ⇏ shipped module — §28a |
+| 31 | Are emergency A/B semantics unchanged? | **YES** — individual `user`-typed selectors for F3 MVP, distinct resolved refs, shared `separationOfDutyKey`; not reopened — §15 |
+| 32 | Is CAB semantics unchanged? | **YES** — one collective authority, no quorum/voting/member expansion — §15 |
+| 33 | Does F3.1.1a add DB/routes/UI/Teams/ADO integration? | **NO** — §20, §24 |
+| 34 | What is the final F3.1.1a scope? | §24, with the R2 additions enumerated in "R2 scope additions" |
+| 35 | What tests were added to the plan? | §26 relabelled to A–R; **new**: E (unsupported model version), F (hash includes model version), J1–J7 (genesis), L1–L5 + utility domain (deep immutability), M (freeze/digest invariance) |
+| 36 | Is buildChange-twice still a F3.1.2 blocker? | **YES** — untouched by this checkpoint — §25 |
+| 37 | Is cross-cutover idempotency preserved? | **YES** — untouched; policy evaluation must never reinterpret a legacy retry — §25 |
+| 38 | Was any ADO implementation modified? | **NO** — planning only; ADO working tree byte-identical, `HEAD` still `4bad41d` |
+| 39 | Is F3.1.1a implementation authorized by this checkpoint? | **NO** |
+| 40 | What backstage-docs SHA records F3.1.1-R2? | Recorded in the handoff once this revision is committed and pushed (see `implementation-progress.md`) |
+| 41 | Is F3.1.1a ready for final architecture acceptance? | **Yes — ready for final review.** All three R2 gaps are closed and no ADR conflict was found. Not authorized for implementation until a separate constrained prompt says so |
 
-## 29. Open questions for architecture review (carried forward)
+### Carried forward from R, unchanged
+
+Self-declared digests are insufficient (§0/Defect A); publication identity is
+`(artifact, key, version) → digest`; append-only is proven against a **git ref**,
+never the working tree; `IDENTITY_REMOVED`/`DIGEST_CHANGED` on tampering; no
+database; no publishing API; no `evaluate()` closure; the rule model is not a DSL
+(closed literal `match` pairs, 6 rows); inactive historical policies are not
+validated against the active selector bundle (§11); the job-title regex stays
+removed and a variable named `manager` must pass (§17, §26.N).
+
+## 28a. Runtime manifest / artifact agreement (new in R2)
+
+At startup, for the policy versions this build actually ships:
+
+- every **shipped** published policy must have a matching manifest entry for its
+  `(artifact='policy', key, version)`;
+- its computed `policyArtifactSha256` (§12) must equal that entry's `digest`;
+- duplicate identities in the manifest fail;
+- a malformed manifest fails.
+
+**Direction of the check matters, and R left it ambiguous:**
+
+> **shipped policy ⇒ must have a manifest entry.**
+> **manifest entry ⇏ must have a shipped policy module.**
+
+A manifest entry with no corresponding shipped module is **allowed**. The
+manifest is *publication history*; requiring a module for every historical entry
+would force the runtime to carry every policy ever published, forever — the
+over-promise withdrawn in §29.
+
+## 29. Historical replay position — explicit recommendation (corrected in R2)
+
+R asserted the registry "never evicts a registered version" and that
+`registry.get` is "always available for historical-round replay/audit, for the
+lifetime of the deployed application." **That is withdrawn.** Two models were
+considered:
+
+| Model | Runtime obligation |
+|---|---|
+| **A** | runtime ships **every** historical policy forever |
+| **B** | the **ledger** is authoritative historical evidence; the runtime ships only the policies needed for active/operational use, while the manifest retains full publication identity history |
+
+**Recommendation: Model B.**
+
+### Why B, checked against ADR-009 and the shipped F3.1.0 schema
+
+ADR-009 was read in full (see §0a's reconciliation table). It requires evidence
+sufficient to **reproduce** outcomes and to let an auditor **reconstruct** the
+sequence; it forbids consulting a mutable current policy to **reinterpret**
+history. **No clause requires executable replay of every historical policy.**
+
+The ledger already retains, per round — verified in ADO
+`authorization/types.ts` at `4bad41d`, not assumed:
+
+| Evidence | Persisted field |
+|---|---|
+| policy identity | `policyKey`, `policyVersion` |
+| policy artifact hash | `policyArtifactSha256` |
+| policy provenance | `policyProvenance` |
+| policy input + fingerprint | `policyInput`, `policyInputSha256` |
+| matched rule provenance | `matchedRuleProvenance` |
+| **effective requirements, in full** | `requirements: ApprovalRequirement[]` — kind, phase, mandatory, source, sourceRef, sourceProvenance, separationOfDutyKey, `sla*` |
+| resolved principals | `ApprovalRequirement.principalSnapshot` (`PrincipalResolutionSnapshot`) |
+| the evaluated Change itself | `changeSnapshot`, `changeSnapshotSha256` |
+
+That is a **self-contained record of what actually occurred** — exactly what
+ADR-009's audit requirement asks an auditor to reconstruct. Re-running a
+historical policy would, at best, reproduce a result the ledger already stores
+verbatim.
+
+**Therefore historical *re-evaluation* must not become a runtime availability
+obligation** without a concrete use case, and none exists in F3 MVP. Model A
+would turn every future application binary into an ever-growing archive of
+retired policy artifacts to satisfy a requirement no ADR makes.
+
+**ADR-009 impact: none. No amendment is proposed or required.**
+
+## 30. Recommended retention model (new in R2)
+
+| Layer | Retains | Duration |
+|---|---|---|
+| **Publication manifest** | publication identity + digest history — every `(artifact, key, version) → digest)` ever published | **forever**, append-only (§5, §6) |
+| **Authorization ledger** | actual round evidence (§29 table) | **forever**, append-only (F3.1.0, already shipped) |
+| **Runtime registry** | the policy artifacts this build supports — the **active** version plus any deliberately retained rollback versions | current build only |
+
+Rules that follow:
+
+- **Active config references a version not shipped → startup fails** (§16). This
+  is the safety property that makes B safe: a retention mistake is a loud,
+  immediate, fail-closed startup error, never a silent wrong-policy evaluation.
+- **Inactive manifest entries need no runtime module** (§28a).
+- **The shipped set is the retention declaration.** The registry is built from an
+  explicit array of version modules (§7) — reviewing that array *is* reviewing
+  what the deployment can still evaluate. No separate retention config is
+  introduced.
+- Rollback stays a one-line `activePolicy` config change to a still-shipped
+  version, subject to §11's active-pair re-validation.
+
+**Consequences accepted:** re-*evaluating* a round whose artifact is no longer
+shipped is not possible from the runtime. Auditing that round remains fully
+possible from the ledger, and its publication identity and digest remain
+provable from the manifest forever.
+
+## 31. Open questions for architecture review (carried forward)
 
 1. **Emergency A/B principal type.** Unchanged from the prior plan: this
    correction does not touch the individual-only (`user`-typed) A/B narrowing.
@@ -1120,21 +1859,49 @@ code — not merely by count — per the F3.1.0-H precedent (§26.M).
    `.ts` + a synchronized `.mjs` re-implementation) should be used instead.
    Flagged so implementation does not silently pick a third option.
 
-Neither of the first two questions requires or proposes amending ADR-009. The
-third is an implementation-detail fallback, not an architecture question.
+4. **New in R2 — the genesis constant's successor.** The approved genesis SHA
+   (§5a) is `4bad41d`. If any authorized commit lands on
+   `feat/ado-repo-governance` before F3.1.1a is implemented, the constant must be
+   updated to that exact new pre-manifest SHA in the implementation PR. Flagged so
+   the implementer updates it deliberately rather than discovering a
+   `GENESIS_NOT_AUTHORIZED` failure and reaching for `--allow-genesis-from` with
+   whatever SHA makes it pass.
+
+None of these four requires or proposes amending ADR-009. Questions 3 and 4 are
+implementation-detail flags, not architecture questions.
+
+### Resolved in R2 (no longer open)
+
+- **Historical replay obligation** — resolved as Model B against ADR-009's actual
+  text and the shipped F3.1.0 schema (§29, §30). Was implicit in R's
+  "never evicts … forever" wording rather than stated as a question.
+- **Genesis code-path lifetime** — resolved: retained permanently with its tests
+  (§5a).
+- **Genesis candidate strictness** — resolved: any structurally valid,
+  duplicate-free candidate; entry count is not constrained (§6).
 
 ## Gate
 
-**F3.1.1 architecture/implementation planning is CORRECTED and under
-review.**
+**F3.1.1 architecture/implementation planning is CORRECTED (R2) and under
+FINAL review.**
 
-**Recommendation: GO** for architecture review of the corrected first slice,
-**F3.1.1a — Policy domain + registry + publication integrity** (§24), subject
-to architecture sign-off on the emergency A/B narrowing (§29, question 1,
-carried forward unchanged) and on the corrected publication-manifest model
-(§5, §6).
+**Recommendation: GO** for final architecture acceptance of the corrected first
+slice, **F3.1.1a — Policy domain + registry + publication integrity** (§24),
+subject to sign-off on:
+
+1. the genesis contract and its single approved baseline (§5a, §6a);
+2. the `policyModelVersion` interpretation contract and its append-only
+   semantics (§2a, §13a);
+3. the deep-immutability mechanism and freeze ordering (§17a, §17b);
+4. the corrected historical retention model — **Model B** (§29, §30);
+5. the emergency A/B narrowing (§31, question 1, carried forward unchanged).
+
+**ADR-009 is unaffected.** Its clauses were read in full and reconciled against
+the corrected model (§0a); no clause requires executable replay of historical
+policies, and no amendment is proposed.
 
 **F3.1.1 implementation itself remains NOT AUTHORIZED** by this checkpoint. No
-ADO source, migration, configuration, test, pipeline, or runtime behavior was
-modified to produce this correction. A separate, constrained implementation
-prompt must explicitly authorize slice F3.1.1a before any code is written.
+ADO source, migration, configuration, script, test, pipeline, or runtime
+behavior was modified to produce this correction. A separate, constrained
+implementation prompt must explicitly authorize slice F3.1.1a before any code is
+written.

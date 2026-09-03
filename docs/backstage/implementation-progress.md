@@ -770,6 +770,196 @@ rather than forming an independent third slice.
 implementation prompt explicitly authorizes F3.1.1a. No ADO source was
 modified in this checkpoint.
 
+## F3.1.1-R2 — Genesis, Policy Model Versioning & Runtime Immutability (corrective checkpoint)
+
+Implementation repository/branch/SHA: `platform-devops-developer-portal` /
+`feat/ado-repo-governance` / **`4bad41d058edf5c5314d17275e0c8bdb5abf690f`**
+(unchanged; **verified against the Azure DevOps REST API**, not merely a local
+`origin/*` ref, because SSH fetch was unavailable in the review environment).
+
+Documentation baseline SHA: `d5fc3ff93a8916932860f0c18ad5f3863f9f163c`
+(the F3.1.1-R checkpoint this revision corrects).
+
+### Objective
+
+Close the three remaining contract gaps architecture review found in the R plan,
+without redesigning the accepted R direction, and without implementing anything.
+
+### Architecture applied
+
+**Gap A — genesis / first publication.** R required the baseline manifest to be
+read via `git show <baseline-ref>:<path>`, but the trusted baseline `4bad41d`
+**predates the manifest**. Generic "missing file ⇒ empty baseline" is **forbidden**
+— it would be a permanent append-only bypass. An empty baseline may be
+synthesized only when **all five** hold: explicit `--allow-genesis-from <sha>`;
+that SHA equals the compiled-in `AUTHORIZED_GENESIS_BASELINE_SHA`
+(`4bad41d058edf5c5314d17275e0c8bdb5abf690f`); the resolved `--baseline-ref` also
+equals it; the manifest is absent at that ref; and the candidate passes full
+structural + duplicate validation.
+
+The flag is an **acknowledgement, not an authority** — if a caller-supplied flag
+alone could authorize genesis, deleting the manifest and naming any SHA would
+reopen the bypass. Genesis is **one-time and self-closing**: once the manifest is
+committed, every later baseline has the file present, so condition 4 can never
+hold again. Post-genesis, `manifest missing → FAIL` is permanent. New violation
+codes: `BASELINE_MANIFEST_MISSING`, `GENESIS_NOT_AUTHORIZED`. Seven security
+cases (A–G) are contract, gated by tests §26.J1–J7.
+
+**Gap B — `policyModelVersion`.** R's shared, *unversioned* `evaluatePolicy()`
+meant a future semantics change could silently reinterpret an unchanged,
+identically-hashed artifact. Added an explicit interpretation contract
+`policyModelVersion: 1`, dispatched by an explicit `switch` with a fail-closed
+default, and **included in the artifact digest**:
+
+```
+policyArtifactSha256 = sha256Canonical({ policyModelVersion, rules })
+```
+
+`version` (business publication identity) and `policyModelVersion` (evaluator/rule
+semantics) are defined as separate, never-conflated axes. **V1 semantics are
+append-only**: they are never edited in place; a semantics change introduces
+`policyModelVersion = 2`. Only model version 1 exists in F3 MVP — one `case`, one
+function, explicitly **not** a plugin registry, dynamic loader, schema
+interpreter, or rules engine. No manifest for evaluator code in F3 MVP.
+
+**Gap C — deep runtime immutability.** `Object.freeze(policy)` is shallow;
+`policy.rules[0].requirements.push(…)` still succeeded, and `readonly` is
+compile-time only. Added `deepFreezeSerializable(value)` in
+`authorization/immutable.ts` — beside `canonical.ts`, so F3.1.1b's selector
+bundles reuse it. It accepts **exactly** `canonicalJson`'s value domain (throwing
+on functions, class instances, `Map`/`Date`, `undefined`) so "hashable" and
+"freezable" remain one invariant, and is `WeakSet` cycle-safe rather than
+short-circuiting on `Object.isFrozen` (which would wrongly skip a shallow-frozen
+subtree). The published artifact module now exports a **plain literal**, not a
+pre-frozen one.
+
+Freeze order: load → validate → compute/check digest → **deep freeze** →
+register. **Freezing cannot change the digest** — verified against
+`authorization/canonical.ts` at `4bad41d`: freezing alters neither the prototype,
+`Array.isArray`, key enumeration, nor values, which are the only four things
+`canonicalJson` reads.
+
+**Historical retention — corrected, and reconciled with ADR-009.** R's claim that
+the registry "never evicts a registered version" and that every version is
+"always available … for the lifetime of the deployed application" is
+**withdrawn**. ADR-009 was read in full: it requires evidence sufficient to
+*reproduce* outcomes and to let an auditor *reconstruct* the sequence, and forbids
+consulting a mutable current policy to *reinterpret* history — but **no clause
+requires executable replay of every historical policy**. Verified in ADO
+`authorization/types.ts`: `AuthorizationRound` already persists policy identity,
+artifact hash, provenance, input + fingerprint, matched-rule provenance, the
+**full effective requirements**, resolved principal snapshots, and the Change
+snapshot + hash. The ledger is self-contained.
+
+Adopted **Model B**:
+
+| Layer | Retains | Duration |
+|---|---|---|
+| Publication manifest | publication identity + digest history | forever, append-only |
+| Authorization ledger | actual round evidence | forever, append-only |
+| Runtime registry | active version + deliberately retained rollback versions | current build only |
+
+Active pin naming a non-shipped version → **startup fails**. Shipped policy ⇒
+must have a manifest entry; manifest entry ⇏ must have a shipped module.
+
+**Publication capability vs. enforcement.** Re-verified via `git ls-tree -r HEAD`
+that the repository has **no CI pipeline at `4bad41d`** (no `.github/`, no
+`.azuredevops/`, no root `azure-pipelines.yml`; root `scripts/` holds only
+`build-showcase-techdocs.sh`). F3.1.1a therefore yields a publication-integrity
+**mechanism + command + tests** — **not** a mandatory CI gate. The failure-model
+heading was relabelled accordingly. Creating a pipeline remains out of scope.
+
+### Revised F3.1.1a exact scope
+
+Unchanged from R except for these additions: `policyModelVersion: 1`; generic
+evaluator with explicit model-version dispatch; canonical hash over
+`{policyModelVersion, rules}`; genesis constant, `BaselineResolution`,
+`--allow-genesis-from`, and the two new violation codes; runtime
+manifest/artifact agreement in the shipped ⇒ manifest direction;
+`authorization/immutable.ts` + the freeze-ordering contract.
+
+Still **not** in scope: selector config, Catalog, plugin auth wiring, DB,
+migrations, routes, `ChangeManagementService`, `POST /changes`,
+`AuthorizationRound` creation, permissions, frontend, Teams, CAB UI, ADO
+enforcement, **and no CI pipeline**.
+
+### ADO files changed
+
+**None.** No source, test, config, script, migration, pipeline, `package.json`,
+or runtime behavior was modified. The ADO working tree is byte-identical to the
+start of this checkpoint and `HEAD` remains `4bad41d`.
+
+### Tests / functional verification
+
+No tests were run — this is a planning-only checkpoint with no code change. The
+plan's test strategy was relabelled onto the canonical **A–R** scheme (R's ad-hoc
+lettering collided once the new cases were added) and extended with: **E**
+unsupported `policyModelVersion` fails closed; **F** hash includes
+`policyModelVersion`; **J1–J7** genesis security cases; **L1–L5** nested-depth
+mutation blocked (each asserting both a throw *and* an unchanged value, so the
+proof survives non-strict emitted test code); **M** freeze/digest invariance.
+**P** (TypeScript error set set-identical to the 5 known errors at `4bad41d`, by
+file/line/column/code) and **Q** (all 15 F3.1.0 suites green) carry forward.
+
+R's acceptance criterion to run the validator against "this branch's own prior
+commit … trivially, nothing to compare against" was **withdrawn** — it is exactly
+the undefined-genesis assumption of Gap A, and under the corrected rules it fails
+`BASELINE_MANIFEST_MISSING`.
+
+### Documentation files changed (backstage-docs)
+
+- `docs/backstage/f3-1-1-implementation-plan.md` — corrected in place (§0a, §1,
+  §2a, §5a, §6, §6a, §12, §13a, §16, §17a, §17b, §21a, §23, §24, §26, §28, §28a,
+  §29, §30, §31, Gate).
+- `docs/backstage/current-state.md` — status, F3.1.1 row, and the stale
+  "planning is complete" claim.
+- `docs/backstage/implementation-progress.md` — this checkpoint.
+
+**ADR-009 was NOT modified.**
+
+### Deviations
+
+Carried forward, unchanged by this checkpoint:
+
+- `ChangeManagementService` still calls `buildChange()` twice — **must fix before
+  F3.1.2**.
+- Cross-cutover idempotency: an existing `LEGACY_PRE_F3` reservation resumes the
+  legacy path on retry; only a genuinely new logical submission may select
+  `LEDGER_REQUIRED`. Policy evaluation must never reinterpret a legacy retry.
+- Committed app-config still references RBAC CSV/conditional-policy files absent
+  from ADO HEAD — prerequisite for F3.1.4.
+
+### Open questions
+
+1. Emergency Approver A/B authority-typing — carried forward unchanged.
+2. `selectorBundleVersion` / environment-scoped bundle key convention — F3.1.1b.
+3. `node --experimental-strip-types` fallback for the validator script — carried
+   forward.
+4. **New:** if any authorized commit lands on `feat/ado-repo-governance` before
+   F3.1.1a is implemented, `AUTHORIZED_GENESIS_BASELINE_SHA` must be updated to
+   that exact new pre-manifest SHA in the implementation PR — flagged so the
+   implementer updates it deliberately rather than reaching for
+   `--allow-genesis-from` with whatever SHA makes the check pass.
+
+**Resolved in R2:** historical replay obligation (Model B); genesis code-path
+lifetime (retained permanently with tests); genesis candidate strictness (any
+structurally valid, duplicate-free candidate — entry count unconstrained).
+
+### Gate
+
+**F3.1.1 planning is CORRECTED (R2) and under FINAL architecture review.** The
+two-slice decomposition is re-checked and unchanged: none of the three
+corrections adds an I/O boundary, so F3.1.1a grows slightly rather than splitting.
+
+**GO for final architecture acceptance of F3.1.1a**, subject to sign-off on the
+genesis contract, the `policyModelVersion` contract, the deep-immutability
+mechanism, the Model B retention decision, and the carried-forward emergency A/B
+narrowing.
+
+**F3.1.1a implementation remains NO-GO** until a separate, constrained
+implementation prompt explicitly authorizes it. No ADO source was modified in
+this checkpoint.
+
 ---
 
 ## Next checkpoint template

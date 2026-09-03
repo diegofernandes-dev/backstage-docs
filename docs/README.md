@@ -19,6 +19,8 @@ A disagreement between code and documentation is a **deviation**. Do not silentl
 
 Current accepted GMUD authorization model: [ADR-009](./adr/ADR-009-change-authorization-model.md).
 
+Current proposed Delivery/GitOps direction: [ADR-012](./adr/ADR-012-delivery-management-gitops-promotion.md) — **PROPOSED / ARCHITECTURE SPIKE REQUIRED; no Delivery implementation is authorized by that ADR.**
+
 ## Workstreams
 
 ### GMUD / Change Management
@@ -29,6 +31,25 @@ Current accepted GMUD authorization model: [ADR-009](./adr/ADR-009-change-author
 - [Create UI contract](./ui/gmud-create-screen.md)
 - [My Changes UI contract](./ui/gmud-my-changes-screen.md)
 - [Detail UI contract](./ui/gmud-detail-screen.md)
+
+### Delivery Management / GitOps promotion
+
+Use [`delivery/`](./delivery/) for the proposed software-delivery workstream that separates release/promotion/deployment concerns from GMUD governance.
+
+The current direction is intentionally a **spike, not an implementation commitment**:
+
+- Change Management authorizes a business change; it does not own deployment orchestration.
+- Delivery manages release candidates, deployment targets, promotion/deployment requests, and their operational projection.
+- Argo CD is the preferred Kubernetes reconciliation candidate.
+- Kargo is the first promotion-controller candidate to evaluate before building a custom controller.
+- Application branching is upstream release provenance/policy, not an environment-selection mechanism.
+- New application repositories should be evaluated against protected trunk-based development with short-lived PR branches and build-once/promote-many artifacts.
+
+See:
+
+- [Delivery workstream current direction](./delivery/README.md)
+- [Architecture spike plan](./delivery/architecture-spike.md)
+- [ADR-012](./adr/ADR-012-delivery-management-gitops-promotion.md)
 
 ### Golden Paths / Software Templates / Brownfield adoption
 

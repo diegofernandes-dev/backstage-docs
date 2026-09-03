@@ -21,8 +21,9 @@ The former bridge `diegofernandes-dev/poc-teams-approval` is historical POC evid
 | ADR-009 | Change authorization model | Accepted (F3.0.1 architecture convergence) |
 | ADR-010 | Canonical Catalog System/Component and repository semantics | Accepted (Golden Paths Slice 0) |
 | ADR-011 | Software Template source of truth and production discovery | Accepted (Golden Paths template SoT checkpoint) |
+| ADR-012 | Delivery Management, GitOps promotion, and Change boundary | **Proposed — architecture spike required** |
 
-Future workstreams such as Software Templates / Golden Paths and brownfield adoption share this ADR directory when a decision affects the overall Backstage platform. Workstream-specific analysis belongs in focused folders under `docs/`.
+Future workstreams such as Software Templates / Golden Paths, brownfield adoption, and Delivery Management share this ADR directory when a decision affects the overall Backstage platform. Workstream-specific analysis belongs in focused folders under `docs/`.
 
 ## GMUD platform flow (accepted target)
 
@@ -46,7 +47,7 @@ SharePoint is **not a mandatory dependency**. Provider selection belongs behind 
 Per [ADR-009](./ADR-009-change-authorization-model.md), humans authorize the business change and execution systems consume a platform eligibility result. Azure DevOps is one optional future execution adapter, not the canonical approval state:
 
 ```text
-pipeline presents changeId + targetRef
+execution consumer presents governed target/context
   -> Change Management eligibility check
   -> ALLOW or DENY with reason
   -> execution-system technical controls
@@ -55,3 +56,25 @@ pipeline presents changeId + targetRef
 Teams remains a future individual-decision interaction channel. The preferred CAB decision interface is a future Backstage CAB Workbench. Neither is a system of record; the platform authorization ledger is authoritative.
 
 ADR-001, ADR-004, and ADR-005 remain historical records of the ADO-centric POC. ADR-009 supersedes their approval-authority, Teams-to-ADO decision, and CAB-as-ADO-check directions. Technical execution safety controls may still be used without becoming business authorization authority.
+
+## Delivery/GitOps direction (proposed)
+
+[ADR-012](./ADR-012-delivery-management-gitops-promotion.md) proposes a separate Delivery Management boundary so the platform does not collapse GMUD, pipeline, deployment, and Kubernetes reconciliation into one workflow:
+
+```text
+CI -> immutable release candidate -> Delivery
+                                -> non-prod promotion
+                                -> production request -> Change eligibility
+                                                      -> promotion -> Git desired state -> Argo CD
+```
+
+The proposal deliberately keeps these authority boundaries separate:
+
+- **Change Management** authorizes a business change.
+- **Delivery Management** owns release/promotion/deployment-request coordination and user-facing delivery projection.
+- **Git** is the desired-state authority for GitOps-managed targets.
+- **Argo CD** reconciles Kubernetes desired state.
+- **Kargo** is a candidate promotion controller to evaluate, not yet an accepted mandatory dependency.
+- **Azure DevOps pipelines** may produce releases or initiate requests but are not the Change or deployment authority.
+
+ADR-012 is not an implementation authorization and does not supersede ADR-009. Its architecture spike must close the listed promotion, provenance, target-binding, multi-activity, rollback, break-glass, audit, and branching questions before production adoption.

@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-02 (F3.1.1 planning checkpoint — F3.1.0 CLOSED at ADO `4bad41d`; F3.1.1 planning complete, implementation NOT authorized)
+> **Last updated:** 2026-09-02 (F3.1.1-R corrective checkpoint — F3.1.0 CLOSED at ADO `4bad41d`; F3.1.1 planning CORRECTED and under review, implementation NOT authorized)
 
 ## Stack
 
@@ -107,7 +107,7 @@
 | F2.2.1 implementation                | **ACCEPTED IMPLEMENTED BASELINE** at ADO `6e28611` (published to `origin/feat/ado-repo-governance` as part of F3.1.0-P)                    |
 | F3.0.1 authorization architecture    | **ACCEPTED ARCHITECTURE** by ADR-009                                                                                                         |
 | **F3.1.0 Authorization Ledger Foundation** | **ACCEPTED IMPLEMENTED BASELINE — CLOSED** at ADO `4bad41d` (full SHA `4bad41d058edf5c5314d17275e0c8bdb5abf690f`), the F3.1.0-H typing-only hotfix, a direct child of published commit `7663883` (full SHA `766388393458f82fbdc2e0502b8c193d0a85e605`), which is itself a direct child of `6e28611`. `7663883` remains historically accurate architectural content; only its TypeScript typing was corrected by `4bad41d`. The review lineage `be16ffb` → `7a9347e` → `06ec9cf` is retained as **review-only local evidence** on `review/f3-1-0-cutover-safety`, excluded from official history. |
-| F3.1.1 — Published Policy & Selector Resolution | **PLANNING COMPLETE / UNDER REVIEW** — see [`f3-1-1-implementation-plan.md`](./f3-1-1-implementation-plan.md). **IMPLEMENTATION NOT AUTHORIZED.**                                                                  |
+| F3.1.1 — Published Policy & Selector Resolution | **PLAN CORRECTED / UNDER REVIEW** — see [`f3-1-1-implementation-plan.md`](./f3-1-1-implementation-plan.md). Architecture review found and corrected three defects (self-declared digest ≠ immutability; hashed artifact must determine behavior; fragile job-title source scanning) — see the plan's §0. **IMPLEMENTATION NOT AUTHORIZED.**                                                                  |
 | F3.1.2–F3.1.4                        | **NOT AUTHORIZED**                                                                                                                        |
 
 ### F3.0.1 accepted authorization architecture (documentation only)

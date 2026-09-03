@@ -642,6 +642,136 @@ modified in this checkpoint.
 
 ---
 
+## F3.1.1-R — Policy Publication Integrity & Plan Correction (corrective checkpoint)
+
+Implementation repository/branch/SHA: ADO `platform-devops-developer-portal`,
+`feat/ado-repo-governance`, `4bad41d` (full SHA
+`4bad41d058edf5c5314d17275e0c8bdb5abf690f`) — verified unchanged since F3.1.0-H
+closure and since the prior F3.1.1 checkpoint below; `origin/feat/ado-repo-governance`
+fetched and confirmed identical to local `HEAD`.
+Documentation baseline SHA (the checkpoint this correction supersedes):
+`75abd9d60facc6ff1dfc54af4a46192f4c287c9e`.
+
+### Objective
+
+Architecture review found three defects in the F3.1.1 plan published at
+`75abd9d` and required a corrective revision before any implementation
+authorization could be considered. This checkpoint corrects
+[`f3-1-1-implementation-plan.md`](./f3-1-1-implementation-plan.md) in place —
+no redesign from scratch, no parallel competing plan document. F3.1.1a
+implementation remains unauthorized.
+
+### Architecture applied
+
+Three defects corrected (full detail in the plan's §0):
+
+1. **Self-declared digest is not immutability.** A digest stored next to the
+   mutable artifact it describes only detects "content changed, digest
+   forgotten" — not "content and digest changed together under the same
+   `key@version`," i.e. historical identity reuse. **Fix:** a small, explicit,
+   checked-in append-only **publication manifest**
+   (`published-manifest.json`) plus a pure `validatePublishedManifest(baseline,
+   candidate)` validator, invoked via a repository command
+   (`yarn validate:policy-publication --baseline-ref <git-ref>`) that reads the
+   baseline from a **previous trusted git ref**, not the working tree.
+   Confirmed the repository has **no CI pipeline at `4bad41d`**, so pipeline
+   wiring is explicitly deferred, not invented here.
+2. **Hashed artifact must determine behavior.** The prior
+   `AuthorizationPolicyVersion.evaluate()` was executable code outside the
+   hashed matrix, so behavior could change without the digest changing. **Fix:**
+   published policy versions become pure serializable data
+   (`PublishedAuthorizationPolicy { policyKey, version, provenance, rules }`);
+   one shared, unversioned `evaluatePolicy(policy, input)` function replaces
+   per-version `evaluate()`. `policyArtifactSha256 = sha256Canonical(rules)`
+   now covers all policy-specific behavior; identity/provenance fields are
+   deliberately excluded from the hash.
+3. **Fragile job-title source scanning.** The prior guard grepped source text
+   for `cto|director|manager|superintendent` — `manager` is an ordinary
+   software word. **Fix:** replaced with guards over domain shape and
+   published-artifact *data* (forbidden canonical field names extending the
+   existing `FORBIDDEN_FIELDS` idiom; no e-mail-shaped values in the published
+   artifact; generic selector-key naming). Explicit test requirement: a
+   variable named `manager` must pass all guards.
+
+Two corrections fall out of the above:
+
+- **Active vs. historical policy validation separated** — an inactive
+  historical policy is no longer validated against the *active* selector
+  bundle at startup; only the `(activePolicy, activeSelectorBundle)` pair is.
+- **Three failure domains formally separated** — CI/publication, runtime
+  startup, submission — each with its own table (plan §16), replacing one
+  blended table.
+
+Selector bundles (F3.1.1b, still unimplemented) are recommended to reuse the
+identical manifest + validator mechanism rather than a second, incompatible
+model — one publication-integrity concept for both artifact kinds.
+
+No contradiction with ADR-009 was found; ADR-009 already requires
+"deterministic reviewed application code/configuration," rejects a policy
+DSL, and states published versions are "never edited or reused for materially
+different content" — the manifest mechanizes that sentence. **ADR-009 was not
+modified.**
+
+### ADO files changed
+
+**None.** This checkpoint is documentation-only; the ADO working tree is
+unmodified (`git status --porcelain` unchanged before and after; `HEAD` still
+`4bad41d`).
+
+### Documentation files changed (backstage-docs)
+
+- `docs/backstage/f3-1-1-implementation-plan.md` — corrected in place (not a
+  new parallel plan). Status changed to `PLAN CORRECTED / UNDER REVIEW`.
+- `docs/backstage/current-state.md` — F3.1.1 status line and header updated to
+  reflect the correction; ADO baseline unchanged (`4bad41d`).
+- `docs/backstage/implementation-progress.md` — this checkpoint appended.
+
+### Tests / functional verification
+
+Not applicable — no code was written; this is a planning-only correction. The
+revised test matrix (plan §26.A–M) is specified for the first authorized
+implementation slice to satisfy, including new coverage the correction adds:
+manifest append-only rules (§26.G), artifact/manifest digest agreement
+(§26.H), and the `manager`-variable-passes regression case (§26.I).
+
+### Deviations
+
+Carried forward, unchanged by this checkpoint:
+
+- `ChangeManagementService` still calls `buildChange()` twice — **must fix
+  before F3.1.2**.
+- Committed app-config still references RBAC CSV/conditional-policy files
+  absent from ADO HEAD — prerequisite for F3.1.4.
+
+### Open questions
+
+1. Emergency Approver A/B authority-typing — carried forward unchanged from
+   the prior checkpoint; not addressed by this correction.
+2. `selectorBundleVersion` / environment-scoped bundle key string convention —
+   left to F3.1.1b implementation time.
+3. **New:** if `node --experimental-strip-types` proves unworkable when
+   F3.1.1a is actually implemented, the plan's §6 documented fallback
+   (plain-jest-tested validator + a synchronized `.mjs` re-implementation)
+   should be used instead — flagged so implementation does not silently
+   choose a third, undocumented option.
+
+### Gate
+
+**F3.1.1 planning is CORRECTED and under review.** The two-slice decomposition
+(F3.1.1a pure policy domain + registry + publication integrity; F3.1.1b
+selector config + Catalog resolver + selector publication integrity) is
+re-evaluated and kept — the manifest/validator work absorbs into F3.1.1a
+rather than forming an independent third slice.
+
+**GO for architecture review of the corrected slice F3.1.1a** (see the plan's
+§24 for exact file boundaries, types, tests, and STOP condition).
+
+**F3.1.1 implementation itself remains NO-GO** until a separate, constrained
+implementation prompt explicitly authorizes F3.1.1a. No ADO source was
+modified in this checkpoint.
+
+---
+
 ## Next checkpoint template
 
 ```text

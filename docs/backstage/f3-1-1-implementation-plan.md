@@ -1,6 +1,23 @@
 # GMUD F3.1.1 — Published Policy & Selector Resolution implementation plan
 
-- Status: **PLAN CORRECTED (R2) / UNDER FINAL REVIEW — IMPLEMENTATION NOT AUTHORIZED**
+- Status: **F3.1.1a IMPLEMENTED / PUBLISHED — pending architecture implementation review.**
+  Implementation SHA: ADO `d3c0751` (full SHA `d3c0751a15b908cec8f5595c97e52f41226344ed`),
+  direct child of `4bad41d`, on `feat/ado-repo-governance`. F3.1.1b remains
+  **NOT IMPLEMENTED, NOT AUTHORIZED**; F3.1.2+ remain **NOT AUTHORIZED**. See
+  `implementation-progress.md` for the full evidence checkpoint.
+  **Documentation defect found and resolved during implementation:** §6's
+  normative table and §6a case C assign `GENESIS_NOT_AUTHORIZED` to a
+  candidate whose `--allow-genesis-from` resolves to a baseline other than
+  `AUTHORIZED_GENESIS_BASELINE_SHA`, while §6a row D and test case J5 assign
+  `BASELINE_MANIFEST_MISSING` to the same input. The shipped implementation
+  resolves this by emitting **both** codes whenever the baseline is absent
+  and genesis is not fully authorized — `BASELINE_MANIFEST_MISSING` always,
+  plus `GENESIS_NOT_AUTHORIZED` (with a `flag-mismatch` or
+  `baseline-ref-mismatch` reason) whenever a genesis flag was also supplied
+  but failed a condition. This satisfies every §6/§6a/§26.J case as written
+  and remains fail-closed; it is flagged here for architecture review to
+  reconcile the plan text itself.
+- Prior status: **PLAN CORRECTED (R2) / UNDER FINAL REVIEW**
 - Date: 2026-09-03 (F3.1.1-R2); prior revision 2026-09-02 (F3.1.1-R)
 - ADO implementation baseline (verified): `platform-devops-developer-portal@4bad41d`
   (full SHA `4bad41d058edf5c5314d17275e0c8bdb5abf690f`), branch `feat/ado-repo-governance`.

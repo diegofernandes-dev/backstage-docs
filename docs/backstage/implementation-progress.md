@@ -960,6 +960,269 @@ narrowing.
 implementation prompt explicitly authorizes it. No ADO source was modified in
 this checkpoint.
 
+## F3.1.1a — Policy Domain, Registry & Publication Integrity (implementation checkpoint)
+
+Implementation repository/branch/SHA: `platform-devops-developer-portal` /
+`feat/ado-repo-governance` / **`d3c0751a15b908cec8f5595c97e52f41226344ed`**
+(direct child of `4bad41d`; verified against the Azure DevOps REST API both
+immediately before the push, and again after, independently).
+
+Documentation baseline SHA: `fe4eb0635a4db72114a1c9ddb3accb8479f7afcc`
+(re-fetched and confirmed unmoved both before implementation and again before
+this documentation update).
+
+Starting ADO baseline (verified via ADO REST API before any edit):
+`4bad41d058edf5c5314d17275e0c8bdb5abf690f` — exact match to the F3.1.1-R2
+authorization checkpoint. No reconciliation was required.
+
+### Objective
+
+Implement the F3.1.1a slice authorized by the F3.1.1a implementation
+checkpoint: the pure, I/O-free published-policy domain, its generic evaluator,
+canonical artifact digest, deep-freezing registry, and append-only publication
+manifest with genesis — matching ADR-009's Normal/Emergency policy baselines
+exactly, fully unwired from `POST /changes`.
+
+### Architecture applied
+
+Implemented exactly the F3.1.1-R2 plan's §24 slice, under
+`packages/backend/src/modules/changeManagement/authorization/`:
+
+- **`policy/types.ts`** — `PolicyInput`, `RequirementDefinition`, `PolicyRule`,
+  `PublishedAuthorizationPolicy` (`policyModelVersion: 1`),
+  `PolicyEvaluationResult` — exactly the approved shapes, no added fields.
+- **`policy/totality.ts`** — the closed `classification × risk` domain, a
+  compile-time `AssertTotalMatrix<DeclaredPair<Rules>>` exhaustiveness check
+  (fails the build if a union member gains a value without a matching rule),
+  and runtime `assertPolicyMatrixTotality` (zero or >1 matches per pair fails
+  closed; no default/wildcard rule).
+- **`policy/evaluatePolicy.ts`** — `evaluatePolicy` dispatches explicitly on
+  `policyModelVersion` (`case 1: return evaluatePolicyModelV1(...)`, fail-closed
+  `default`); `evaluatePolicyModelV1` is the permanent V1 semantics; one
+  evaluator, shared and unversioned as application code, never per-version.
+- **`policy/policyArtifactDigest.ts`** — `sha256Canonical({ policyModelVersion,
+  rules })`, reusing `canonical.ts` verbatim; excludes `policyKey`, `version`,
+  `provenance`.
+- **`policy/published/default-change-authorization.2026-09-02.1.ts`** — the
+  first published artifact: a plain literal, no functions, no
+  `Object.freeze`, six explicit rules (`normal.low` … `emergency.high`)
+  implementing ADR-009's Normal-change and Emergency policy baselines exactly.
+  Emergency A/B are distinct-selector-key, `user`-typed individual
+  requirements sharing one `separationOfDutyKey`; CAB is one collective
+  `authority` requirement; the emergency CAB retrospective carries
+  `sla: { durationSeconds: 432000, anchor: 'execution_completion' }` — 5
+  *calendar* days of elapsed time, explicitly not "business days" (the current
+  SLA contract is elapsed duration; true business-calendar semantics would be
+  a separate policy-model evolution). This value was not specified by ADR-009
+  or the plan and was set by explicit decision during implementation, recorded
+  here for architecture review.
+- **`policy/registry.ts`** — `createPolicyRegistry` in the reviewed order (load
+  → validate totality/model-version/SLA → check manifest agreement → deep
+  freeze → register); duplicate `policyKey@version` and unknown-version lookup
+  both throw; Retention Model B (shipped ⇒ manifest entry required; manifest
+  entry ⇏ shipped module required) implemented exactly, both directions tested.
+- **`policy/published-manifest.json`** — seeded with one entry for
+  `default-change-authorization@2026-09-02.1`; its digest
+  (`a10560aedaf86b278f9a0963336da6a43d86114c0a63a9b783ff7b7d130e8252`) was
+  computed from the actual artifact via `policyArtifactDigest`, never
+  hand-typed, and is pinned by a registry test that recomputes and compares it.
+- **`policy/publication/validateManifestHistory.ts`** — the pure
+  `validatePublishedManifest`, self-contained with zero relative imports (so
+  the standalone `.mjs` script can load it directly under
+  `node --experimental-strip-types`); `AUTHORIZED_GENESIS_BASELINE_SHA =
+  '4bad41d058edf5c5314d17275e0c8bdb5abf690f'` as a compiled-in constant.
+  **Genesis violation-code resolution (recorded for architecture review):**
+  the plan's §6/§6a table assigns `GENESIS_NOT_AUTHORIZED` to an unauthorized
+  genesis attempt against an absent baseline, while §6a row D and test J5
+  assign `BASELINE_MANIFEST_MISSING` to the same scenario — a genuine
+  contradiction in the plan text. The implementation emits **both** codes:
+  `BASELINE_MANIFEST_MISSING` always when the baseline is absent and genesis
+  is not fully authorized, plus `GENESIS_NOT_AUTHORIZED` (with a
+  `flag-mismatch` or `baseline-ref-mismatch` reason) whenever a genesis flag
+  was supplied but failed a condition. This satisfies every §6/§6a/§26.J case
+  exactly as written and stays fail-closed; the plan text itself should be
+  reconciled in the next architecture pass.
+- **`authorization/immutable.ts`** — `deepFreezeSerializable<T>`, beside
+  `canonical.ts`; recurses bottom-up over `canonicalJson`'s exact value domain,
+  `WeakSet` cycle-safe, never short-circuits on `Object.isFrozen`. Verified
+  digest-before-freeze === digest-after-freeze (test M).
+- **`scripts/validate-policy-publication.mjs`** — the `--baseline-ref`
+  (required) / `--allow-genesis-from` (optional) CLI wrapper. Distinguishes
+  path-absence (`git ls-tree` exits 0, empty stdout) from git failure (any
+  non-zero exit is a hard error, never a synthesized empty baseline) before
+  reading content via `git show`. Wired as root `package.json` script
+  `validate:policy-publication`.
+- **`architecture.test.ts`** — extended **additively** (a new nested
+  `describe('F3.1.1a policy domain guards', ...)` block; the existing five
+  guards are untouched) with: the extended `FORBIDDEN_FIELDS`-style check
+  (`email`, `emailAddress`, `jobTitle`, `employeeName`, `employeeId`,
+  `displayName`) over the new `policy/` sources; the rules-engine/DSL/workflow
+  vocabulary ban extended to those sources; a regression case proving a
+  variable/parameter/comment named `manager`/`director`/`cto`/`superintendent`
+  passes every guard; and **data** guards over the loaded artifact object
+  itself (every `selectorKey` matches `^[a-z][a-z0-9-]*$`; no e-mail-shaped
+  string anywhere in `rules`; no ADO/Teams identifier).
+
+### Node runtime finding
+
+`node --experimental-strip-types` (Node 22.21.0, within the declared `22 || 24`
+engine range) successfully imports a relative `.ts` module from a typeless
+package with exit code 0, confirmed by direct probe before implementation.
+The §26/§27 primary mechanism was used as specified; **the documented fallback
+(hand-written `.mjs` re-implementation) was not needed.**
+
+### ADO files changed
+
+```
+package.json                                                                        (M — one script added)
+packages/backend/src/modules/changeManagement/architecture.test.ts                  (M — additive only)
+packages/backend/src/modules/changeManagement/authorization/immutable.ts            (A)
+packages/backend/src/modules/changeManagement/authorization/immutable.test.ts       (A)
+packages/backend/src/modules/changeManagement/authorization/policy/**               (A — 13 files)
+scripts/validate-policy-publication.mjs                                             (A)
+```
+
+18 files changed, matching the pre-commit scope audit exactly — no unexpected
+file entered the candidate. `ChangeManagementService.ts`, `changeManagementPlugin.ts`,
+`POST /changes`, `authorization_mode`, `IdempotencyRepository`,
+`ChangeIndexRepository`, `AuthorizationLedgerRepository`, providers, frontend,
+app-config, Catalog, permissions, Teams, CAB Workbench, and ADO deployment
+enforcement are **all untouched**. No DB migration, route, endpoint, backend
+service dependency, Catalog dependency, or CI pipeline was added.
+
+### Tests / functional verification
+
+- **New F3.1.1a tests: 76** across `immutable.test.ts` (17),
+  `policy/published/…test.ts` (matrix A, totality B, determinism C, SLA R),
+  `policy/evaluatePolicy.test.ts` (generic evaluator D, fail-closed model
+  version E), `policy/policyArtifactDigest.test.ts` (hash inclusion F,
+  identity-exclusion G, content-sensitivity H, freeze-invariance M),
+  `policy/publication/validateManifestHistory.test.ts` (append-only table I,
+  all seven genesis cases J1–J7), `policy/registry.test.ts` (duplicate/unknown
+  K, manifest-agreement both directions, deep immutability L1–L5) — plus 14
+  tests in the extended `architecture.test.ts` (N, O, and the `manager`
+  regression case).
+- **Full backend suite: 33 test suites, 237 tests, all green**, including all
+  pre-existing F3.1.0 suites unmodified (only `architecture.test.ts` was
+  extended, additively). Ran via `CI=true yarn workspace backend test` — no
+  watch mode, no `--forceExit`, natural exit.
+- **SQLite**: included in the 237 passing (the default in-memory
+  `better-sqlite3` path).
+- **PostgreSQL**: a disposable `postgres:16` Docker container was started,
+  `CHANGE_MANAGEMENT_TEST_POSTGRES_URL` set, and the `F3.1.0 PostgreSQL
+  contract` suite **genuinely executed** (5/5 passed, not skipped), then the
+  full 33-suite/237-test run was repeated with Postgres included — still all
+  green. Container removed via `docker rm -f` afterward (clean teardown, no
+  leaked state).
+- **Positive genesis command** (real invocation, not mocked):
+  ```
+  yarn validate:policy-publication \
+    --baseline-ref 4bad41d058edf5c5314d17275e0c8bdb5abf690f \
+    --allow-genesis-from 4bad41d058edf5c5314d17275e0c8bdb5abf690f
+  ```
+  Exit code **0**.
+- **Negative genesis commands** (real invocations): omitting
+  `--allow-genesis-from` against the pre-manifest baseline exits **1** with
+  `BASELINE_MANIFEST_MISSING`; supplying a wrong genesis SHA exits **1** with
+  `BASELINE_MANIFEST_MISSING` + `GENESIS_NOT_AUTHORIZED` (`flag-mismatch`).
+- **Lint**: `yarn workspace backend lint` — exit 0, clean (an initial
+  `jest/no-conditional-expect` batch of 12 findings in
+  `validateManifestHistory.test.ts` was fixed by asserting the full
+  `{ ok: false, violations }` shape unconditionally rather than narrowing
+  inside an `if`).
+- **Build**: `yarn workspace backend build` — exit 0.
+- **TypeScript baseline**: captured inside the isolated worktree before any
+  edit (5 errors, all in `changeManagementPlugin.ts`: `(67,61)`, `(77,64)`,
+  `(78,64)`, `(79,60)` `TS2345`; `(80,11)` `TS2322`) and re-captured after
+  implementation. **Set-identical by file/line/column/code** — `diff` reports
+  no difference. No new TypeScript error was introduced.
+
+### Documentation files changed (backstage-docs)
+
+- `docs/backstage/f3-1-1-implementation-plan.md` — status header updated to
+  record F3.1.1a as implemented/published, with the genesis violation-code
+  contradiction flagged for architecture reconciliation.
+- `docs/backstage/current-state.md` — last-updated line and the F3.1.1 status
+  row split into F3.1.1a (implemented/published) and F3.1.1b
+  (not implemented, not authorized).
+- `docs/backstage/implementation-progress.md` — this checkpoint.
+
+**ADR-009 was NOT modified.**
+
+### Deviations
+
+Carried forward, unchanged by this checkpoint:
+
+- `ChangeManagementService` still calls `buildChange()` twice — **must fix
+  before F3.1.2**.
+- Cross-cutover idempotency: an existing `LEGACY_PRE_F3` reservation resumes
+  the legacy path on retry; only a genuinely new logical submission may select
+  `LEDGER_REQUIRED`. No policy evaluation is wired into either path in
+  F3.1.1a.
+- Committed app-config still references RBAC CSV/conditional-policy files
+  absent from ADO HEAD — prerequisite for F3.1.4.
+
+New from this checkpoint:
+
+- **Genesis violation-code contradiction in the F3.1.1-R2 plan** (§6/§6a case C
+  vs. §6a row D/§26.J5) — resolved in the shipped implementation by emitting
+  both codes; the plan text itself should be reconciled by architecture
+  review, not by a further implementation-side workaround.
+- **CAB retrospective SLA duration** (`432000` seconds / 5 calendar days) was
+  not specified by ADR-009 or the plan and was set by explicit decision during
+  implementation. It is now permanently bound into the genesis-published
+  artifact's digest; changing it requires a new policy version and manifest
+  entry, never an edit to this one.
+
+### Open questions
+
+Carried forward from F3.1.1-R2, all still open and unaffected by this
+implementation:
+
+1. Emergency Approver A/B authority-typing.
+2. `selectorBundleVersion` / environment-scoped bundle key convention —
+   F3.1.1b.
+3. (Resolved by this checkpoint) `node --experimental-strip-types` worked as
+   the primary mechanism; the documented fallback was not needed.
+4. (Resolved by this checkpoint) the ADO baseline had not moved past `4bad41d`
+   before implementation, so `AUTHORIZED_GENESIS_BASELINE_SHA` needed no
+   update.
+
+New:
+
+5. Reconcile the genesis violation-code contradiction in
+   `f3-1-1-implementation-plan.md` §6/§6a/§26.J against the shipped
+   `BOTH_CODES` behavior — either amend the plan text to match, or direct a
+   future revision of the implementation.
+
+### Gate
+
+**F3.1.1a is IMPLEMENTED and PUBLISHED to `feat/ado-repo-governance` at
+`d3c0751`.** All acceptance criteria in the F3.1.1a implementation
+authorization were met: isolated clean worktree proven; full A–R test matrix
+and all seven genesis security cases pass; the real
+`validate:policy-publication` command passes for authorized genesis and fails
+correctly (with the documented codes) for both negative cases; SQLite and
+PostgreSQL both genuinely executed and passed; lint and build are clean; the
+TypeScript error set is exactly the 5-error baseline; the pre-commit scope
+audit found only approved paths; the push was a verified plain fast-forward
+with no force operation; the final remote SHA was independently confirmed.
+
+**GO for F3.1.1a implementation acceptance**, subject to architecture review of:
+the shipped genesis both-codes resolution (recorded above, plan text
+reconciliation needed); the CAB retrospective SLA value chosen during
+implementation; and the implementation generally.
+
+**NO-GO for F3.1.1b implementation** — not implemented, not authorized by this
+checkpoint.
+
+**NO-GO for F3.1.2+ implementation** — not authorized by this checkpoint.
+
+`buildChange()`-twice remains **MUST FIX BEFORE F3.1.2**. RBAC CSV/conditional-
+policy files remain an **F3.1.4 prerequisite**.
+
+---
+
 ---
 
 ## Next checkpoint template

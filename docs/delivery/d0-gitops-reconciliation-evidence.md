@@ -1,6 +1,6 @@
 # D0 — Pure GitOps Reconciliation: Execution Evidence
 
-- **Status:** EXECUTED — evidence recorded, awaiting architecture review
+- **Status:** EXECUTED — evidence recorded; reviewed in [`d0-architecture-review.md`](./d0-architecture-review.md)
 - **Verdict:** **CONDITIONAL PASS**
 - **Date:** 2026-09-04
 - **Checkpoint:** [`d0-gitops-reconciliation-checkpoint.md`](./d0-gitops-reconciliation-checkpoint.md)

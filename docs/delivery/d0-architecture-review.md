@@ -7,7 +7,9 @@
 
 The review used the exact `origin/main` canonical versions of ADR-012, the Delivery architecture spike, branching/release refinement, D0 checkpoint, D0 execution evidence, and F3.1.1a architecture acceptance. The current canonical SHA matched the state described when the review was requested: D0 `CONDITIONAL PASS`, D1 `NO-GO` pending architecture review.
 
-The raw Azure DevOps GitOps evidence repository referenced by the canonical record was not independently fetchable from the review environment. Therefore command-level observations are challenged against the canonical execution evidence rather than re-executed. This limitation does not convert recorded POC observations into production guarantees.
+The raw Azure DevOps GitOps evidence repository referenced by the canonical record was not independently fetchable during the first review pass. Therefore command-level observations were initially challenged against the canonical execution evidence rather than re-executed. This limitation does not convert recorded POC observations into production guarantees.
+
+**Supplementary verification pass.** That limitation was subsequently lifted: `d0-gitops-sandbox@19dd327e` was fetched and its raw `evidence/D0-EVIDENCE.md` (400 lines) and all six manifests were read, and the sandbox cluster was re-read read-only (Argo CD `v3.5.2`; Application `d0-sandbox` `Synced / Healthy` @ `19dd327e`). No gate decision in this document changed as a result. The verification confirmed both authority findings, corrected the attributed cause of Concern B, downgraded two properties from `PROVEN` to `PARTIALLY_PROVEN`, and surfaced three observations not present in the canonical execution record. Those are marked **[verified]** below.
 
 ## D0 Verdict
 ACCEPT_CONDITIONAL_PASS
@@ -24,6 +26,12 @@ D0 did not prove production-grade Kubernetes execution authority, separation of 
 
 The two authority findings are not cosmetic. Both are mandatory production security properties. They remain open because the POC topology did not prove them, not because the architecture permits ignoring them.
 
+**[verified]** Three further gaps surfaced by the raw evidence, none of which change a gate decision:
+
+- **Defence in depth of the AppProject boundary itself was not tested.** The Argo `Application` and `AppProject` CRs are not under Git management — the Application tracks path `app/` only, and `argocd/*.yaml` in the sandbox repo is documentation, not reconciled state. Scenario I's own output shows the control object mutated imperatively (`application.argoproj.io/d0-sandbox configured`) to flip `prune`. The negative probes were therefore non-adversarial: no probe asked what happens when an actor edits the AppProject or the Application, which is the realistic bypass.
+- **Portability of the runtime correlation method.** The digest readback was `docker-pullable://nginx@sha256:…`, a dockerd-backed Rancher Desktop shape. On CRI/containerd production nodes the readback shape differs and may not equal the multi-arch index digest.
+- **Scenario H is scored `PASS (documented)`, but what H documented is Concern A.** Scoring the discovery of a negative finding as a passing scenario overstates the A-I result. This does not change the `CONDITIONAL PASS` verdict; it is one more reason not to upgrade it.
+
 ## Concern A — Argo Kubernetes Authority
 Classification:
 PRODUCTION_HARDENING_GAP
@@ -33,10 +41,14 @@ The observed stock `argocd-application-controller` authority equivalent to `*/*/
 
 This does not invalidate the Git → Argo → Kubernetes architecture. Broad controller authority is not inherent to that direction: Argo supports namespace-scoped installation patterns and target-cluster credentials/service accounts that can be restricted to selected namespaces. Therefore the D0 result exposed an unproven defense-in-depth property, not an architectural impossibility.
 
+**[verified] The gap is a topology artefact, and the evidence does not draw this distinction.** Direct inspection confirmed the controller ClusterRole is literally `[{apiGroups:["*"],resources:["*"],verbs:["*"]},{nonResourceURLs:["*"],verbs:["*"]}]` — the `nonResourceURLs: *` rule is not mentioned in the execution record. More importantly, **no cluster secrets are registered** (`argocd.argoproj.io/secret-type=cluster` returns nothing), so D0 ran the single worst case: control plane and workload in one cluster, with the controller reconciling through its own service account. The most mature mitigation — remote destinations registered as cluster secrets carrying namespace-scoped service-account tokens, where the authority granted is exactly the token's RBAC — was *structurally excluded by the POC topology*, not evaluated and rejected. Separately, per-destination impersonation exists in the installed v3.5.2 but was confirmed off: `argocd-cmd-params-cm` carries no data and the AppProject declares no `destinationServiceAccounts`. Its maturity and upgrade posture must be verified before it is relied on; it is not accepted here.
+
 Production architecture should treat AppProject and Kubernetes RBAC as complementary layers. AppProject remains the logical application guardrail; Kubernetes authorization must bound the actual execution identity so compromise or policy error does not automatically imply cluster-wide mutation.
 
 Required future proof:
 Before any production rollout, demonstrate at least one supported Argo topology in which the reconciler for a representative production target can reconcile the required namespaced workload/resources while Kubernetes authorization denies mutation outside the authorized target scope. The proof must include a negative `can-i`/equivalent check and an attempted out-of-scope reconciliation or mutation that is denied by Kubernetes RBAC, not only by AppProject. The selected topology may use destination-specific service accounts, restricted cluster credentials, namespace-scoped authority, restricted controller roles, or another supported least-privilege pattern. D1 does not need to choose the final production topology unless Kargo evaluation depends on it.
+
+**[verified]** Add one further required answer: **who may write `Application`/`AppProject` CRs**, since that authority subsumes the AppProject boundary entirely. Bringing the Argo control objects under a governed Git path is the obvious candidate and should be evaluated together with the GitOps layout decision, because those objects would inherit whatever protection model that decision selects.
 
 ## Concern B — Git Credential Authority Separation
 Classification:
@@ -47,22 +59,24 @@ Read/write identity separation is an architectural security invariant for the ta
 
 HTTPS + PAT is not itself the problem. Protocol choice is orthogonal to the security property. A properly scoped read-only HTTPS credential for Argo and a distinct writer identity can satisfy the architecture just as an SSH-based implementation could. SSH is not a requirement.
 
+**[verified] The execution record misattributes its own cause, and the correction matters.** Deviation 1 records the cause as *"SSH Git is broken org-wide, therefore both used the same PAT."* That reasoning does not hold: an Azure DevOps SSH key is registered against a **user** and carries that user's repository permissions, so had SSH worked, Argo would have been handed a key belonging to a writer and the separation would have been *equally* absent. The SSH breakage is a real POC obstacle but it is not why separation failed. The question D0 did not ask is the one that actually matters: **what non-human identity issues the reconciler credential, and can Azure DevOps scope that identity to read-only on a single repository?** That is a provisioning and identity-model question — service principal / workload identity / dedicated service account with repo-scoped Read — and it is genuinely open, because ADO PAT scopes are account- and scope-based rather than natively per-repository. It belongs in D1/D2 planning and is more consequential than the SSH breakage the record foregrounds.
+
 The shared POC PAT does not invalidate D0 because D0's objective was reconciliation correctness in a sandbox and did not depend on proving production repository authorization. It does mean no production security conclusion may be drawn from the repository credential setup.
 
 Required future proof:
-Before production, demonstrate a dedicated reconciler credential with repository read-only access, a separate human/promotion writer identity, repository permissions that deny write from the reconciler, and no shared broad credential spanning both roles. The test should prove both the positive path (Argo can still reconcile) and the negative path (the Argo identity cannot mutate the desired-state repository).
+Before production, demonstrate a dedicated reconciler credential with repository read-only access, a separate human/promotion writer identity, repository permissions that deny write from the reconciler, and no shared broad credential spanning both roles. The test should prove both the positive path (Argo can still reconcile) and the negative path (the Argo identity cannot mutate the desired-state repository). **[verified]** The proof must also record *what issues, rotates and audits* both identities — including whether ADO can express repo-scoped read-only for a non-human identity, and the fallback if it cannot.
 
 ## Property Assessment
 | Property | Result | Reason |
 |---|---|---|
 | Git desired-state authority | PROVEN | All exercised normal state transitions originated in Git and Argo reconciled them; no imperative sync was required. |
 | Argo reconcile without custom workflow engine | PROVEN | A-I were exercised without a custom deployment state machine, orchestration service, or callback receiver. |
-| Immutable artifact identity correlated end to end | PROVEN | The D0 record correlates the declared OCI digest through Git/Argo/runtime for the sandbox scenarios. This does not prove provenance. |
+| Immutable artifact identity correlated end to end | **PARTIALLY_PROVEN** *(downgraded on verification)* | Correlation held exactly in every scenario, but on one dockerd-backed node: the readback was `docker-pullable://nginx@sha256:…`, whose shape differs on CRI/containerd and may not equal the multi-arch index digest. The correlation *method* is therefore not proven portable to the production runtime. Artifacts were public upstream images, so provenance is untested. |
 | Git revert is a coherent recovery path | PROVEN | B→A and failure/prune recovery returned desired and runtime state through Git history. |
 | Self-heal remediates runtime drift | PROVEN | Runtime replica drift was restored while Git revision remained unchanged. |
 | Sync and health are sufficiently distinct | PROVEN | `Synced + Degraded` demonstrated that desired state can be applied while workload health fails. |
 | Webhooks are not required for correctness | PROVEN | Polling-only reconciliation converged repeatedly; webhooks remain a latency accelerator. |
-| AppProject enforces source/destination policy | PROVEN | Forbidden source and destination probes were rejected with `InvalidSpecError`. This does not prove Kubernetes least privilege. |
+| AppProject enforces source/destination policy | **PARTIALLY_PROVEN** *(downgraded on verification)* | Forbidden source and destination probes were rejected pre-cluster with `InvalidSpecError`, and nothing reached `kube-system`. But the probes were non-adversarial, and the `Application`/`AppProject` CRs sit outside Git and were imperatively patched during the run — the realistic bypass (an actor editing the boundary objects) was never tested. This does not prove Kubernetes least privilege. |
 | Production Kubernetes authority safely scoped | NOT_PROVEN | Controller authority was cluster-admin-equivalent and Kubernetes RBAC did not bound sandbox blast radius. |
 | Git writer and reconciler identities separated | NOT_PROVEN | Human/operator and Argo used the same broad PAT. |
 
@@ -87,6 +101,8 @@ It does not prove that a production rollback is automatically authorized, that e
 
 ## Prune
 D0 proves that prune behavior is understood and observable in the sandbox: with prune disabled, deletion intent remains visible as drift requiring pruning; with prune enabled, Argo deletes the removed managed resource.
+
+**[verified] Two observations the execution record understates.** First, prune was flipped by imperatively patching the Application — an object outside the GitOps loop — so the prune *policy* was not itself under desired-state control. Second, **restore was not identity-preserving**: the Service ClusterIP moved `10.43.147.50` → `10.43.218.94` across prune and Git restore. For a Service this is nearly harmless; for a `LoadBalancer` (external IP), a `PersistentVolumeClaim` (data), or anything with external DNS or firewall dependencies, "delete and recreate from Git" is not a round trip. This is concrete evidence that critical-resource deletion needs its own controls rather than a single global prune flag.
 
 It does not accept automatic production prune. Critical deletion still requires a later policy decision with appropriate layered safeguards such as protected Git review, admission/policy controls, resource protection mechanisms, or explicit deletion policy. The implementation choice remains open.
 
@@ -115,6 +131,8 @@ The two authority gaps do not materially invalidate the D0 execution-substrate r
 - Shared broad Git credentials are explicitly non-acceptable for production; read/write identity separation remains mandatory proof before production.
 - D1 must exercise a representative protected Git desired-state mutation path before `KARGO_FIT` can be concluded.
 - D1 must compare Kargo against direct controlled Git mutation / a thin Delivery provider, including conflict/retry, concurrency, verification, audit/history and operational footprint.
+- **[verified]** D1 must record the runtime digest readback method on its target container runtime, alongside the declared index digest, so the artifact correlation method is known rather than assumed.
+- **[verified]** The production-readiness checkpoint must also answer who may write `Application`/`AppProject` CRs, evaluated together with the GitOps layout decision.
 - A production-readiness checkpoint later must prove Kubernetes least privilege for the Argo execution identity and repository read/write identity separation with negative tests.
 - AppProject remains one defense-in-depth layer, not the only production security boundary.
 - ADR-012 remains `Proposed`.
@@ -125,7 +143,9 @@ The two authority gaps do not materially invalidate the D0 execution-substrate r
 - Production rollout remains `NO-GO`.
 
 ## Documentation Updated
-Created this checkpoint only. Historical D0 execution evidence and observed facts were not rewritten. ADR-012 was not moved to Accepted.
+Created this checkpoint, then amended it in place with a supplementary raw-evidence verification pass (entries marked **[verified]**). No gate decision changed; two property classifications were downgraded from `PROVEN` to `PARTIALLY_PROVEN` and the attributed cause of Concern B was corrected.
+
+Historical D0 execution evidence and observed facts were not rewritten. The D0 execution evidence document's only edit is its Status line, pointing here. ADR-012 was not moved to Accepted.
 
 ## Final Gate
 STOP

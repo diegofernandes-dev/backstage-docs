@@ -113,4 +113,11 @@ The spike plan is [`architecture-spike.md`](./architecture-spike.md).
 
 D0 has been executed. Result: **CONDITIONAL PASS** — see
 [`d0-gitops-reconciliation-evidence.md`](./d0-gitops-reconciliation-evidence.md).
-D1 remains NO-GO pending architecture review.
+
+The architecture review of that evidence is complete — see
+[`d0-architecture-review.md`](./d0-architecture-review.md). D0 is
+**ACCEPT_CONDITIONAL_PASS**; both open authority findings (broad Argo controller RBAC, and
+unseparated Git write / Argo read credentials) are classified **PRODUCTION_HARDENING_GAP**.
+D1 is **GO_D1_WITH_CARRIED_GAPS** — authorized to be planned under the carried constraints
+recorded in the review, notably that D1 must exercise a representative protected Git
+desired-state mutation path. ADR-012 remains Proposed.

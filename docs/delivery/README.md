@@ -110,3 +110,7 @@ The latter is the current hypothesis, not an accepted standard.
 **NO-GO:** Delivery backend/frontend implementation, Kargo adoption, Argo production integration, F3.1.2 execution integration based on an ADO-specific contract, or organization-wide branching enforcement.
 
 The spike plan is [`architecture-spike.md`](./architecture-spike.md).
+
+D0 has been executed. Result: **CONDITIONAL PASS** — see
+[`d0-gitops-reconciliation-evidence.md`](./d0-gitops-reconciliation-evidence.md).
+D1 remains NO-GO pending architecture review.

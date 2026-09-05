@@ -17,19 +17,20 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current execution prompt
 
-- [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) — implement the smallest sandbox/demo vertical slice connecting ReleaseCandidate → DEV → HML → PRD request → Change/GMUD → ExecutionEligibility ALLOW → Kargo → Git → Argo → Kubernetes → Backstage status. This is the current path toward a demonstrable deliverable. It explicitly defers non-blocking production hardening and stops after MVP evidence/documentation.
+- [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) — stabilize the already-proven vertical MVP for a real stakeholder demo. Scope is deliberately narrow: fix only demo blockers/regressions, add minimum Delivery regression coverage, handle or deterministically avoid the Kargo no-op PR failure, define a reproducible demo baseline/reset, and produce a 5–10 minute runbook. No architecture redesign or production hardening is authorized.
 
 ## Completed / historical prompts
 
+- [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) — completed with `CONDITIONAL PASS`. Proved the end-to-end ReleaseCandidate → DEV → HML → PRD → GMUD/ExecutionEligibility → Kargo → Git → Argo → Kubernetes → Backstage flow in the sandbox.
 - [`d1-kargo-fit-evaluation.md`](./d1-kargo-fit-evaluation.md) — completed. D1 concluded `KARGO_FIT` with qualified adoption scope. Retained as the historical execution contract/evidence context; do not re-run it unless a later architecture decision explicitly requires a new Kargo evaluation.
 
 ## Launcher pattern
 
-Use a short launcher instead of pasting the long prompt into the agent session. Example:
+Use a short launcher instead of pasting the long prompt into the agent session. Current launcher:
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
-Read `prompts/mvp-vertical-delivery-slice.md` and treat it as the execution contract.
-Verify the current canonical docs/gates first, execute only the authorized sandbox MVP scope, collect factual evidence, update the required canonical docs, and STOP at the prompt gate.
-Do not expand into production hardening or the next checkpoint.
+Read `prompts/mvp-demo-hardening.md` and treat it as the execution contract.
+Verify the current canonical docs and implementation baseline first, execute only the authorized demo-hardening scope, collect factual evidence, update the required canonical docs, and STOP at the prompt gate.
+Do not redesign the MVP, accept ADR-012, or expand into production hardening.
 ```

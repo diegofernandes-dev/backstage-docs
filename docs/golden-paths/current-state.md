@@ -256,6 +256,20 @@ register-existing-application
 
 **Register ≠ Migrate** is implemented by design: registration does not alter pipelines or application code.
 
+### Post-Slice Platform assessor correction (2026-09-05)
+
+The Platform tab's assessor request for `component:default/idp-showcase-api` returned HTTP 502.
+The failure was isolated to the pre-existing assessor's Azure DevOps repository-tree request, not
+to Delivery, GMUD, routing, plugin registration, permissions, or configuration. The client passed
+`zipForUnix=true` to Git `getItems` without enabling download, which Azure DevOps rejected.
+
+Portal commit [`99e146a`](https://dev.azure.com/diegolab/platform-devops/_git/platform-devops-developer-portal/commit/99e146ae229425278b127e09b32f9dd28f0fac1c)
+now requests `VersionControlRecursionType.Full` and omits `zipForUnix`; a focused regression test
+locks those arguments. The exact assessor route subsequently returned HTTP 200 with the expected
+assessment payload. Delivery's DEV/HML/PRD request records and the ledger-governed GMUD state were
+unchanged. The assessor and Platform tab otherwise remain WIP until their full dependency set is
+reviewed and merged.
+
 ## 10. Progressive conformance evidence
 
 Deterministic evidence derivable today (WIP assessor + validation):

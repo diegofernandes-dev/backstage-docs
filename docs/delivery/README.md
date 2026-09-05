@@ -121,3 +121,16 @@ unseparated Git write / Argo read credentials) are classified **PRODUCTION_HARDE
 D1 is **GO_D1_WITH_CARRIED_GAPS** — authorized to be planned under the carried constraints
 recorded in the review, notably that D1 must exercise a representative protected Git
 desired-state mutation path. ADR-012 remains Proposed.
+
+D1 has been executed. Result: **KARGO_FIT** (qualified — see the exact adoption scope) — see
+[`d1-kargo-fit-evaluation.md`](./d1-kargo-fit-evaluation.md). Kargo materially removes real
+promotion machinery (artifact discovery, protected-branch PR-gated Git mutation with proven
+controller-restart recovery, Job-backed verification) and its operational footprint is
+justified by what it removes, provided the platform does not expect full automation onto a
+protected branch — Kargo's own mutation path there is PR-gated, requiring human review, not
+push-gated. Both D0-carried authority gaps remain open and unresolved. Git writer/reconciler
+identity separation was partially advanced (Kargo was given its own distinct PAT) but not
+resolved (the PAT is still tied to the same human ADO account; a true non-human writer
+identity was not achievable in the sandbox). ADR-012 remains **Proposed**; production adoption,
+GMUD/Change integration, F3.1.2, and Backstage Delivery UI implementation remain **NO-GO**
+pending a separate, explicit authorization for the next vertical MVP slice.

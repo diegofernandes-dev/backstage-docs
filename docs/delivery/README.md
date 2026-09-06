@@ -2,9 +2,11 @@
 
 ## Status
 
-**MVP vertical slice implemented and demo-hardened (CONDITIONAL PASS). Production rollout NOT authorized.**
+**ADR-012 adoption gate: `REMAIN_PROPOSED`. Production rollout: NO-GO.**
 
-The MVP vertical slice (ReleaseCandidate → DEV/HML/PRD promotion via Kargo/Argo, gated by a real GMUD authorization decision) was implemented and independently verified end-to-end — see [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) (`CONDITIONAL PASS`) and [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) (`CONDITIONAL PASS`, demo-reliability fixes). ADR-012 remains **Proposed** — the implementation exists as an accepted MVP checkpoint, not as an accepted production architecture.
+Independent architecture review after D0/D1/MVP/demo-hardening: [`adr-012-adoption-review.md`](./adr-012-adoption-review.md) (docs baseline `fd19d8a`; implementation inspected at `platform-devops-developer-portal@50ed1b0`). Verdict **`REMAIN_PROPOSED`** — 3 gates PROVEN / 7 PARTIALLY_PROVEN / 2 NOT_PROVEN. ADR-012 status is **unchanged (Proposed)**. Production rollout remains **NO-GO**. Smallest next evidence checkpoint: **E1 — multi-activity binding and same-target concurrency** (documented in the review). Do not treat MVP demo success as ADR acceptance.
+
+Prior product checkpoints (historical evidence, not superseded): MVP vertical slice [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) (`CONDITIONAL PASS`) and demo hardening [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) (`CONDITIONAL PASS`). Those prove a sandbox path; they do not close the ADR-012 architecture-spike gates.
 
 Shared decision record: [ADR-012 — Delivery Management, GitOps promotion, and Change boundary](../adr/ADR-012-delivery-management-gitops-promotion.md).
 
@@ -107,9 +109,9 @@ The latter is the current hypothesis, not an accepted standard.
 
 ## Gate
 
-**Current status (post demo-hardening): MVP vertical slice implemented, demo-hardened, CONDITIONAL PASS. Production rollout, ADR-012 acceptance, and the next Delivery milestone remain NO-GO pending separate, explicit authorization.**
+**Current status (post ADR-012 adoption review): `REMAIN_PROPOSED`. Production rollout NO-GO. Next Delivery implementation milestone NO-GO pending separate authorization after the E1 evidence checkpoint (or an explicit superseding gate).** See [`adr-012-adoption-review.md`](./adr-012-adoption-review.md).
 
-The sections below are preserved as the historical record of how the workstream reached this point — architecture spike, then D0, then D1, then the MVP vertical slice, then demo hardening. Do not treat the original "GO: architecture spike only" gate below as current; it reflects the state before D0/D1/MVP execution.
+The sections below are preserved as the historical record of how the workstream reached the MVP/demo-hardening point — architecture spike, then D0, then D1, then the MVP vertical slice, then demo hardening — before the adoption review. Do not treat the original "GO: architecture spike only" gate below as current; it reflects the state before D0/D1/MVP execution.
 
 **Original spike gate — GO:** architecture spike only.
 
@@ -155,6 +157,12 @@ Demo-hardening was subsequently authorized and executed. Result: **CONDITIONAL P
 a clean checkout of the demo SHA did not build (committed code referenced never-committed files),
 the Kargo no-op-PR gap was closed for real (a narrow, imperative Stage-template guard, on top of
 the existing baseline-seeding reset), and a 15-test regression suite now covers the Delivery PRD
-gate invariants (previously zero). ADR-012 remains **Proposed**. Production rollout, ADR-012
-acceptance, and the next Delivery milestone remain **NO-GO** pending a separate, explicit
-authorization.
+gate invariants (previously zero). ADR-012 remained **Proposed**.
+
+The ADR-012 adoption gate was subsequently executed as an independent architecture review (not an
+implementation milestone). Result: **`REMAIN_PROPOSED`** — see
+[`adr-012-adoption-review.md`](./adr-012-adoption-review.md). Material architecture-spike gaps remain
+(notably multi-activity semantics `NOT_PROVEN`, plus partial proof on activity binding, window
+TOCTOU, concurrency, and GitOps layout). Production authority gaps remain **production adoption
+blockers**. ADR-012 status was **not** changed. Production rollout and the next Delivery
+implementation milestone remain **NO-GO**.

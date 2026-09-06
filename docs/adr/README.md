@@ -21,7 +21,7 @@ The former bridge `diegofernandes-dev/poc-teams-approval` is historical POC evid
 | ADR-009 | Change authorization model | Accepted (F3.0.1 architecture convergence) |
 | ADR-010 | Canonical Catalog System/Component and repository semantics | Accepted (Golden Paths Slice 0) |
 | ADR-011 | Software Template source of truth and production discovery | Accepted (Golden Paths template SoT checkpoint) |
-| ADR-012 | Delivery Management, GitOps promotion, and Change boundary | **Proposed — architecture spike required** |
+| ADR-012 | Delivery Management, GitOps promotion, and Change boundary | **Proposed — architecture spike required** (adoption gate `REMAIN_PROPOSED`; see [`../delivery/adr-012-adoption-review.md`](../delivery/adr-012-adoption-review.md)) |
 
 Future workstreams such as Software Templates / Golden Paths, brownfield adoption, and Delivery Management share this ADR directory when a decision affects the overall Backstage platform. Workstream-specific analysis belongs in focused folders under `docs/`.
 
@@ -78,3 +78,5 @@ The proposal deliberately keeps these authority boundaries separate:
 - **Azure DevOps pipelines** may produce releases or initiate requests but are not the Change or deployment authority.
 
 ADR-012 is not an implementation authorization and does not supersede ADR-009. Its architecture spike must close the listed promotion, provenance, target-binding, multi-activity, rollback, break-glass, audit, and branching questions before production adoption.
+
+**Adoption gate (post MVP/demo-hardening):** independent review recorded in [`../delivery/adr-012-adoption-review.md`](../delivery/adr-012-adoption-review.md) concluded **`REMAIN_PROPOSED`**. ADR-012 status is unchanged. Production rollout remains **NO-GO**. Smallest next evidence checkpoint: **E1 — multi-activity binding and same-target concurrency**.

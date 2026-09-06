@@ -3,7 +3,7 @@
 ## 1. Baseline
 
 - Docs baseline SHA (`diegofernandes-dev/backstage-docs`, `main`): `c1f32b32182275310bcca39dffb92c8f0bc6302e` (`docs(delivery): add approved Deployments UX v2 reference and prompt`).
-- Implementation repo (`platform-devops-developer-portal`), branch `feat/delivery-mvp-slice`, before SHA: `a48dedc4e67c9d2874284f9a53fe580e0a1e6488` (`fix(delivery): scope backend Kubernetes identity off ambient cluster-admin`). All work in this checkpoint is currently **uncommitted in the working tree** — no commit has been made pending user confirmation.
+- Implementation repo (`platform-devops-developer-portal`), branch `feat/delivery-mvp-slice`: before SHA `a48dedc4e67c9d2874284f9a53fe580e0a1e6488` (`fix(delivery): scope backend Kubernetes identity off ambient cluster-admin`), after SHA `0163a49` (`feat(delivery): implement Deployments UX v2`).
 - **Corrupted normative asset, discovered and worked around**: `docs/delivery/assets/deployments-screen-v2.webp` at this SHA is truncated (RIFF header declares 37,138 bytes; the actual git blob and working-tree file are both 15,009 bytes). Confirmed independently with `dwebp`, ImageMagick, and macOS `sips` — all three fail with "not enough data" / "insufficient image data." The user supplied the correct reference image directly in the working conversation; it was inspected and found to closely match the textual spec in `deployments-ux-v2.md`. The docs repo asset itself should be re-exported and re-committed by its owner; that is outside this checkpoint's authorization.
 
 ## 2. Verdict

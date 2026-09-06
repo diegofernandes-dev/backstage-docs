@@ -2,7 +2,9 @@
 
 ## Status
 
-**Architecture direction only — implementation NOT authorized.**
+**MVP vertical slice implemented and demo-hardened (CONDITIONAL PASS). Production rollout NOT authorized.**
+
+The MVP vertical slice (ReleaseCandidate → DEV/HML/PRD promotion via Kargo/Argo, gated by a real GMUD authorization decision) was implemented and independently verified end-to-end — see [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) (`CONDITIONAL PASS`) and [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) (`CONDITIONAL PASS`, demo-reliability fixes). ADR-012 remains **Proposed** — the implementation exists as an accepted MVP checkpoint, not as an accepted production architecture.
 
 Shared decision record: [ADR-012 — Delivery Management, GitOps promotion, and Change boundary](../adr/ADR-012-delivery-management-gitops-promotion.md).
 
@@ -105,9 +107,13 @@ The latter is the current hypothesis, not an accepted standard.
 
 ## Gate
 
-**GO:** architecture spike only.
+**Current status (post demo-hardening): MVP vertical slice implemented, demo-hardened, CONDITIONAL PASS. Production rollout, ADR-012 acceptance, and the next Delivery milestone remain NO-GO pending separate, explicit authorization.**
 
-**NO-GO:** Delivery backend/frontend implementation, Kargo adoption, Argo production integration, F3.1.2 execution integration based on an ADO-specific contract, or organization-wide branching enforcement.
+The sections below are preserved as the historical record of how the workstream reached this point — architecture spike, then D0, then D1, then the MVP vertical slice, then demo hardening. Do not treat the original "GO: architecture spike only" gate below as current; it reflects the state before D0/D1/MVP execution.
+
+**Original spike gate — GO:** architecture spike only.
+
+**Original spike gate — NO-GO:** Delivery backend/frontend implementation, Kargo adoption, Argo production integration, F3.1.2 execution integration based on an ADO-specific contract, or organization-wide branching enforcement.
 
 The spike plan is [`architecture-spike.md`](./architecture-spike.md).
 
@@ -134,3 +140,21 @@ resolved (the PAT is still tied to the same human ADO account; a true non-human 
 identity was not achievable in the sandbox). ADR-012 remains **Proposed**; production adoption,
 GMUD/Change integration, F3.1.2, and Backstage Delivery UI implementation remain **NO-GO**
 pending a separate, explicit authorization for the next vertical MVP slice.
+
+The MVP vertical slice was subsequently authorized and executed. Result: **CONDITIONAL PASS** —
+see [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md). The full contract flow
+(ReleaseCandidate → DEV → HML → PRD `CHANGE_REQUIRED` → GMUD → DENY → real authorization decision →
+ALLOW → Kargo → Git → Argo CD → Kubernetes → Backstage `Deployments` tab) was exercised live and
+independently verified against raw cluster/Git/ledger state. Carried gaps: no dedicated test
+coverage for `delivery` at that time, the Kargo no-op-PR template limitation (worked around via
+baseline seeding, not fixed), and the D0-carried production RBAC/credential-separation gaps.
+ADR-012 remained **Proposed**.
+
+Demo-hardening was subsequently authorized and executed. Result: **CONDITIONAL PASS** — see
+[`mvp-demo-hardening.md`](./mvp-demo-hardening.md). Three real demo blockers were found and fixed:
+a clean checkout of the demo SHA did not build (committed code referenced never-committed files),
+the Kargo no-op-PR gap was closed for real (a narrow, imperative Stage-template guard, on top of
+the existing baseline-seeding reset), and a 15-test regression suite now covers the Delivery PRD
+gate invariants (previously zero). ADR-012 remains **Proposed**. Production rollout, ADR-012
+acceptance, and the next Delivery milestone remain **NO-GO** pending a separate, explicit
+authorization.

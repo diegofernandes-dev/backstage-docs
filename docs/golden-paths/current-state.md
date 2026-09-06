@@ -267,8 +267,20 @@ Portal commit [`99e146a`](https://dev.azure.com/diegolab/platform-devops/_git/pl
 now requests `VersionControlRecursionType.Full` and omits `zipForUnix`; a focused regression test
 locks those arguments. The exact assessor route subsequently returned HTTP 200 with the expected
 assessment payload. Delivery's DEV/HML/PRD request records and the ledger-governed GMUD state were
-unchanged. The assessor and Platform tab otherwise remain WIP until their full dependency set is
-reviewed and merged.
+unchanged.
+
+### Assessor / Platform tab dependency set committed (2026-09-06, demo hardening)
+
+The `99e146a` fix above lived on top of `PlatformTab.tsx`, `idpAssessorPlugin.ts`,
+`idpAssessor/**`, and `catalogValidation/**` — none of which were ever committed, even though
+already-committed code (`catalogEntityTabs/index.ts`, `packages/backend/src/index.ts`) referenced
+them. A clean checkout of the demo SHA could not build. Portal commit
+[`a30f156`](https://dev.azure.com/diegolab/platform-devops/_git/platform-devops-developer-portal/commit/a30f156)
+commits exactly the referenced files (plus their `idpProvisioner` dependencies), found and fixed
+during MVP demo-hardening — see
+[`../delivery/mvp-demo-hardening.md`](../delivery/mvp-demo-hardening.md). The Platform tab and
+assessor are no longer WIP-pending-commit; they build and run from a clean checkout. Their
+underlying functional completeness (full dependency-set review) is unchanged and still WIP.
 
 ## 10. Progressive conformance evidence
 

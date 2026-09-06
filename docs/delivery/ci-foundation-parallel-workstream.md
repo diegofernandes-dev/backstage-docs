@@ -31,6 +31,32 @@ trusted CI
 
 The CI pipeline is therefore being treated as an **artifact/release-material producer**, not as the Delivery control plane.
 
+## Backstage .NET software templates
+
+`diegofernandes-dev/pipeline-template` is the **target CI pipeline for Backstage .NET software templates**.
+
+```text
+Backstage .NET Software Template
+  → scaffolds application repo + thin azure-pipelines.yml
+  → consumes diegofernandes-dev/pipeline-template
+  → extends pipeline/templates/dotnet-ci.yml @ immutable tag
+  → produces immutable release material (image + digest + CI metadata)
+  → END OF CI
+```
+
+Current platform surface (lab):
+
+| Concern | Repository / path |
+|---------|-------------------|
+| CI implementation | `diegofernandes-dev/pipeline-template` |
+| Consumer-facing template | `pipeline/templates/dotnet-ci.yml` |
+| Current immutable ref | `refs/tags/v0.2.0` |
+| Sample consumer | `diegofernandes-dev/dotnet-templates` |
+
+This replaces the historical direction of using `platform-pipeline-templates` / `dotnet-ci-1.0.0` as the long-term .NET CI contract for new Backstage-scaffolded apps.
+
+**Scope note:** documenting this target does **not** by itself rewire the Backstage portal scaffolder/provisioner. Portal bootstrap generation and golden-path cutover remain a follow-up implementation step. Until that cutover lands, treat `pipeline-template` / `dotnet-ci.yml` as the accepted CI contract for .NET templates going forward.
+
 ## Current CI direction
 
 The `pipeline-template` workstream is converging on these invariants:

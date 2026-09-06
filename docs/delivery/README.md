@@ -2,15 +2,15 @@
 
 ## Status
 
-**E1 evidence checkpoint: `PASS`.** See [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) (docs baseline at E1 start `d0eed6a`; implementation baseline `platform-devops-developer-portal@50ed1b0` on `feat/delivery-mvp-slice`, E1 delta on working tree). ADR-012 status remains **Proposed (unchanged)**. Production rollout remains **NO-GO**. Do **not** treat E1 PASS as ADR-012 acceptance — next step is a separate, user-authorized ADR-012 adoption re-review.
+**ADR-012 adoption re-review (post-E1): `ACCEPT`. Production rollout: NO-GO.** See [`adr-012-adoption-rereview.md`](./adr-012-adoption-rereview.md) (docs baseline `f298e61`; E1 implementation SHA `platform-devops-developer-portal@c2feb8a` on `feat/delivery-mvp-slice`). Architecture Accepted 2026-09-06; production authority gaps remain **NO-GO**. Do **not** treat ADR acceptance as production rollout or as authorization to start the next Delivery milestone without an explicit checkpoint.
 
-**ADR-012 adoption gate (prior): `REMAIN_PROPOSED`. Production rollout: NO-GO.**
+**E1 evidence checkpoint: `PASS` (reproducible).** See [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) — committed at `c2feb8a`; regression re-verified from that SHA (18 Delivery + 4 tab-loader tests).
 
-Independent architecture review after D0/D1/MVP/demo-hardening: [`adr-012-adoption-review.md`](./adr-012-adoption-review.md) (docs baseline `fd19d8a`; implementation inspected at `platform-devops-developer-portal@50ed1b0`). Verdict **`REMAIN_PROPOSED`** — 3 gates PROVEN / 7 PARTIALLY_PROVEN / 2 NOT_PROVEN. That review named **E1 — multi-activity binding and same-target concurrency** as the smallest next evidence checkpoint; E1 has now been executed (see above). Do not treat MVP demo success as ADR acceptance.
+**Prior ADR-012 adoption gate: `REMAIN_PROPOSED`.** See [`adr-012-adoption-review.md`](./adr-012-adoption-review.md) (docs baseline `fd19d8a`; implementation inspected at `50ed1b0`). Historical 3 / 7 / 2 tally; named E1 as next checkpoint — E1 executed and re-reviewed above.
 
-Prior product checkpoints (historical evidence, not superseded): MVP vertical slice [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) (`CONDITIONAL PASS`) and demo hardening [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) (`CONDITIONAL PASS`). Those prove a sandbox path; they do not close the ADR-012 architecture-spike gates.
+Prior product checkpoints (historical evidence, not superseded): MVP vertical slice [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) (`CONDITIONAL PASS`) and demo hardening [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) (`CONDITIONAL PASS`). Those prove a sandbox path; they do not by themselves close ADR-012.
 
-Shared decision record: [ADR-012 — Delivery Management, GitOps promotion, and Change boundary](../adr/ADR-012-delivery-management-gitops-promotion.md).
+Shared decision record: [ADR-012 — Delivery Management, GitOps promotion, and Change boundary](../adr/ADR-012-delivery-management-gitops-promotion.md) — **Accepted** (production rollout separately **NO-GO**).
 
 Current GMUD implementation state remains authoritative in [`../backstage/current-state.md`](../backstage/current-state.md). At the documentation baseline that opened this workstream, F3.1.1a was implemented/published at ADO `d3c0751`; F3.1.1b and F3.1.2+ were not authorized.
 
@@ -111,9 +111,9 @@ The latter is the current hypothesis, not an accepted standard.
 
 ## Gate
 
-**Current status (post E1): E1 `PASS`; ADR-012 remains `REMAIN_PROPOSED` / Proposed. Production rollout NO-GO. Next Delivery implementation milestone NO-GO pending a separate, user-authorized ADR-012 adoption re-review (E1 does not auto-accept).** See [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) and [`adr-012-adoption-review.md`](./adr-012-adoption-review.md).
+**Current status (post ADR-012 re-review): ADR-012 `ACCEPT` / Accepted. Production rollout NO-GO. Next Delivery implementation milestone NO-GO pending explicit authorization.** See [`adr-012-adoption-rereview.md`](./adr-012-adoption-rereview.md) and [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md). Bounded follow-up named: eligibility-window-TOCTOU. Do not start production hardening from this pointer alone.
 
-The sections below are preserved as the historical record of how the workstream reached the MVP/demo-hardening point — architecture spike, then D0, then D1, then the MVP vertical slice, then demo hardening — before the adoption review. Do not treat the original "GO: architecture spike only" gate below as current; it reflects the state before D0/D1/MVP execution.
+The sections below are preserved as the historical record of how the workstream reached the MVP/demo-hardening/E1/re-review point — architecture spike, then D0, then D1, then the MVP vertical slice, then demo hardening, then the first adoption review, then E1, then the post-E1 re-review. Do not treat the original "GO: architecture spike only" gate below as current; it reflects the state before D0/D1/MVP execution.
 
 **Original spike gate — GO:** architecture spike only.
 
@@ -172,6 +172,8 @@ implementation milestone remain **NO-GO**.
 E1 (multi-activity binding and same-target concurrency) was subsequently authorized and executed.
 Result: **`PASS`** — see [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md).
 Activity-scoped `ChangeBinding` (`changeId` + `activityId`), multi-activity non-completion boundary,
-and same-target `claimDispatch` concurrency were proven with regression coverage. ADR-012 status was
-**not** changed. Window TOCTOU remains carried. Production rollout remains **NO-GO**. Next step is a
-separate, user-authorized ADR-012 adoption re-review — not automatic acceptance.
+and same-target `claimDispatch` concurrency were proven with regression coverage and committed at
+`c2feb8a`. The post-E1 independent ADR-012 adoption re-review then returned **`ACCEPT`** — see
+[`adr-012-adoption-rereview.md`](./adr-012-adoption-rereview.md). Production rollout remains **NO-GO**.
+Window TOCTOU is classified as a bounded follow-up under the Accepted ADR. Do not start production
+hardening or the next Delivery milestone from this pointer alone.

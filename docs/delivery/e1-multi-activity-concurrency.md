@@ -14,9 +14,11 @@ ADR-012 status is **unchanged (Proposed)**. This checkpoint does **not** accept 
 |---|---|
 | Canonical docs at E1 start (`diegofernandes-dev/backstage-docs` `origin/main`) | `d0eed6ac38f1e5229cff2e0e9913305e28cd9d7d` |
 | Execution contract | [`prompts/e1-multi-activity-concurrency.md`](../../prompts/e1-multi-activity-concurrency.md) |
+| Reproducibility contract | [`prompts/e1-commit-and-adr012-rereview.md`](../../prompts/e1-commit-and-adr012-rereview.md) |
 | Implementation baseline (pre-E1 tip) | `platform-devops-developer-portal` / `feat/delivery-mvp-slice` / `50ed1b0b72fdf3ddc5152fb47b22f20114238332` |
-| Implementation after E1 | Same branch; E1 delta applied on working tree (Delivery module + Deployments tab + migration). Commit SHA TBD pending explicit commit authorization. |
+| Implementation after E1 (committed) | `platform-devops-developer-portal` / `feat/delivery-mvp-slice` / `c2feb8ac122d952a560cb268d6b620265d57e22a` |
 | Prior gate | [`adr-012-adoption-review.md`](./adr-012-adoption-review.md) — `REMAIN_PROPOSED` / production **NO-GO** |
+| Subsequent re-review | [`adr-012-adoption-rereview.md`](./adr-012-adoption-rereview.md) |
 
 ## What E1 authorized
 
@@ -130,7 +132,7 @@ Enforced by `claimDispatch`: target busy check + CAS inside a short transaction 
 | Concurrency UX | CONFLICT surfaces as dispatch error message (no second successful mutation presented) |
 | Narrow UI fix | Activity ID field + bound activity display + non-completion hint only |
 
-Browser screenshots were not captured in this agent environment; observations are from running UI health, backend access logs, and source contracts.
+Browser screenshots were not captured during the original E1 execution pass; post-commit re-review captured Deployments/Platform/GMUD observations (see Committed-SHA verification below).
 
 ---
 
@@ -154,11 +156,31 @@ Existing Delivery / demo-hardening invariants preserved.
 
 ---
 
+## Committed-SHA verification (reproducibility)
+
+| Step | Result |
+|---|---|
+| Isolation | Pathspec commit of Delivery/E1 files only; brownfield/adoption WIP left uncommitted |
+| Pre-commit | `yarn test src/modules/delivery/DeliveryService.test.ts` → **18 passed**; `packages/app` `catalogEntityTabs/index.test.ts` → **4 passed** |
+| Commit | `c2feb8ac122d952a560cb268d6b620265d57e22a` — `feat(delivery): E1 activity-scoped binding and same-target claimDispatch` |
+| Post-commit (from committed SHA) | Same suites → **18 passed** / **4 passed** |
+| E1 working-tree scope | Clean for Delivery/E1 paths after commit |
+
+### UI/browser (post-commit, supplemental)
+
+| Item | Observation |
+|---|---|
+| Running UI | `http://localhost:3000` HTTP 200; Component → Deployments for `idp-showcase-api` |
+| Bound Change / non-completion | PRD shows bound `CHG-2026-000001` and copy that deployment success does not complete the Change (legacy row may show empty Activity until rebound) |
+| Platform tab | Loads without regression (Platform adoption facts) |
+| GMUD detail | `CHG-2026-000001` status **Submetida**; activities listed as plan items |
+| Screenshots | Captured in agent browser session during re-review (Deployments, Platform, GMUD) |
+
 ## Residual E1 gaps
 
-1. E1 implementation delta not yet committed on `feat/delivery-mvp-slice` (working tree).
+1. ~~E1 implementation delta not yet committed~~ — closed at `c2feb8a`.
 2. Live dual-Freight Git/Kargo PRD mutation not re-driven (invariant enforced pre-provider).
-3. Window TOCTOU still open (optional adjacent; omitted).
+3. Window TOCTOU still open (optional adjacent; omitted) — carried into ADR re-review classification.
 4. Change lifecycle still `submitted`-only — ADR-009 `executing`/`completed` milestones remain a later Change Management concern; E1 proves Delivery does not falsely complete multi-activity Changes.
 
 ---
@@ -174,15 +196,16 @@ Existing Delivery / demo-hardening invariants preserved.
 
 ## Recommended next gate
 
-Independent **ADR-012 adoption gate re-review**, explicitly authorized by the user. Do **not** auto-Accept ADR-012. Do **not** start production hardening or the next Delivery milestone from this handoff.
+Independent **ADR-012 adoption re-review** was authorized and executed — see [`adr-012-adoption-rereview.md`](./adr-012-adoption-rereview.md). Do **not** start production hardening or the next Delivery milestone from the E1 handoff alone.
 
 ---
 
 ## Docs updated
 
 - Created this record: `docs/delivery/e1-multi-activity-concurrency.md`
+- Updated with committed SHA `c2feb8a` and committed-SHA verification
 - Updated `docs/delivery/README.md` current-state pointer
-- ADR-012 status file: **not** modified
+- ADR-012 status updated by the subsequent re-review (`ACCEPT`) — see [`adr-012-adoption-rereview.md`](./adr-012-adoption-rereview.md)
 
 ---
 
@@ -190,20 +213,20 @@ Independent **ADR-012 adoption gate re-review**, explicitly authorized by the us
 
 ```text
 E1 verdict: PASS
-Docs baseline SHA: d0eed6ac38f1e5229cff2e0e9913305e28cd9d7d
+Docs baseline SHA (E1 start): d0eed6ac38f1e5229cff2e0e9913305e28cd9d7d
 Implementation baseline SHA: 50ed1b0b72fdf3ddc5152fb47b22f20114238332
-Implementation after E1: feat/delivery-mvp-slice working tree (uncommitted E1 delta)
+E1 committed SHA: c2feb8ac122d952a560cb268d6b620265d57e22a
 
 E1.1 activity-scoped binding: PASS
 E1.2 multi-activity completion boundary: PASS
 E1.3 same-target concurrency: PASS (Delivery claimDispatch; live dual-Freight not re-driven)
 
-Backstage UI/browser: Deployments activity bind/display + GMUD plan list; non-completion copy
+Backstage UI/browser: Deployments bound Change + non-completion copy; Platform OK; GMUD Submetida
 Optional window TOCTOU: not performed (EligibilityService has no window consult)
-Regression tests: 18 passed
-Residual: uncommitted impl; window TOCTOU; ADR-009 lifecycle still deferred
+Regression tests (committed SHA): 18 passed (+ 4 tab loader)
+Residual: window TOCTOU; ADR-009 lifecycle still deferred; live dual-Freight not re-driven
 Architecture implications: boundaries held; no REWORK_SIGNAL
-Recommended next gate: independent ADR-012 adoption re-review (user-authorized)
-Docs updated: e1-multi-activity-concurrency.md + delivery README pointer
+Recommended next gate: see adr-012-adoption-rereview.md
+Docs updated: e1-multi-activity-concurrency.md committed-SHA evidence
 STOP
 ```

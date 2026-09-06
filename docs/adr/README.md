@@ -21,7 +21,7 @@ The former bridge `diegofernandes-dev/poc-teams-approval` is historical POC evid
 | ADR-009 | Change authorization model | Accepted (F3.0.1 architecture convergence) |
 | ADR-010 | Canonical Catalog System/Component and repository semantics | Accepted (Golden Paths Slice 0) |
 | ADR-011 | Software Template source of truth and production discovery | Accepted (Golden Paths template SoT checkpoint) |
-| ADR-012 | Delivery Management, GitOps promotion, and Change boundary | **Proposed — architecture spike required** (adoption gate `REMAIN_PROPOSED`; see [`../delivery/adr-012-adoption-review.md`](../delivery/adr-012-adoption-review.md)) |
+| ADR-012 | Delivery Management, GitOps promotion, and Change boundary | **Accepted** (2026-09-06; production rollout **NO-GO** — see [`../delivery/adr-012-adoption-rereview.md`](../delivery/adr-012-adoption-rereview.md)) |
 
 Future workstreams such as Software Templates / Golden Paths, brownfield adoption, and Delivery Management share this ADR directory when a decision affects the overall Backstage platform. Workstream-specific analysis belongs in focused folders under `docs/`.
 
@@ -57,9 +57,9 @@ Teams remains a future individual-decision interaction channel. The preferred CA
 
 ADR-001, ADR-004, and ADR-005 remain historical records of the ADO-centric POC. ADR-009 supersedes their approval-authority, Teams-to-ADO decision, and CAB-as-ADO-check directions. Technical execution safety controls may still be used without becoming business authorization authority.
 
-## Delivery/GitOps direction (proposed)
+## Delivery/GitOps direction (accepted)
 
-[ADR-012](./ADR-012-delivery-management-gitops-promotion.md) proposes a separate Delivery Management boundary so the platform does not collapse GMUD, pipeline, deployment, and Kubernetes reconciliation into one workflow:
+[ADR-012](./ADR-012-delivery-management-gitops-promotion.md) accepts a separate Delivery Management boundary so the platform does not collapse GMUD, pipeline, deployment, and Kubernetes reconciliation into one workflow:
 
 ```text
 CI -> immutable release candidate -> Delivery
@@ -68,15 +68,15 @@ CI -> immutable release candidate -> Delivery
                                                       -> promotion -> Git desired state -> Argo CD
 ```
 
-The proposal deliberately keeps these authority boundaries separate:
+The decision deliberately keeps these authority boundaries separate:
 
 - **Change Management** authorizes a business change.
 - **Delivery Management** owns release/promotion/deployment-request coordination and user-facing delivery projection.
 - **Git** is the desired-state authority for GitOps-managed targets.
 - **Argo CD** reconciles Kubernetes desired state.
-- **Kargo** is a candidate promotion controller to evaluate, not yet an accepted mandatory dependency.
+- **Kargo** is a fit promotion controller for the proven Kubernetes path, not a mandatory dependency of the architecture.
 - **Azure DevOps pipelines** may produce releases or initiate requests but are not the Change or deployment authority.
 
-ADR-012 is not an implementation authorization and does not supersede ADR-009. Its architecture spike must close the listed promotion, provenance, target-binding, multi-activity, rollback, break-glass, audit, and branching questions before production adoption.
+ADR-012 does not supersede ADR-009. **Production rollout remains NO-GO** until authority/security adoption blockers documented in the [post-E1 re-review](../delivery/adr-012-adoption-rereview.md) are closed under a separate authorization. Bounded follow-ups (eligibility window TOCTOU, audit retention, operational rollback/break-glass policy) are carried under the Accepted ADR and do not reopen the boundary decision.
 
 **Adoption gate (post MVP/demo-hardening):** independent review recorded in [`../delivery/adr-012-adoption-review.md`](../delivery/adr-012-adoption-review.md) concluded **`REMAIN_PROPOSED`**. ADR-012 status is unchanged. Production rollout remains **NO-GO**. Smallest next evidence checkpoint: **E1 — multi-activity binding and same-target concurrency**.

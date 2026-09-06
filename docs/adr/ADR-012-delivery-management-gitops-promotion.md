@@ -1,10 +1,14 @@
 # ADR-012 — Delivery Management, GitOps promotion, and Change boundary
 
-- **Status:** Proposed — architecture spike required
+- **Status:** Accepted — 2026-09-06 ([post-E1 adoption re-review](../delivery/adr-012-adoption-rereview.md)); **production rollout remains NO-GO**
 - **Date:** 2026-09-03
+- **Accepted:** 2026-09-06
 - **Related:** [ADR-003](./ADR-003-provider-agnostic-change-management.md), [ADR-006](./ADR-006-change-management-backend-contract.md), [ADR-008](./ADR-008-multi-activity-change-execution-plan.md), [ADR-009](./ADR-009-change-authorization-model.md), [ADR-010](./ADR-010-catalog-system-component-semantics.md), [ADR-011](./ADR-011-software-template-source-of-truth.md)
 - **Workstream:** [Delivery Management / GitOps promotion](../delivery/)
 
+## Acceptance note (2026-09-06)
+
+Independent post-E1 re-review accepted this ADR as an architecture decision. Production rollout is a **separate** gate and remains **NO-GO** while documented authority gaps stay open. Carried bounded follow-ups (notably eligibility window TOCTOU) do not reopen Change/Delivery/Git/Argo/K8s/Backstage boundaries. See [`../delivery/adr-012-adoption-rereview.md`](../delivery/adr-012-adoption-rereview.md). Historical spike evidence below is preserved; do not read “architecture spike required” language in older sections as current status.
 ## Context
 
 The original GMUD work began from an Azure DevOps production-stage bottleneck: after a business change had already been approved, DevOps still had to approve production pipeline environments individually. Early architecture naturally explored having Azure DevOps call Change Management at the production gate.

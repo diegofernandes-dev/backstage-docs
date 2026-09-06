@@ -17,12 +17,13 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current execution prompt
 
-- [`e1-commit-and-adr012-rereview.md`](./e1-commit-and-adr012-rereview.md) — first converts the already-passed E1 working-tree delta into a committed, reproducible implementation baseline and re-runs the relevant regression checks; then performs an independent ADR-012 adoption re-review against all 12 gates. It explicitly challenges the remaining window TOCTOU, production-security, and GitOps-layout questions without implementing production hardening or a new eligibility framework. The running Backstage UI/browser should be used where it materially strengthens the evidence, but UI is supplemental to backend/domain/provider proof.
+- [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md) — first production-adoption hardening checkpoint after ADR-012 acceptance. It is deliberately limited to authority/security blockers: real Git writer vs reconciler identity separation, scoped Argo/Kubernetes reconciliation authority with negative RBAC proof, governed Argo Application/AppProject mutation authority, and active ordinary-squad/pipeline bypass attempts. It may use the running Backstage UI only as supplemental regression evidence. It must not declare production rollout GO or expand into HA/DR, break-glass, rollback automation, supply-chain expansion, or a new Delivery milestone.
 
 ## Completed / historical prompts
 
-- [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) — completed with `PASS`. Proved activity-scoped Delivery binding (`changeId + activityId + release + target`), proved one successful deployment does not complete a multi-activity Change, and added deterministic same-target dispatch exclusion. The E1 evidence recorded the implementation delta as uncommitted; the current prompt closes that reproducibility gap before re-reviewing ADR-012.
-- [`adr-012-adoption-gate.md`](./adr-012-adoption-gate.md) — completed with `REMAIN_PROPOSED`; production rollout remained `NO-GO`. Independent review scored the 12 ADR-012 gates 3 PROVEN / 7 PARTIALLY_PROVEN / 2 NOT_PROVEN and identified E1 as the smallest next architecture-evidence checkpoint.
+- [`e1-commit-and-adr012-rereview.md`](./e1-commit-and-adr012-rereview.md) — completed. Converted E1 into the reproducible implementation baseline `platform-devops-developer-portal@c2feb8a`, re-ran the E1 regressions, and independently re-reviewed ADR-012. Result: ADR-012 `ACCEPT`; production rollout remained `NO-GO`. The bounded eligibility-window TOCTOU follow-up was subsequently closed at `ee114cf`.
+- [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) — completed with `PASS`. Proved activity-scoped Delivery binding (`changeId + activityId + release + target`), proved one successful deployment does not complete a multi-activity Change, and added deterministic same-target dispatch exclusion.
+- [`adr-012-adoption-gate.md`](./adr-012-adoption-gate.md) — completed with `REMAIN_PROPOSED`; production rollout remained `NO-GO`. Independent review identified E1 as the smallest next architecture-evidence checkpoint.
 - [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) — completed with `CONDITIONAL PASS`. Stabilized the proven MVP for demonstration, closed the Kargo no-op PR failure in the exercised template, added minimum Delivery regression coverage, fixed stale deployment projection behavior, and made the demo checkout/build reproducible.
 - [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) — completed with `CONDITIONAL PASS`. Proved the end-to-end ReleaseCandidate → DEV → HML → PRD → GMUD/ExecutionEligibility → Kargo → Git → Argo → Kubernetes → Backstage flow in the sandbox.
 - [`d1-kargo-fit-evaluation.md`](./d1-kargo-fit-evaluation.md) — completed. D1 concluded `KARGO_FIT` with qualified adoption scope. Retained as the historical execution contract/evidence context; do not re-run it unless a later architecture decision explicitly requires a new Kargo evaluation.
@@ -33,8 +34,8 @@ Use a short launcher instead of pasting the long prompt into the agent session. 
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
-Read `prompts/e1-commit-and-adr012-rereview.md` and treat it as the execution/review contract.
-First make the E1 implementation reproducible by isolating and committing only the verified E1 delta, then re-run the required regression checks from the committed SHA.
-Only after that baseline is trusted, independently re-score all 12 ADR-012 gates, use the running Backstage UI/browser where it materially strengthens evidence, update canonical docs with factual conclusions, and STOP at the prompt gate.
-Do not optimize for accepting ADR-012, do not implement window/TOCTOU or production hardening, and do not start the next Delivery milestone.
+Read `prompts/p1-production-authority-hardening.md` and treat it as the execution contract.
+Verify the current canonical docs, accepted ADR-012 state, implementation baseline, GitOps/Kargo/Argo topology, and current identity/authority graph before changing anything.
+Execute only the P1 authority-hardening scope, prove both the legitimate governed path and the required negative bypass cases, use the running Backstage UI/browser only where it strengthens regression evidence, update canonical docs factually, and STOP at the prompt gate.
+Do not redesign the accepted architecture, do not declare production rollout GO, and do not expand into HA/DR, break-glass, rollback automation, supply-chain expansion, or the next Delivery milestone.
 ```

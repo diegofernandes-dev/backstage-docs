@@ -17,7 +17,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current execution prompt
 
-None. P1 completed with `CONDITIONAL_PASS` — see [`p1-production-authority-hardening.md`](../docs/delivery/p1-production-authority-hardening.md). The smallest next step is a separate, explicit **production adoption review** deciding `GO` / `CONDITIONAL_GO` / `NO_GO`; it is not automatically authorized by P1's completion.
+- [`deployments-ux-v2-implementation.md`](./deployments-ux-v2-implementation.md) — implement the approved Component → Deployments UX v2 faithfully against the normative visual/product reference in [`../docs/delivery/deployments-ux-v2.md`](../docs/delivery/deployments-ux-v2.md) and [`../docs/delivery/assets/deployments-screen-v2.webp`](../docs/delivery/assets/deployments-screen-v2.webp). The agent is explicitly constrained from inventing a different dashboard: it must preserve the approved release panel, DEV/HML/PRD environment area, GMUD/eligibility side panel, promotion history, and recent-events layout. Browser navigation and final screenshot comparison are mandatory. Only the smallest provider-neutral Delivery read/query changes needed to make the screen truthful are authorized. Production rollout remains `NO-GO`; P1 residual hardening and the production-adoption review are out of scope for this UX checkpoint.
 
 ## Completed / historical prompts
 
@@ -31,12 +31,13 @@ None. P1 completed with `CONDITIONAL_PASS` — see [`p1-production-authority-har
 
 ## Launcher pattern
 
-Use a short launcher instead of pasting the long prompt into the agent session. No prompt is currently authorized (see "Current execution prompt" above). The launcher used for the now-completed P1 checkpoint, kept as a template for the next one:
+Use a short launcher instead of pasting the long prompt into the agent session. Current launcher:
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
-Read `prompts/p1-production-authority-hardening.md` and treat it as the execution contract.
-Verify the current canonical docs, accepted ADR-012 state, implementation baseline, GitOps/Kargo/Argo topology, and current identity/authority graph before changing anything.
-Execute only the P1 authority-hardening scope, prove both the legitimate governed path and the required negative bypass cases, use the running Backstage UI/browser only where it strengthens regression evidence, update canonical docs factually, and STOP at the prompt gate.
-Do not redesign the accepted architecture, do not declare production rollout GO, and do not expand into HA/DR, break-glass, rollback automation, supply-chain expansion, or the next Delivery milestone.
+Read `prompts/deployments-ux-v2-implementation.md` and treat it as the execution contract.
+Open and inspect `docs/delivery/deployments-ux-v2.md` and `docs/delivery/assets/deployments-screen-v2.webp` before changing code; the approved visual hierarchy is normative and you are not authorized to invent a different Deployments dashboard.
+Verify the current Backstage implementation baseline, then implement only the approved Deployments UX v2 plus the smallest provider-neutral Delivery read/query changes required to make it truthful.
+Use the running Backstage browser extensively, validate the required states, compare the final screen against the approved reference, capture screenshots, update factual canonical evidence, and STOP at the prompt gate.
+Do not redesign ADR-012 boundaries, do not continue P1 production hardening, do not run a production-adoption review, and do not expand into the global Delivery workbench or unrelated Backstage tabs.
 ```

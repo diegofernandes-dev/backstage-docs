@@ -2,9 +2,11 @@
 
 ## Status
 
-**ADR-012 adoption gate: `REMAIN_PROPOSED`. Production rollout: NO-GO.**
+**E1 evidence checkpoint: `PASS`.** See [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) (docs baseline at E1 start `d0eed6a`; implementation baseline `platform-devops-developer-portal@50ed1b0` on `feat/delivery-mvp-slice`, E1 delta on working tree). ADR-012 status remains **Proposed (unchanged)**. Production rollout remains **NO-GO**. Do **not** treat E1 PASS as ADR-012 acceptance — next step is a separate, user-authorized ADR-012 adoption re-review.
 
-Independent architecture review after D0/D1/MVP/demo-hardening: [`adr-012-adoption-review.md`](./adr-012-adoption-review.md) (docs baseline `fd19d8a`; implementation inspected at `platform-devops-developer-portal@50ed1b0`). Verdict **`REMAIN_PROPOSED`** — 3 gates PROVEN / 7 PARTIALLY_PROVEN / 2 NOT_PROVEN. ADR-012 status is **unchanged (Proposed)**. Production rollout remains **NO-GO**. Smallest next evidence checkpoint: **E1 — multi-activity binding and same-target concurrency** (documented in the review). Do not treat MVP demo success as ADR acceptance.
+**ADR-012 adoption gate (prior): `REMAIN_PROPOSED`. Production rollout: NO-GO.**
+
+Independent architecture review after D0/D1/MVP/demo-hardening: [`adr-012-adoption-review.md`](./adr-012-adoption-review.md) (docs baseline `fd19d8a`; implementation inspected at `platform-devops-developer-portal@50ed1b0`). Verdict **`REMAIN_PROPOSED`** — 3 gates PROVEN / 7 PARTIALLY_PROVEN / 2 NOT_PROVEN. That review named **E1 — multi-activity binding and same-target concurrency** as the smallest next evidence checkpoint; E1 has now been executed (see above). Do not treat MVP demo success as ADR acceptance.
 
 Prior product checkpoints (historical evidence, not superseded): MVP vertical slice [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) (`CONDITIONAL PASS`) and demo hardening [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) (`CONDITIONAL PASS`). Those prove a sandbox path; they do not close the ADR-012 architecture-spike gates.
 
@@ -109,7 +111,7 @@ The latter is the current hypothesis, not an accepted standard.
 
 ## Gate
 
-**Current status (post ADR-012 adoption review): `REMAIN_PROPOSED`. Production rollout NO-GO. Next Delivery implementation milestone NO-GO pending separate authorization after the E1 evidence checkpoint (or an explicit superseding gate).** See [`adr-012-adoption-review.md`](./adr-012-adoption-review.md).
+**Current status (post E1): E1 `PASS`; ADR-012 remains `REMAIN_PROPOSED` / Proposed. Production rollout NO-GO. Next Delivery implementation milestone NO-GO pending a separate, user-authorized ADR-012 adoption re-review (E1 does not auto-accept).** See [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) and [`adr-012-adoption-review.md`](./adr-012-adoption-review.md).
 
 The sections below are preserved as the historical record of how the workstream reached the MVP/demo-hardening point — architecture spike, then D0, then D1, then the MVP vertical slice, then demo hardening — before the adoption review. Do not treat the original "GO: architecture spike only" gate below as current; it reflects the state before D0/D1/MVP execution.
 
@@ -166,3 +168,10 @@ implementation milestone). Result: **`REMAIN_PROPOSED`** — see
 TOCTOU, concurrency, and GitOps layout). Production authority gaps remain **production adoption
 blockers**. ADR-012 status was **not** changed. Production rollout and the next Delivery
 implementation milestone remain **NO-GO**.
+
+E1 (multi-activity binding and same-target concurrency) was subsequently authorized and executed.
+Result: **`PASS`** — see [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md).
+Activity-scoped `ChangeBinding` (`changeId` + `activityId`), multi-activity non-completion boundary,
+and same-target `claimDispatch` concurrency were proven with regression coverage. ADR-012 status was
+**not** changed. Window TOCTOU remains carried. Production rollout remains **NO-GO**. Next step is a
+separate, user-authorized ADR-012 adoption re-review — not automatic acceptance.

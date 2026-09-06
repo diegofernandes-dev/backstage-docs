@@ -17,10 +17,11 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current execution prompt
 
-- [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md) — first production-adoption hardening checkpoint after ADR-012 acceptance. It is deliberately limited to authority/security blockers: real Git writer vs reconciler identity separation, scoped Argo/Kubernetes reconciliation authority with negative RBAC proof, governed Argo Application/AppProject mutation authority, and active ordinary-squad/pipeline bypass attempts. It may use the running Backstage UI only as supplemental regression evidence. It must not declare production rollout GO or expand into HA/DR, break-glass, rollback automation, supply-chain expansion, or a new Delivery milestone.
+None. P1 completed with `CONDITIONAL_PASS` — see [`p1-production-authority-hardening.md`](../docs/delivery/p1-production-authority-hardening.md). The smallest next step is a separate, explicit **production adoption review** deciding `GO` / `CONDITIONAL_GO` / `NO_GO`; it is not automatically authorized by P1's completion.
 
 ## Completed / historical prompts
 
+- [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md) — completed with `CONDITIONAL_PASS`. Proved Git writer/reconciler identity separation (two real Entra service principals with ACL-enforced positive/negative Git proofs), Argo/Kubernetes least privilege for `d1-prd` (real RBAC denial, not AppProject-level), Argo control-object governance under Git with live drift-remediation, and squad/pipeline bypass resistance — including finding and remediating one confirmed live bypass (`ado-agent` bound to `cluster-admin`). Named residual gaps: live Argo/Kargo credential swap + token-refresh automation, regression suite re-execution, two GitOps PRs awaiting merge approval. Production rollout remains `NO-GO`.
 - [`e1-commit-and-adr012-rereview.md`](./e1-commit-and-adr012-rereview.md) — completed. Converted E1 into the reproducible implementation baseline `platform-devops-developer-portal@c2feb8a`, re-ran the E1 regressions, and independently re-reviewed ADR-012. Result: ADR-012 `ACCEPT`; production rollout remained `NO-GO`. The bounded eligibility-window TOCTOU follow-up was subsequently closed at `ee114cf`.
 - [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) — completed with `PASS`. Proved activity-scoped Delivery binding (`changeId + activityId + release + target`), proved one successful deployment does not complete a multi-activity Change, and added deterministic same-target dispatch exclusion.
 - [`adr-012-adoption-gate.md`](./adr-012-adoption-gate.md) — completed with `REMAIN_PROPOSED`; production rollout remained `NO-GO`. Independent review identified E1 as the smallest next architecture-evidence checkpoint.
@@ -30,7 +31,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Launcher pattern
 
-Use a short launcher instead of pasting the long prompt into the agent session. Current launcher:
+Use a short launcher instead of pasting the long prompt into the agent session. No prompt is currently authorized (see "Current execution prompt" above). The launcher used for the now-completed P1 checkpoint, kept as a template for the next one:
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.

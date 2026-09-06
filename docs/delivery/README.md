@@ -2,6 +2,8 @@
 
 ## Status
 
+**P1 production authority hardening: `CONDITIONAL_PASS`.** See [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md) (docs baseline `e64435e`; implementation `platform-devops-developer-portal@ee114cf` + one config-only change). All four authority properties (Git writer/reconciler separation, Argo/K8s least privilege, Argo control-object governance, squad/pipeline bypass resistance) are `PROVEN` with real positive and negative execution evidence, including one confirmed live bypass (`ado-agent-cluster-admin`) found and remediated during the checkpoint. Named residual gaps: live Argo/Kargo credential swap + token-refresh automation not built; regression suite not re-executed (environment issue); two GitOps PRs awaiting merge approval. **Production rollout remains NO-GO** pending a separate adoption review — do not treat this checkpoint as that review.
+
 **Eligibility window TOCTOU: `PASS`.** See [`eligibility-window-toctou.md`](./eligibility-window-toctou.md) (implementation `platform-devops-developer-portal@ee114cf`). ADR-009 half-open `requestedWindow` is enforced in `EligibilityService`; Delivery dispatch re-check fail-closes on `OUTSIDE_WINDOW`.
 
 **ADR-012 adoption re-review (post-E1): `ACCEPT`. Production rollout: NO-GO.** See [`adr-012-adoption-rereview.md`](./adr-012-adoption-rereview.md) (docs baseline `f298e61`; E1 implementation SHA `platform-devops-developer-portal@c2feb8a` on `feat/delivery-mvp-slice`). Architecture Accepted 2026-09-06; production authority gaps remain **NO-GO**. Do **not** treat ADR acceptance as production rollout or as authorization to start the next Delivery milestone without an explicit checkpoint.
@@ -113,7 +115,7 @@ The latter is the current hypothesis, not an accepted standard.
 
 ## Gate
 
-**Current status: eligibility-window-TOCTOU `PASS`; ADR-012 `ACCEPT` / Accepted; production rollout NO-GO; next Delivery implementation milestone NO-GO pending explicit authorization.** See [`eligibility-window-toctou.md`](./eligibility-window-toctou.md), [`adr-012-adoption-rereview.md`](./adr-012-adoption-rereview.md), and [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md). Remaining production path is authority hardening under a separate authorization — not automatic from this pointer.
+**Current status: P1 authority hardening `CONDITIONAL_PASS`; ADR-012 `ACCEPT` / Accepted; production rollout NO-GO; next Delivery implementation milestone NO-GO pending explicit authorization.** See [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md), [`eligibility-window-toctou.md`](./eligibility-window-toctou.md), [`adr-012-adoption-rereview.md`](./adr-012-adoption-rereview.md), and [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md). Remaining production path is a separate, explicit production-adoption review — not automatic from this pointer.
 
 The sections below are preserved as the historical record of how the workstream reached the MVP/demo-hardening/E1/re-review point — architecture spike, then D0, then D1, then the MVP vertical slice, then demo hardening, then the first adoption review, then E1, then the post-E1 re-review. Do not treat the original "GO: architecture spike only" gate below as current; it reflects the state before D0/D1/MVP execution.
 

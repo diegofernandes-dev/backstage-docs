@@ -137,7 +137,7 @@ Architecture boundary regression: NONE
 
 ### Bounded follow-ups under Accepted ADR (not architecture reopen)
 
-1. Eligibility window TOCTOU — wire `requestedWindow` into `EligibilityService` + evidence case.
+1. ~~Eligibility window TOCTOU — wire `requestedWindow` into `EligibilityService` + evidence case.~~ **Closed** — see [`eligibility-window-toctou.md`](./eligibility-window-toctou.md) (`PASS` at `ee114cf`).
 2. Desired-state Git revision / audit retention drill.
 3. Explicit production rollback / break-glass operational policy text.
 4. Pre-E1 empty `activity_id` legacy binding rows (rebind or migrate).
@@ -172,9 +172,7 @@ No new factual evidence closed authority gaps in this checkpoint; hardening was 
 
 ## Smallest next evidence checkpoint
 
-Not required to keep ADR Proposed. Recommended **bounded follow-up** (not a new Delivery milestone authorization):
-
-**Name:** `eligibility-window-TOCTOU` — Change Management `EligibilityService` consults `requestedWindow`; prove ALLOW-near-close then DENY on Delivery dispatch. Do not start production hardening or a broad Delivery milestone from this handoff alone.
+Not required to keep ADR Proposed. The previously named bounded follow-up **`eligibility-window-TOCTOU`** has been executed (`PASS` — [`eligibility-window-toctou.md`](./eligibility-window-toctou.md)). Remaining work that still blocks **production rollout** is authority hardening under a separate, explicit authorization — not automatic from ADR acceptance.
 
 ## What this review did not execute
 

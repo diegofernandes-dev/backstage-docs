@@ -2,6 +2,8 @@
 
 ## Status
 
+**P1 residual closure: `CONDITIONAL_PASS`.** See [`p1-residual-closure.md`](./p1-residual-closure.md) (docs baseline `7458d23`; implementation `platform-devops-developer-portal@b08e7b2`, unchanged). Live Argo/Kargo Git credentials cut over to the two non-human Entra service principals with a proven, automated `*/30 * * * *` token-refresh CronJob; human PATs are no longer active in either controller path. The Kargo no-op promotion guard (broken on v1.11.4) was fixed and both `hml`/`prd` stages recovered from `Errored`. Full negative-authority matrix re-proven on the final live state with fully isolated kubeconfigs. Regression suites green (32 + 8 tests). One residual gap: the durable-GitOps-steady-state PR (`#81`, superseding an unmergeable `#80`) is `Active`, correctly awaiting human approval per branch policy — `d1-prd` still reconciles through the broad destination until it merges. **Ready for separate production-adoption review: NO. Production rollout remains NO-GO.**
+
 **Deployments UX v2 responsive polish: `PASS`.** See [`deployments-ux-v2-responsive-polish.md`](./deployments-ux-v2-responsive-polish.md) (docs baseline `1b181ef`; implementation `platform-devops-developer-portal@b08e7b2` on `feat/delivery-mvp-slice`). Model composition (env+GMUD, history+events) from MUI `lg`; env card stack only below `md`; densified entity masthead; no ADR-012 / backend domain changes. **Production rollout remains NO-GO.**
 
 **Deployments UX v2 implementation: `CONDITIONAL_PASS`.** See [`deployments-ux-v2-implementation.md`](./deployments-ux-v2-implementation.md) (implementation `0163a49`).

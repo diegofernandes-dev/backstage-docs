@@ -1,5 +1,9 @@
 # P1 Residual Closure — Live Credential Cutover and Production-Review Readiness
 
+## Re-verification (2026-09-07T02:0x UTC)
+
+Live state re-checked after the original checkpoint. **No material change**: PR #81 remains `Active` with zero reviewers and zero votes — still unapproved, still unmerged. `d1-prd`/`d1-sandbox` still reconcile through the broad `https://kubernetes.default.svc` destination (C1 still open); governed revision unchanged at `8a50c2e5c07a`. The token-refresh CronJob ran automatically on schedule at least once since the original checkpoint (`lastScheduleTime: 2026-09-07T02:00:00Z`) with no human involvement, and both live credential Secrets still carry the non-human identity markers (`idp-d1-argocd-reader`, `idp-d1-kargo-writer`). Both `hml`/`prd` Kargo stages remain `Healthy`/`Ready`. Verdict and readiness are unchanged from the original checkpoint below.
+
 ## Result
 
 ```text

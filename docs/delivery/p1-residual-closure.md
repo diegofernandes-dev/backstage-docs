@@ -1,18 +1,20 @@
 # P1 Residual Closure — Live Credential Cutover and Production-Review Readiness
 
-## Re-verification (2026-09-07T02:0x UTC)
+## Re-verification history
 
-Live state re-checked after the original checkpoint. **No material change**: PR #81 remains `Active` with zero reviewers and zero votes — still unapproved, still unmerged. `d1-prd`/`d1-sandbox` still reconcile through the broad `https://kubernetes.default.svc` destination (C1 still open); governed revision unchanged at `8a50c2e5c07a`. The token-refresh CronJob ran automatically on schedule at least once since the original checkpoint (`lastScheduleTime: 2026-09-07T02:00:00Z`) with no human involvement, and both live credential Secrets still carry the non-human identity markers (`idp-d1-argocd-reader`, `idp-d1-kargo-writer`). Both `hml`/`prd` Kargo stages remain `Healthy`/`Ready`. Verdict and readiness are unchanged from the original checkpoint below.
+**2026-09-07T02:0x UTC** — no material change: PR #81 `Active`, zero reviewers/votes, `d1-prd` still on the broad destination (C1 still open), governed revision still `8a50c2e5c07a`. Token-refresh CronJob had already run automatically on schedule with no human involvement.
+
+**2026-09-07T02:23:48Z — PR #81 merged.** Reviewer `Diego Fernandes` voted `Approved` (vote `10`); merge commit `50564c9977e1a02b7d16345c9ebcc38416986efb` landed on `d1/desired-state`. Post-merge convergence was verified immediately after (see Phase C and the updated negative-proof re-run below), closing C1. Verdict upgraded from `CONDITIONAL_PASS` to `PASS` as a result — see Result below.
 
 ## Result
 
 ```text
-P1 residual closure verdict: CONDITIONAL_PASS
-Ready for separate production-adoption review: NO
+P1 residual closure verdict: PASS
+Ready for separate production-adoption review: YES
 Production rollout: NO-GO (unchanged)
 ```
 
-All three P1-named residuals (live credential cutover, token refresh, regression re-execution) are technically closed and proven against the final live state. One narrow, legitimate human-approval dependency remains open: a durable-GitOps-steady-state PR is active and requires the human operator's approval per branch policy — it cannot be self-approved by the identity that opened it, by design. Until it merges, `d1-prd` reconciles through the broad in-cluster destination, not the namespace-scoped one, so production-adoption readiness is `NO`.
+All three P1-named residuals (live credential cutover, token refresh, regression re-execution) are closed and proven against the final live state. The one remaining dependency — human approval of the durable-GitOps-steady-state PR — has been satisfied: PR #81 was approved by the human operator (as an independent reviewer, not the PR's own creator) and merged. Post-merge, `d1-prd` and `d1-sandbox` were confirmed to reconcile through the namespace-scoped destination sourced from the merged Git commit, not from bootstrap-only state, and the negative-authority checks were re-run clean against this final state.
 
 ## Baselines
 
@@ -20,7 +22,7 @@ All three P1-named residuals (live credential cutover, token refresh, regression
 |---|---|
 | Docs baseline (execution contract) | `diegofernandes-dev/backstage-docs` `origin/main@7458d239c479d4501b24115e7ad3c341cbabf28c` |
 | Implementation baseline (before and after) | `platform-devops-developer-portal@b08e7b284f34e5d12c299b4ee6ab75697e21010f` on `feat/delivery-mvp-slice` — **unchanged**; no source/config edits were required in this checkpoint, only cluster/ADO/GitOps-repo state |
-| GitOps repo | `diegolab/platform-engineering/d0-gitops-sandbox`, governed branch `d1/desired-state` @ `8a50c2e5c07aa8e216b335b1612d2c23d2b8d091` (unchanged; awaiting the superseding PR below) |
+| GitOps repo | `diegolab/platform-engineering/d0-gitops-sandbox`, governed branch `d1/desired-state` @ `50564c9977e1a02b7d16345c9ebcc38416986efb` (post-merge; was `8a50c2e5c07a` before PR #81) |
 | Cluster | Rancher Desktop k3s v1.33.6+k3s1, context `rancher-desktop` (unchanged) |
 | Argo CD | v3.5.2 (unchanged) — repo-server restarted this checkpoint to pick up rotated credential |
 | Kargo | v1.11.4 (unchanged) |
@@ -30,7 +32,7 @@ All three P1-named residuals (live credential cutover, token refresh, regression
 
 Three material conflicts between the last-recorded canonical evidence and live state were found and are recorded here, as the contract requires, before any security-sensitive change was made:
 
-**C1 — P1.2 had silently regressed.** P1 recorded `d1-prd` "reconciling through the scoped credential exclusively." Live inspection found `Application d1-prd` and `AppProject d1-sandbox` both pointing at the broad `https://kubernetes.default.svc` destination, not the scoped `d1-prd-scoped`. Root cause: `d1-control-plane` (`selfHeal: true`) reconciles `argocd/` from the governed branch at `8a50c2e`, which predates PR #80's content, so it reverted the bootstrap-applied scoped destination back to the pre-P1.2 value. The `d1-prd-scoped` cluster secret and `argocd-prd-deployer` SA/Role were present but unused. This is exactly the "bootstrap-applied state is not durable" failure the contract anticipates — closing it is the substance of Phase C below.
+**C1 — P1.2 had silently regressed (closed).** P1 recorded `d1-prd` "reconciling through the scoped credential exclusively." Live inspection found `Application d1-prd` and `AppProject d1-sandbox` both pointing at the broad `https://kubernetes.default.svc` destination, not the scoped `d1-prd-scoped`. Root cause: `d1-control-plane` (`selfHeal: true`) reconciles `argocd/` from the governed branch at `8a50c2e`, which predated PR #80's content, so it reverted the bootstrap-applied scoped destination back to the pre-P1.2 value. The `d1-prd-scoped` cluster secret and `argocd-prd-deployer` SA/Role were present but unused. This was exactly the "bootstrap-applied state is not durable" failure the contract anticipates. **Resolved**: PR #81 (Phase C) merged the identical fix durably; post-merge, `d1-control-plane` converged to the new revision and `d1-prd`/`d1-sandbox` now reconcile through `https://10.43.0.1:443` (the scoped destination) sourced from Git.
 
 **C2 — the Kargo promotion path was broken.** `hml` and `prd` stages were both `Errored`: `cannot fetch id from <nil>` at `outputs['open-pr'].pr.id`. The demo-hardening `if: outputs['open-pr'].pr != nil` guard does not work on Kargo v1.11.4 — step *config* is template-expanded before the `if` is evaluated, so a no-op promotion (no new PR opened) always errored building step config, before the guard ever ran.
 
@@ -44,8 +46,8 @@ Three material conflicts between the last-recorded canonical evidence and live s
 | Kargo Git writer = human PAT | `OPEN` → closed this checkpoint | `d1-sandbox/d1-git-writer`, pre-cutover username `d1-kargo-writer` (same human account) |
 | Token refresh automation | `OPEN` → closed this checkpoint | No refresh CronJob existed; only `kargo/kargo-garbage-collector` was present cluster-wide |
 | GitOps PR #79 | `OPEN` → resolved (abandoned) | Contained only a throwaway `P1_WRITER_PROBE.txt`; never durable desired state |
-| GitOps PR #80 | `OPEN` → superseded, `BLOCKED_BY_HUMAN_ACTION` | Unmergeable by its own creator under branch policy 103 (`creatorVoteCounts: false`); superseded by a new PR opened by the writer identity (see Phase C) |
-| Scoped `d1-prd` destination | `CHANGED` (regressed) → fix pending merge | See C1 |
+| GitOps PR #80 | `OPEN` → superseded, resolved | Unmergeable by its own creator under branch policy 103 (`creatorVoteCounts: false`); superseded by PR #81 (writer identity), which was approved by the operator and merged |
+| Scoped `d1-prd` destination | `CHANGED` (regressed) → `CLOSED` | See C1; confirmed converged post-merge |
 | `ado-agent-cluster-admin` bypass | `ALREADY_CLOSED` | `ClusterRoleBinding` confirmed `NotFound`; remains closed |
 | Stale escalation bindings (`azure-devops-agent`, `devops-agents`) | `ALREADY_CLOSED` | Both namespaces confirmed absent |
 | Delivery backend K8s credential scope | `ALREADY_CLOSED` | `delivery.kubernetes.kubeconfigPath` is committed at `b08e7b2:app-config.yaml:245-252`, pointing outside the repo |
@@ -92,10 +94,21 @@ No token value appears in any job log, Secret listing, or this document — only
 - **PR #79** (`p1/writer-positive-probe`, contained only `P1_WRITER_PROBE.txt`) — **abandoned**. It was never intended as durable desired state; its purpose (proving the writer SP can open a PR) is superseded by the evidence below.
 - **PR #80** (`p1/control-plane-governance`, the real P1.2/P1.3 diff) — **abandoned as superseded**. It could not be merged by its own creator (branch policy 103: `minimumApproverCount: 1`, `creatorVoteCounts: false`; PR #80 was opened by the human operator).
 - **Superseding PR #81** opened this checkpoint, `createdBy: idp-d1-kargo-writer` (confirmed via the ADO API response, not assumed), carrying the byte-identical diff (`4 files changed, 53 insertions(+), 8 deletions(-)` — matching PR #80's own diff stat exactly): `argocd/d1-application-prd.yaml`, `argocd/d1-project.yaml` (both repointed to `https://10.43.0.1:443`, the `d1-prd-scoped`/`d1-control-scoped` destination identity), and new `argocd/d1-control-application.yaml` / `argocd/d1-control-project.yaml`. Pushed and opened using the **live writer credential** (the same Secret proven in Phase B), not the operator's own ADO session — this is itself further positive proof of the cutover.
-- Status: **Active, pending the operator's approval** as an independent reviewer (not the PR's own creator) — see Human Action Required below.
-- Probe branches: `p1/writer-positive-probe` and `p1/control-plane-governance` were left in place (branch deletion was withheld by the session's own safety guard as a moderately destructive action outside this checkpoint's narrow scope); both source PRs are abandoned so neither can affect the protected branch.
+- **Merged.** Approved by `Diego Fernandes` (vote `Approved`, an independent reviewer — not the PR's own creator, satisfying branch policy 103 without self-approval) and completed at `2026-09-07T02:23:48Z`. Merge commit `50564c9977e1a02b7d16345c9ebcc38416986efb` on `d1/desired-state`.
+- Probe branches: `p1/writer-positive-probe` and `p1/control-plane-governance` were left in place (branch deletion was withheld by the session's own safety guard as a moderately destructive action outside this checkpoint's narrow scope); their source PRs are abandoned so neither can affect the protected branch. `p1/writer-superseding-proof` (PR #81's source branch) was auto-deleted on completion per its merge options.
 
-**Until PR #81 merges**, the governed branch remains at `8a50c2e5c07a` and `d1-prd`/`d1-sandbox` continue reconciling through the broad in-cluster destination — this is C1, not yet closed. Post-merge, `d1-control-plane` and `d1-prd` must be confirmed to converge on the new revision through the scoped destinations before C1 can be marked resolved; that verification is queued, not yet performed, pending the merge.
+**Post-merge convergence, verified:**
+
+| Check | Result |
+|---|---|
+| Governed branch head | `50564c9977e1a02b7d16345c9ebcc38416986efb` (confirmed via `git fetch` + `git log`) |
+| `d1-control-plane` | Hard-refreshed; converged `Synced/Healthy` at revision `50564c99…` |
+| `d1-prd` destination | `{"namespace":"d1-prd","server":"https://10.43.0.1:443"}` — the scoped identity, sourced from the merged commit, not a bootstrap apply |
+| `d1-sandbox` AppProject destinations | `d1-prd` entry now `https://10.43.0.1:443` |
+| `d1-prd` Application | `Synced/Healthy` at revision `50564c99…` |
+| `d1-control`/`d1-control-plane` (P1.3 objects) | Both pre-existing from P1, unaffected, still `Synced/Healthy` |
+
+C1 is closed: the fix is now durable, attributable to the governed Git branch, and confirmed to survive a `d1-control-plane` reconciliation cycle (which is exactly the mechanism that reverted it before).
 
 ## Legitimate Path Proof (Phase D)
 
@@ -121,9 +134,11 @@ All checks below were run against the **final live state**, each with a freshly 
 
 | # | Attempt | Identity | Result |
 |---|---|---|---|
-| 4 | Cross-namespace mutation (`d1-dev`) | `d1-prd/argocd-prd-deployer` | **DENIED** — `Forbidden: cannot list resource "deployments" … in the namespace "d1-dev"` |
-| 5 | Cluster-scoped self-escalation (`ClusterRoleBinding` → `cluster-admin`) | `d1-prd/argocd-prd-deployer` | **DENIED** — `Forbidden: cannot create resource "clusterrolebindings" … at the cluster scope` |
-| 6 | Privileged-namespace access (`kube-system` Secrets) | `d1-prd/argocd-prd-deployer` | **DENIED** — `Forbidden: cannot list resource "secrets" … in the namespace "kube-system"` |
+| 4 | Cross-namespace mutation (`d1-dev`) | `d1-prd/argocd-prd-deployer` | **DENIED** (pre-merge and re-confirmed post-merge) — `Forbidden: cannot list resource "deployments" … in the namespace "d1-dev"` |
+| 5 | Cluster-scoped self-escalation (`ClusterRoleBinding` → `cluster-admin`) | `d1-prd/argocd-prd-deployer` | **DENIED** (pre-merge and re-confirmed post-merge) — `Forbidden: cannot create resource "clusterrolebindings" … at the cluster scope` |
+| 6 | Privileged-namespace access (`kube-system` Secrets) | `d1-prd/argocd-prd-deployer` | **DENIED** (pre-merge and re-confirmed post-merge) — `Forbidden: cannot list resource "secrets" … in the namespace "kube-system"` |
+
+Checks 4–6 were re-run a second time, after PR #81 merged and `d1-control-plane`/`d1-prd` converged on the new governed revision, using a freshly minted isolated kubeconfig for `argocd-prd-deployer`. All three denied identically — confirming the P1.2 fix landing durably through Git did not reopen or weaken any authority boundary.
 
 ### Squad/pipeline bypass
 
@@ -178,38 +193,29 @@ Human PAT still active in these controller paths: NO
 
 ## Human Action Required
 
-```text
-HUMAN_ACTION_REQUIRED
-PR: 81 (d0-gitops-sandbox, supersedes abandoned PR #80)
-Required action: approve and complete the PR into d1/desired-state
-Why automation must not perform it: branch policy 103 on d1/desired-state requires
-  minimumApproverCount=1 with creatorVoteCounts=false; the PR was opened by the
-  non-human writer identity specifically so a human reviewer (not the PR's own
-  creator) provides the approval — self-approval by automation, or approval by
-  an identity acting on the operator's behalf, would defeat the intended
-  separation of duties this checkpoint is proving.
-```
+**Resolved.** PR #81 was approved by the human operator (`Diego Fernandes`, vote `Approved`, an independent reviewer distinct from the PR's non-human creator) and merged at `2026-09-07T02:23:48Z`. No human action remains outstanding from this checkpoint.
 
-Once merged, the following must still be verified before C1 can be marked resolved (not yet performed, blocked on the merge):
+Post-merge verification (required before C1 could be marked resolved) has been performed:
 
-- `d1-control-plane` and `d1-prd` both converge to `Synced/Healthy` at the new governed revision;
-- `d1-prd`'s live destination is the scoped `d1-prd-scoped` credential, sourced from Git, not from a bootstrap-only apply;
-- re-run negative checks 4–6 once more against that post-merge state, to confirm C1 cannot recur.
+- `d1-control-plane` and `d1-prd` both converged to `Synced/Healthy` at the new governed revision `50564c99…` — confirmed;
+- `d1-prd`'s live destination is the scoped `d1-prd-scoped`/`https://10.43.0.1:443` credential, sourced from the merged Git commit, not a bootstrap-only apply — confirmed;
+- negative checks 4–6 re-run against this post-merge state — all denied identically to the pre-merge run — confirmed.
 
 ## Remaining Gaps
 
-- PR #81 awaiting human approval (see above) — this is the sole blocker for full `PASS`.
-- Build Service Git ACL (negative check 3) was not independently re-queried this checkpoint via CLI (a descriptor lookup did not resolve); nothing in this checkpoint touched that ACL, so it is carried forward unchanged from P1's proof, not freshly re-verified.
+- Build Service Git ACL (negative check 3) was not independently re-queried this checkpoint via CLI (a descriptor lookup did not resolve); nothing in this checkpoint touched that ACL, so it is carried forward unchanged from P1's proof, not freshly re-verified. Non-blocking: no action in this checkpoint could plausibly have changed it.
 - Probe branches `p1/writer-positive-probe` and `p1/control-plane-governance` remain on the remote (their PRs are abandoned, so they cannot affect the protected branch); deletion was withheld as a moderately destructive action outside this checkpoint's narrow authorized scope.
 - Pre-existing, out-of-P1-scope `cluster-admin` bindings (`helm-kube-system-traefik`, `helm-kube-system-traefik-crd`) remain untouched, as before — explicitly out of scope for this checkpoint, same as P1.
+
+Neither gap blocks `PASS`: both are pre-existing, out-of-scope items untouched by this checkpoint's changes, not new or newly-discovered risks.
 
 ## Production-Review Readiness
 
 ```text
-Ready for separate production-adoption review: NO
+Ready for separate production-adoption review: YES
 ```
 
-Reason: C1 (the live `d1-prd` destination) is not yet durably closed — it depends on the still-open human approval of PR #81. All other required properties (non-human live credentials, proven automated refresh, durable-branch-policy compliance, working positive path, full negative-authority matrix, green regressions) are proven on the final live state.
+Reason: all required properties are proven on the final live state — non-human live credentials with a proven automated refresh, durable-branch-policy-compliant GitOps steady state (PR #81 merged and converged, C1 closed), a working positive path through the live writer credential, a full negative-authority matrix (Git + Kubernetes + pipeline + Delivery-backend) re-proven both pre- and post-merge, and green regressions. This is a statement of readiness for that separate review, not the review itself — production rollout remains `NO-GO` until that review runs and explicitly says otherwise.
 
 ## Documentation Updated
 
@@ -224,9 +230,9 @@ Deployments UX is functionally accepted/demoable. Additional visual polish is de
 ## STOP
 
 ```text
-P1 residual closure: CONDITIONAL_PASS
-Ready for separate production-adoption review: NO
+P1 residual closure: PASS
+Ready for separate production-adoption review: YES
 Production rollout: NO-GO
 ```
 
-This checkpoint stops here. The production-adoption review is not run. Deployments UX visual polish is not resumed. No new Delivery milestone is started. The single next legitimate action is the human operator's approval of PR #81 in `d0-gitops-sandbox`; a follow-up verification of post-merge convergence (see Human Action Required) should occur before this checkpoint is treated as fully, durably `PASS`.
+This checkpoint stops here. The production-adoption review is not run by this checkpoint — it is a separate, explicit, human-authorized activity. Deployments UX visual polish is not resumed. No new Delivery milestone is started. ADR-012 status is unchanged (`Accepted`). Production rollout is unchanged (`NO-GO`) and is not declared `GO` by this document.

@@ -1223,6 +1223,181 @@ policy files remain an **F3.1.4 prerequisite**.
 
 ---
 
+## F3.1.1b — Selector Bundle, Catalog Resolver & Publication Integrity (implementation checkpoint)
+
+Implementation repository/branch/SHA: `platform-devops-developer-portal` /
+`feat/ado-repo-governance` / **`188d8e9cc43423f3644b3cacfb9849257838a583`**
+(direct child of `d3c0751`; verified against the Azure DevOps REST API both
+before any edit and again after the push).
+
+Documentation baseline SHA: `8de1ca430387c3f4b231f76b2c731347ec636c9a`.
+
+Starting ADO baseline (verified live before any edit):
+`d3c0751a15b908cec8f5595c97e52f41226344ed` — exact match to the accepted
+F3.1.1a implemented baseline. No reconciliation was required. The Delivery
+branch `feat/delivery-mvp-slice` was not used, read from, or merged.
+
+Full evidence: [`f3-1-1b-implementation-evidence.md`](./f3-1-1b-implementation-evidence.md).
+
+### Objective
+
+Implement the F3.1.1b slice: the selector bundle domain, its typed
+environment-scoped configuration reader, startup validation of the **active
+policy + active selector bundle pair**, a Catalog-backed principal resolver
+using backend service credentials, selector canonical digests, and the
+selector-bundle publication identity appended to the existing F3.1.1a
+manifest — fully unwired from `POST /changes`.
+
+### Architecture applied
+
+New `authorization/selector/` directory: `types.ts` (`SelectorEntry`,
+`SelectorBundle` — one immutable versioned bundle, no per-selector versions),
+`selectorDigest.ts` (`sha256Canonical(bundle.selectors)` and the per-resolution
+digest over `{selectorKey, selectorVersion, principalType, principalRef}`,
+reusing `canonical.ts` verbatim), `config.ts` (`readAuthorizationConfig`,
+required reads throughout, selectors read as a *list* so duplicate keys stay
+detectable), `bundle.ts` (`createSelectorBundle` in the `createPolicyRegistry`
+order, ending in the reused `deepFreezeSerializable`), `startupValidation.ts`
+(active pair only), `CatalogPrincipalResolver.ts` (produces the existing
+`PrincipalResolutionSnapshot` with no added field, via `parseEntityRef` +
+`catalog.getEntityByRef` under `auth.getOwnServiceCredentials()`), and
+`bootstrapAuthorization.ts` (the whole startup path in one call).
+
+Key architectural points:
+
+- **Content in configuration, identity in the manifest.** Bindings are
+  environment-scoped app-config; the identity and digest of a binding set is a
+  published artifact. Rebinding without a version bump fails startup — proven
+  against a real running backend.
+- **Active-pair-only validation.** An inactive historical policy referencing a
+  selector absent from the active bundle does **not** crash startup; pinned by a
+  dedicated test.
+- **Emergency A/B narrowing expressed generically** — enforced over shared
+  `separationOfDutyKey` groups, never by hardcoded selector names.
+- **`validateManifestHistory.ts` reused entirely unchanged** — the
+  `selector-bundle` artifact kind already existed. One entry appended; the
+  pre-existing policy entry is byte-identical.
+- **Fail-closed resolver** — `INTERNAL_ERROR` / `NOT_FOUND` /
+  `PROVIDER_UNAVAILABLE`, no cache, no member expansion, no address or
+  human-readable-name fallback.
+
+### ADO files changed
+
+```
+app-config.yaml                                                                     (M — +29)
+packages/backend/src/modules/changeManagement/architecture.test.ts                  (M — +157, additive)
+packages/backend/src/modules/changeManagement/authorization/policy/published-manifest.json  (M — +6, append only)
+packages/backend/src/plugins/changeManagementPlugin.ts                              (M — +21, 0 deletions)
+packages/backend/src/modules/changeManagement/authorization/selector/**             (A — 14 files)
+```
+
+All four modifications are pure insertions: 213 insertions, 0 deletions. The
+pre-commit scope audit found `ChangeManagementService.ts`, Delivery, frontend,
+migrations, routes, approval commands, Teams/CAB and
+`app-config.production.yaml` all untouched. No migration, route, or CI pipeline
+was added.
+
+### Tests / functional verification
+
+- **New F3.1.1b tests: 105** across 7 suites, plus a 4-test opt-in live suite.
+- **Full backend suite: 40 suites / 328 tests passed**, 1 skipped (opt-in live).
+- **PostgreSQL**: disposable `postgres:16` container; `authorization/postgres.test.ts`
+  genuinely executed inside the green run; container removed afterwards.
+- **Publication**: `yarn validate:policy-publication --baseline-ref d3c0751…`
+  exits **0** as an ordinary append. **`--allow-genesis-from` was not used at
+  any point.** Negatives against the new commit exit **1** with
+  `DIGEST_CHANGED` (identity reuse with changed content) and `IDENTITY_REMOVED`.
+- **Live Catalog** (running instance, untouched): a real `User` resolved; a real
+  `Group` resolved to the Group ref while the test first proves that Group
+  genuinely carries `hasMember` relations and then proves none appear in the
+  snapshot; a non-existent principal failed closed with `NOT_FOUND`; service
+  credentials used on every lookup.
+- **Real startup**: a second backend booted from the committed `app-config.yaml`
+  on port 7008 with its own SQLite DB and logged the validated active pair with
+  the exact digest. A rebound selector and an unpublished bundle identity each
+  **failed startup closed**; the valid config was restored and booted cleanly,
+  with `/api/change-management/changes` behaving identically to the untouched
+  instance.
+- **Lint**: exit 0. **Build**: exit 0.
+- **TypeScript baseline**: no error added, none removed. The 5 pre-existing
+  `changeManagementPlugin.ts` errors shifted by exactly +21 lines — precisely
+  the number of lines inserted into that file — with identical file, column,
+  code and source expression. This is the first F3 slice that had to modify that
+  file, so identity was proven at file+code+column+expression level rather than
+  by a literal line-number diff.
+
+### Deviations
+
+New from this checkpoint:
+
+1. **`app-config.production.yaml` deliberately has no authorization block.**
+   Production overlays the base config, so the mandatory check is satisfied
+   everywhere; inventing production Catalog refs would be fabrication.
+   **Consequence:** a production deployment would currently inherit the dev
+   bundle. Publishing a distinct `selector-bundle-prod` identity is a
+   prerequisite for production rollout, which is separately gated on a real
+   production target.
+2. **`resolverProvenance` is colon-separated, not `key@version`** — the
+   `key@version.n` form matches the address-shape guard, so the separator was
+   changed to keep "no snapshot value is address-shaped" exception-free.
+3. **`contentDigest` in configuration is optional** — always computed and always
+   checked against the manifest; the declared value is a second operator
+   statement, validated when present.
+4. **Publication transport:** ADO SSH was failing all session; the push went over
+   HTTPS with a PAT through a temporary remote that was removed immediately, and
+   the resulting SHA was confirmed independently via the ADO REST API. `origin`
+   is unchanged.
+
+Carried forward, unchanged: `buildChange()` twice (**MUST FIX BEFORE F3.1.2**);
+`LEGACY_PRE_F3` idempotency semantics; RBAC CSV/conditional-policy files as an
+**F3.1.4 prerequisite**; decision-time authority membership is not selector
+resolution; production rollout readiness gated on a real production target.
+
+### Open questions
+
+Carried forward:
+
+1. Emergency Approver A/B authority-typing (unchanged; MVP remains user-typed).
+2. Genesis violation-code contradiction in `f3-1-1-implementation-plan.md`
+   §6/§6a/§26.J versus the shipped both-codes behavior — untouched here, still
+   awaiting an architecture-side plan-text reconciliation.
+
+Resolved by this checkpoint:
+
+3. `selectorBundleVersion` / environment-scoped bundle key convention — settled
+   as `selector-bundle-<env>@<date>.<n>` with content in configuration and
+   identity in the manifest.
+
+New:
+
+4. When a real production target exists, a `selector-bundle-prod` identity must
+   be published before production rollout; until then production inherits the
+   dev bundle from the base config.
+
+### Gate
+
+**F3.1.1b is IMPLEMENTED and PUBLISHED to `feat/ado-repo-governance` at
+`188d8e9`.** The publication validated as a normal append against the trusted
+F3.1.1a baseline with no genesis path; startup validation, fail-closed Catalog
+resolution and non-expansion of authorities were proven against a real running
+Backstage and Catalog; lint, build and the full suite (SQLite and PostgreSQL)
+are green; the TypeScript error set is unchanged.
+
+```text
+F3.1.1b implementation: PASS
+Architecture implementation acceptance: PENDING SEPARATE REVIEW
+F3.1.2: NO-GO
+Production rollout: separate / deferred
+```
+
+**`POST /changes` remains completely unwired.** No `AuthorizationRound` is
+created and `ChangeManagementService` is untouched.
+
+**NO-GO for F3.1.2** — not authorized by this checkpoint. `buildChange()`-twice
+remains **MUST FIX BEFORE F3.1.2**.
+
+---
+
 ---
 
 ## Next checkpoint template

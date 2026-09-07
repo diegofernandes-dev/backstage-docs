@@ -6,6 +6,8 @@
 
 **2026-09-07T02:23:48Z — PR #81 merged.** Reviewer `Diego Fernandes` voted `Approved` (vote `10`); merge commit `50564c9977e1a02b7d16345c9ebcc38416986efb` landed on `d1/desired-state`. Post-merge convergence was verified immediately after (see Phase C and the updated negative-proof re-run below), closing C1. Verdict upgraded from `CONDITIONAL_PASS` to `PASS` as a result — see Result below.
 
+**2026-09-07T02:30:xx UTC — stability re-check.** No open PRs remain against `d0-gitops-sandbox`. `d1-prd` and `d1-control-plane` both still `Synced/Healthy` at `50564c99…`. The refresh CronJob completed another automatic run on schedule (`lastScheduleTime`/`lastSuccessfulTime`: `2026-09-07T02:30:00Z`/`:04Z`) with no human session involved, and both live credential Secrets still carry the non-human identity markers. No drift since the PASS verdict below; no content change required.
+
 ## Result
 
 ```text

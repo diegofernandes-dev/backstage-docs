@@ -17,13 +17,14 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current execution prompt
 
-- [`p1-residual-closure-live-cutover.md`](./p1-residual-closure-live-cutover.md) — close only the bounded P1 residuals before a separate production-adoption review: move the live Argo Git reader and Kargo/Delivery Git writer onto the already-proven distinct non-human Entra service principals, prove sustainable non-human token refresh, establish the P1 GitOps control changes as durable protected-branch steady state, then rerun the high-value positive/negative authority proofs and regressions against the final live state. The current Deployments UX is explicitly frozen as functionally accepted/demoable; further visual polish is deferred and no UI redesign is authorized. This checkpoint may return readiness for a later production-adoption review, but production rollout remains `NO-GO` and the adoption review itself is out of scope.
+- [`production-adoption-review.md`](./production-adoption-review.md) — independent, review-only production-adoption gate after P1 residual closure `PASS`. The reviewer must challenge all prior evidence and return exactly `GO`, `CONDITIONAL_GO`, or `NO_GO` for a **controlled first production adoption**, while keeping ADR acceptance separate from rollout approval. The checkpoint is read-only: no source/config/infrastructure changes, no P1 continuation, no rollout execution, and no Deployments UX work. It explicitly evaluates authority separation, credential lifecycle, scoped Kubernetes authority, durable control-plane Git governance, bypass resistance, legitimate promotion, Change/eligibility semantics, concurrency/idempotency, failure recovery, rollback/break-glass readiness, auditability, sandbox→production transferability, and first-rollout blast radius. A positive verdict authorizes only a narrow rollout envelope, not enterprise-wide GA.
 
 ## Completed / historical prompts
 
+- [`p1-residual-closure-live-cutover.md`](./p1-residual-closure-live-cutover.md) — completed with `PASS`. Live Argo reader and Kargo/Delivery writer were moved from human PATs to the already-proven distinct non-human Entra service principals; automatic token refresh was implemented and re-verified across multiple unattended cycles; the governed P1 GitOps control diff was approved and merged through protected branch policy; `d1-prd`/`d1-control-plane` converged to the merged scoped-destination state; high-value positive/negative authority evidence and regressions were rechecked. Result: `Ready for separate production-adoption review: YES`; production rollout remained `NO-GO` pending that review.
 - [`deployments-ux-v2-responsive-polish.md`](./deployments-ux-v2-responsive-polish.md) — completed with `PASS`; implementation recorded at `platform-devops-developer-portal@b08e7b2`. Responsive composition and laptop behavior were validated and documented. Further visual refinement is intentionally deferred; do not reopen this workstream during authority closure.
 - [`deployments-ux-v2-implementation.md`](./deployments-ux-v2-implementation.md) — completed with `CONDITIONAL_PASS`; implementation recorded at `platform-devops-developer-portal@0163a49`. Implemented the approved release selector, environment views, GMUD/eligibility context, promotion history, and recent events with real browser/sandbox validation. Known truthful data gaps remain for Commit/Branch/Aprovador.
-- [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md) — completed with `CONDITIONAL_PASS`. Proved Git writer/reconciler identity separation (two real Entra service principals with ACL-enforced positive/negative Git proofs), Argo/Kubernetes least privilege for `d1-prd` (real RBAC denial, not AppProject-level), Argo control-object governance under Git with live drift-remediation, and squad/pipeline bypass resistance — including finding and remediating one confirmed live bypass (`ado-agent` bound to `cluster-admin`). Named residual gaps: live Argo/Kargo credential swap + token-refresh automation, regression suite re-execution, two GitOps PRs awaiting merge approval. Production rollout remains `NO-GO`.
+- [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md) — completed with `CONDITIONAL_PASS`. Proved Git writer/reconciler identity separation (two real Entra service principals with ACL-enforced positive/negative Git proofs), Argo/Kubernetes least privilege for `d1-prd` (real RBAC denial, not AppProject-level), Argo control-object governance under Git with live drift-remediation, and squad/pipeline bypass resistance — including finding and remediating one confirmed live bypass (`ado-agent` bound to `cluster-admin`). Named residual gaps were subsequently closed by `p1-residual-closure-live-cutover.md`.
 - [`e1-commit-and-adr012-rereview.md`](./e1-commit-and-adr012-rereview.md) — completed. Converted E1 into the reproducible implementation baseline `platform-devops-developer-portal@c2feb8a`, re-ran the E1 regressions, and independently re-reviewed ADR-012. Result: ADR-012 `ACCEPT`; production rollout remained `NO-GO`. The bounded eligibility-window TOCTOU follow-up was subsequently closed at `ee114cf`.
 - [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) — completed with `PASS`. Proved activity-scoped Delivery binding (`changeId + activityId + release + target`), proved one successful deployment does not complete a multi-activity Change, and added deterministic same-target dispatch exclusion.
 - [`adr-012-adoption-gate.md`](./adr-012-adoption-gate.md) — completed with `REMAIN_PROPOSED`; production rollout remained `NO-GO`. Independent review identified E1 as the smallest next architecture-evidence checkpoint.
@@ -37,10 +38,20 @@ Use a short launcher instead of pasting the long prompt into the agent session. 
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
-Read `prompts/p1-residual-closure-live-cutover.md` and treat it as the execution contract.
-Verify the current canonical docs, implementation SHA, ADO/GitOps state, live Argo/Kargo credentials, scoped Kubernetes identities, and P1 residual inventory before changing anything.
-Freeze the current Deployments UX exactly as-is; no further visual polish or UI work is authorized.
-Close only the bounded P1 residuals: live non-human Git credential cutover with sustainable token refresh, durable governed GitOps steady state, final positive/negative authority proof on the live state, and regression re-execution from a committed baseline.
-Do not bypass branch policies or human approval requirements, do not expose secrets, do not declare production rollout GO, and do not run the production-adoption review.
-Update canonical evidence factually and STOP at the prompt gate.
+
+Read `prompts/production-adoption-review.md` and treat it as a strict independent REVIEW contract.
+
+Verify the latest canonical docs, committed implementation baseline, governed GitOps revision, and current live Argo/Kargo/Kubernetes/ADO state using read-only inspection only.
+
+Do not implement or fix anything. Do not modify source code, GitOps desired state, Kubernetes resources, credentials, ACLs, branch policies, or Backstage UI.
+
+Challenge the existing ADR-012 Accepted state, P1 authority evidence, and P1 residual-closure PASS without optimizing for approval.
+
+Evaluate every mandatory gate in the prompt, including sandbox-to-production transferability and the bounded first-rollout blast radius.
+
+Return exactly one production-adoption verdict: GO, CONDITIONAL_GO, or NO_GO. Keep ADR acceptance separate from rollout approval.
+
+If GO or CONDITIONAL_GO, authorize only the narrow first-production rollout envelope supported by evidence — not enterprise-wide GA.
+
+Write the factual result to `docs/delivery/production-adoption-review.md`, update `docs/delivery/README.md`, commit the documentation, and STOP. Do not execute the rollout or implement any resulting condition.
 ```

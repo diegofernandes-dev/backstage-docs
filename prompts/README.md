@@ -17,70 +17,61 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current execution prompt
 
-- [`pre-rollout-condition-closure.md`](./pre-rollout-condition-closure.md) — close only the five explicit pre-rollout conditions from the independent Production Adoption Review `CONDITIONAL_GO`: (C1) make token-refresh manifests genuinely durable/version-controlled, (C2) replace the operator-laptop-bound Delivery Kubernetes credential with a production-appropriate non-human runtime identity, (C3) create and independently review the rollback/emergency runbook, (C4) add and safely prove a visible token-refresh failure alert without breaking live controller credentials, and (C5) replicate/re-verify the distinct reader/writer SP + protected-branch model on the actual first-rollout GitOps repository if it differs from the sandbox. The checkpoint must not invent a production target merely to pass, must not reopen ADR-012 or Deployments UX, and must not execute the production rollout. A successful result means only `Ready for final rollout-readiness re-review: YES`.
+- [`f3-1-1b-selector-resolution-implementation.md`](./f3-1-1b-selector-resolution-implementation.md) — resume the GMUD authorization roadmap after the Delivery/GitOps architecture work. Implement only F3.1.1b on `platform-devops-developer-portal/feat/ado-repo-governance`: selector-bundle/config domain, active policy + active selector-bundle startup validation, Catalog-backed principal resolution using backend service credentials, selector canonical digests, and selector-bundle publication identity appended to the existing F3.1.1a append-only manifest. Keep the slice completely unwired from `POST /changes`; do not create AuthorizationRounds, approval commands, Teams/CAB UI, Delivery coupling, frontend work, migrations, routes, or F3.1.2 behavior. F3.1.1a is already an accepted implemented baseline; F3.1.2 remains NO-GO pending a separate architecture implementation review.
 
-## Next gated prompt
+## Production-rollout gate — deferred until a real target exists
 
-- [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — **prepared but not yet executable as the current gate**. It is the independent, review-only final decision before the first controlled production rollout. Its prerequisite gate requires C1–C5 to be objectively closed, the actual first workload/runtime/cluster/namespace/GitOps repo/tenant/platform owner to be identified, the rollback runbook to be independently reviewed with a real escalation contact, and the production Delivery/Git authority to be proven on that actual target. If any prerequisite is still missing, the reviewer must return `NOT_READY` and STOP without implementing anything. If the full review runs, it returns only `GO` or `NO_GO`; it cannot create another generic `CONDITIONAL_GO` loop. A `GO` authorizes only one bounded first rollout and does not execute it.
+- [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
-- [`production-adoption-review.md`](./production-adoption-review.md) — completed with `CONDITIONAL_GO` for a narrow first production rollout only: one non-critical/medium-criticality component, one production namespace, platform-owner-attended, two-week observation before any second workload. The independent review evaluated all 14 mandatory gates against live Argo/Kargo/Kubernetes/ADO state and identified five objective pre-rollout conditions now owned by `pre-rollout-condition-closure.md`. ADR-012 remains Accepted; no rollout was executed by the review.
-- [`p1-residual-closure-live-cutover.md`](./p1-residual-closure-live-cutover.md) — completed with `PASS`. Live Argo reader and Kargo/Delivery writer were moved from human PATs to the already-proven distinct non-human Entra service principals; automatic token refresh was implemented and re-verified across multiple unattended cycles; the governed P1 GitOps control diff was approved and merged through protected branch policy; `d1-prd`/`d1-control-plane` converged to the merged scoped-destination state; high-value positive/negative authority evidence and regressions were rechecked. Result: `Ready for separate production-adoption review: YES`.
-- [`deployments-ux-v2-responsive-polish.md`](./deployments-ux-v2-responsive-polish.md) — completed with `PASS`; implementation recorded at `platform-devops-developer-portal@b08e7b2`. Responsive composition and laptop behavior were validated and documented. Further visual refinement is intentionally deferred; do not reopen this workstream during authority/rollout readiness work.
-- [`deployments-ux-v2-implementation.md`](./deployments-ux-v2-implementation.md) — completed with `CONDITIONAL_PASS`; implementation recorded at `platform-devops-developer-portal@0163a49`. Implemented the approved release selector, environment views, GMUD/eligibility context, promotion history, and recent events with real browser/sandbox validation. Known truthful data gaps remain for Commit/Branch/Aprovador.
-- [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md) — completed with `CONDITIONAL_PASS`. Proved Git writer/reconciler identity separation, Argo/Kubernetes least privilege for `d1-prd`, Argo control-object governance under Git with live drift-remediation, and squad/pipeline bypass resistance — including finding and remediating one confirmed live bypass (`ado-agent` bound to `cluster-admin`). Named residual gaps were subsequently closed by `p1-residual-closure-live-cutover.md`.
-- [`e1-commit-and-adr012-rereview.md`](./e1-commit-and-adr012-rereview.md) — completed. Converted E1 into the reproducible implementation baseline `platform-devops-developer-portal@c2feb8a`, re-ran the E1 regressions, and independently re-reviewed ADR-012. Result: ADR-012 `ACCEPT`; production rollout remained separate. The bounded eligibility-window TOCTOU follow-up was subsequently closed at `ee114cf`.
-- [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) — completed with `PASS`. Proved activity-scoped Delivery binding (`changeId + activityId + release + target`), proved one successful deployment does not complete a multi-activity Change, and added deterministic same-target dispatch exclusion.
-- [`adr-012-adoption-gate.md`](./adr-012-adoption-gate.md) — completed with `REMAIN_PROPOSED`; production rollout remained `NO-GO`. Independent review identified E1 as the smallest next architecture-evidence checkpoint.
-- [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) — completed with `CONDITIONAL PASS`. Stabilized the proven MVP for demonstration, closed the Kargo no-op PR failure in the exercised template, added minimum Delivery regression coverage, fixed stale deployment projection behavior, and made the demo checkout/build reproducible.
+- [`pre-rollout-condition-closure.md`](./pre-rollout-condition-closure.md) — completed with `CONDITIONAL_PASS`. C1 token-refresh durability subsequently closed through governed PR #82; C4 alerting was proven. C2/C5 remain target-dependent and are deferred until a real production rollout target exists. C3 is an operational/runbook readiness item and is not a blocker to unrelated platform implementation slices.
+- [`production-adoption-review.md`](./production-adoption-review.md) — completed with `CONDITIONAL_GO` for a narrow first production rollout only: one non-critical/medium-criticality component, one production namespace, platform-owner-attended, two-week observation before any second workload. ADR-012 remains Accepted; no rollout was executed by the review.
+- [`p1-residual-closure-live-cutover.md`](./p1-residual-closure-live-cutover.md) — completed with `PASS`. Live Argo reader and Kargo/Delivery writer were moved from human PATs to distinct non-human Entra service principals; automatic token refresh was implemented; governed P1 GitOps control changes were approved/merged; negative authority evidence and regressions were rechecked.
+- [`deployments-ux-v2-responsive-polish.md`](./deployments-ux-v2-responsive-polish.md) — completed with `PASS`; implementation recorded at `platform-devops-developer-portal@b08e7b2`. Further visual refinement is intentionally deferred.
+- [`deployments-ux-v2-implementation.md`](./deployments-ux-v2-implementation.md) — completed with `CONDITIONAL_PASS`; implementation recorded at `platform-devops-developer-portal@0163a49`. Implemented the release selector, environment views, GMUD/eligibility context, promotion history, and recent events.
+- [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md) — completed with `CONDITIONAL_PASS`. Proved Git writer/reconciler identity separation, Argo/Kubernetes least privilege for `d1-prd`, Argo control-object governance under Git with live drift-remediation, and squad/pipeline bypass resistance.
+- [`e1-commit-and-adr012-rereview.md`](./e1-commit-and-adr012-rereview.md) — completed. Converted E1 into reproducible baseline `platform-devops-developer-portal@c2feb8a`, re-ran regressions, and independently re-reviewed ADR-012. Result: ADR-012 `ACCEPT`.
+- [`e1-multi-activity-concurrency.md`](./e1-multi-activity-concurrency.md) — completed with `PASS`. Proved activity-scoped Delivery binding, multi-activity non-completion semantics, and same-target concurrency exclusion.
+- [`adr-012-adoption-gate.md`](./adr-012-adoption-gate.md) — completed with `REMAIN_PROPOSED`; independent review identified E1 as the smallest next architecture-evidence checkpoint.
+- [`mvp-demo-hardening.md`](./mvp-demo-hardening.md) — completed with `CONDITIONAL PASS`. Stabilized the proven MVP for demonstration, closed the Kargo no-op-PR failure, added minimum Delivery regression coverage, and fixed stale deployment projection behavior.
 - [`mvp-vertical-delivery-slice.md`](./mvp-vertical-delivery-slice.md) — completed with `CONDITIONAL PASS`. Proved the end-to-end ReleaseCandidate → DEV → HML → PRD → GMUD/ExecutionEligibility → Kargo → Git → Argo → Kubernetes → Backstage flow in the sandbox.
-- [`d1-kargo-fit-evaluation.md`](./d1-kargo-fit-evaluation.md) — completed. D1 concluded `KARGO_FIT` with qualified adoption scope. Retained as historical execution-contract/evidence context.
+- [`d1-kargo-fit-evaluation.md`](./d1-kargo-fit-evaluation.md) — completed. D1 concluded `KARGO_FIT` with qualified adoption scope.
 
 ## Launcher pattern
 
 Use a short launcher instead of pasting the long prompt into the agent session.
 
-### Current launcher — pre-rollout condition closure
+### Current launcher — F3.1.1b selector resolution
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 
-Read `prompts/pre-rollout-condition-closure.md` and treat it as the strict execution-and-evidence contract.
+Read `prompts/f3-1-1b-selector-resolution-implementation.md` and treat it as the strict implementation-and-evidence contract.
 
-Reconcile the latest canonical docs with the current implementation, ADO/GitOps, Entra, Argo/Kargo/Kubernetes, and intended first-production-rollout environment before changing anything.
+Verify the latest canonical Backstage/GMUD docs and the actual Azure DevOps `platform-devops-developer-portal/feat/ado-repo-governance` baseline before editing. Do not use or merge the Delivery branch `feat/delivery-mvp-slice` for this work.
 
-Close only the five conditions recorded by `docs/delivery/production-adoption-review.md`: durable token-refresh manifests; production-appropriate non-human Delivery runtime credential; reviewed rollback/emergency runbook; proven visible token-refresh failure alert; and real production Git reader/writer SP + branch-policy equivalence when applicable.
+Implement only F3.1.1b: selector-bundle/config types and reader, active policy + active selector-bundle startup validation, Catalog-backed principal resolution using `coreServices.auth.getOwnServiceCredentials()`, selector canonical digests, and selector-bundle publication identity appended to the existing F3.1.1a manifest/validator.
 
-Do not invent a production target, repo, cluster, tenant, or runtime merely to make the checkpoint pass. If the actual first-rollout target is not identified, leave the dependent conditions BLOCKED.
+Preserve ADR-009 exactly: generic selectors, User vs Group principal typing, no email/job-title/provider identifiers, no authority-member expansion, no Catalog cache, fail-closed resolution, emergency A/B user narrowing, and active-pair-only startup validation.
 
-Do not reopen ADR-012, P1, Deployments UX, global Delivery workbench, Kargo Stage governance, HA/DR, generalized monitoring, secrets-platform work, audit UX, or other post-rollout hardening.
+Do not wire any of this into `POST /changes`; do not create AuthorizationRounds; do not implement F3.1.2, approval commands, Teams/CAB UI, Delivery integration, migrations, routes, or frontend work.
 
-Never expose secrets. Obey existing branch policies and human-review requirements; do not self-approve or bypass them.
+Validate the selector-bundle publication as a normal append against the trusted F3.1.1a baseline. Do not use the genesis flag now that the manifest already exists.
 
-After changes, rerun the high-value Delivery/eligibility/concurrency regressions and the final positive/negative authority checks against the committed/live state.
+Run the required selector/config/Catalog/publication tests, all relevant Change Management regressions, backend lint/build, and set-identical TypeScript-baseline comparison. Use a running Backstage/Catalog for functional proof when available.
 
-Write factual evidence to `docs/delivery/pre-rollout-condition-closure.md`, update `docs/delivery/README.md`, and STOP. Do not execute the production rollout.
+Update factual canonical evidence, report F3.1.1b PASS/CONDITIONAL_PASS/FAIL, keep architecture implementation acceptance pending a separate review, keep F3.1.2 NO-GO, and STOP.
 ```
 
 ### Gated launcher — final rollout-readiness re-review
 
-Use only after canonical evidence says C1–C5 are all `PASS` and the actual first-rollout target is explicitly identified.
+Use only after a real production target exists and the canonical prerequisite evidence is deliberately closed.
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
-
 Read `prompts/final-rollout-readiness-rereview.md` and treat it as a strict independent, review-only final gate.
-
-First execute its prerequisite gate. Independently verify that C1–C5 are all closed, all required human reviews are merged, a real rollback escalation contact exists, and the actual first workload, Delivery runtime, production cluster/namespace, GitOps repo/branch, ADO org/project, Entra tenant, and platform owner are explicitly identified.
-
-If any prerequisite is missing, return `Final rollout-readiness re-review: NOT_READY` and STOP. Do not implement or repair anything.
-
-If every prerequisite passes, inspect the actual target read-only, evaluate all mandatory final gates, rerun the documented non-mutating regressions and negative-authority checks, and return exactly `GO` or `NO_GO`.
-
-Do not create another generic `CONDITIONAL_GO`. Do not modify code, GitOps desired state, Kubernetes resources, credentials, ACLs, branch policies, or Backstage UI. Do not trigger the real production promotion.
-
-If GO, authorize only one non-critical/medium-criticality component, one production namespace, one cluster/account, mandatory human Git review, named platform owner, and a two-week observation period before any second workload.
-
-Write factual evidence to `docs/delivery/final-rollout-readiness-review.md`, update `docs/delivery/README.md`, commit documentation only, and STOP. The production rollout itself remains a separate execution activity.
+First execute its prerequisite gate. If any prerequisite is missing, return NOT_READY and STOP without implementing or repairing anything.
+If every prerequisite passes, inspect the actual target read-only, evaluate the mandatory final gates, and return exactly GO or NO_GO.
+Do not trigger the real production rollout from the review.
 ```

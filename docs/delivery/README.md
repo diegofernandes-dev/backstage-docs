@@ -2,6 +2,10 @@
 
 ## Status
 
+**Deployments UX v2 responsive polish: `PASS`.** See [`deployments-ux-v2-responsive-polish.md`](./deployments-ux-v2-responsive-polish.md) (docs baseline `1b181ef`; implementation `platform-devops-developer-portal@b08e7b2` on `feat/delivery-mvp-slice`). Model composition (env+GMUD, history+events) from MUI `lg`; env card stack only below `md`; densified entity masthead; no ADR-012 / backend domain changes. **Production rollout remains NO-GO.**
+
+**Deployments UX v2 implementation: `CONDITIONAL_PASS`.** See [`deployments-ux-v2-implementation.md`](./deployments-ux-v2-implementation.md) (implementation `0163a49`).
+
 **P1 production authority hardening: `CONDITIONAL_PASS`.** See [`p1-production-authority-hardening.md`](./p1-production-authority-hardening.md) (docs baseline `e64435e`; implementation `platform-devops-developer-portal@ee114cf` + one config-only change). All four authority properties (Git writer/reconciler separation, Argo/K8s least privilege, Argo control-object governance, squad/pipeline bypass resistance) are `PROVEN` with real positive and negative execution evidence, including one confirmed live bypass (`ado-agent-cluster-admin`) found and remediated during the checkpoint. Named residual gaps: live Argo/Kargo credential swap + token-refresh automation not built; regression suite not re-executed (environment issue); two GitOps PRs awaiting merge approval. **Production rollout remains NO-GO** pending a separate adoption review — do not treat this checkpoint as that review.
 
 **Eligibility window TOCTOU: `PASS`.** See [`eligibility-window-toctou.md`](./eligibility-window-toctou.md) (implementation `platform-devops-developer-portal@ee114cf`). ADR-009 half-open `requestedWindow` is enforced in `EligibilityService`; Delivery dispatch re-check fail-closes on `OUTSIDE_WINDOW`.

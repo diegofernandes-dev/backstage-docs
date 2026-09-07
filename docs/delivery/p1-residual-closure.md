@@ -1,5 +1,7 @@
 # P1 Residual Closure — Live Credential Cutover and Production-Review Readiness
 
+> **Corrective note (added by `pre-rollout-condition-closure.md`, 2026-09-07):** Line 80 below states the token-refresh manifests "committed to `d0-gitops-sandbox` at `bootstrap/token-refresh/`". This was independently re-verified and found **false**: `git ls-tree -r` and `git log --all -- 'bootstrap/*'` against every ref of `d0-gitops-sandbox` returned zero hits at the time of the Production Adoption Review, and again at the start of the pre-rollout condition closure checkpoint. The live mechanism itself was correctly reported as working. This note is added rather than editing the claim below out of place, so the history of what was believed at each checkpoint remains legible. See `docs/delivery/production-adoption-review.md` §3.1 and `docs/delivery/pre-rollout-condition-closure.md` §4 (Condition C1) for the finding and the fix.
+
 ## Re-verification history
 
 **2026-09-07T02:0x UTC** — no material change: PR #81 `Active`, zero reviewers/votes, `d1-prd` still on the broad destination (C1 still open), governed revision still `8a50c2e5c07a`. Token-refresh CronJob had already run automatically on schedule with no human involvement.

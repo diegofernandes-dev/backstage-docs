@@ -11,7 +11,7 @@
 
 | Item | Value |
 |---|---|
-| Implementation (`platform-devops-developer-portal`) | `b08e7b284f34e5d12c299b4ee6ab75697e21010f` on `feat/delivery-mvp-slice` at checkpoint start — unchanged by source; one config-only change made this checkpoint (`app-config.production.yaml`, see §4/C2) |
+| Implementation (`platform-devops-developer-portal`) | `b08e7b284f34e5d12c299b4ee6ab75697e21010f` on `feat/delivery-mvp-slice` at checkpoint start; **`170af45dc011e0e0f19ed6e7444e46794e32daaf` after** — one config-only commit made this checkpoint (`app-config.production.yaml`, see §5/C2), pushed directly per this repository's established direct-commit convention on this branch (no source code changed) |
 | GitOps repo | `diegolab/platform-engineering/d0-gitops-sandbox`, governed branch `d1/desired-state` @ `50564c9977e1a02b7d16345c9ebcc38416986efb` at checkpoint start — unchanged; new content proposed via PR #82 (not yet merged) |
 | Cluster | Rancher Desktop k3s v1.33.6+k3s1, context `rancher-desktop` (live-inspected, unchanged) |
 | Argo CD | v3.5.2 (live, unchanged) | Kargo | v1.11.4 (live, unchanged) |
@@ -181,7 +181,7 @@ No test created a durable escalation object; the one `ClusterRoleBinding` self-e
 
 ## 11. Functional regression results
 
-Implementation SHA before this checkpoint: `b08e7b284f34e5d12c299b4ee6ab75697e21010f`. One config-only file changed this checkpoint (`app-config.production.yaml`, §5); no source code changed.
+Implementation SHA before this checkpoint: `b08e7b284f34e5d12c299b4ee6ab75697e21010f`; after: `170af45dc011e0e0f19ed6e7444e46794e32daaf` (one config-only commit, `app-config.production.yaml`, §5; no source code changed). Regressions below were re-run and confirmed green after this commit landed.
 
 ```text
 cd packages/backend && CI=true yarn test \
@@ -218,7 +218,7 @@ Both suites green, both re-run after the `app-config.production.yaml` change, us
 | Live cluster (`rancher-desktop`) | Applied (via `kubectl apply`, matching the committed manifests): `ConfigMap/idp-token-refresh-alert-lib` (new), updated `ConfigMap/idp-token-refresh-script` (added alert trap), updated `CronJob/idp-token-refresh` (projected volume for the alert-lib mount), new `ServiceAccount`/`Role`/`RoleBinding`×2/`ConfigMap`/`CronJob` for `idp-token-refresh-watchdog` |
 | ADO (`diegolab`) | Granted `idp-d1-kargo-writer` a `WORK_ITEM_READ\|WRITE` ACE (bit 48) on the `CSS` namespace, project root Area node — verified not to affect any Git ACL |
 | ADO work items | Created work item #1 during the C4 failure test (title `TEST-ONLY token-refresh: reader mint failed`); closed after verification, not deleted |
-| `platform-devops-developer-portal` | `app-config.production.yaml` — added explicit `delivery.kubernetes.kubeconfigPath` (env-var-driven, no default), §5. Not yet committed to Git in this repo (see §16) |
+| `platform-devops-developer-portal` | `app-config.production.yaml` — added explicit `delivery.kubernetes.kubeconfigPath` (env-var-driven, no default), §5. Committed directly to `feat/delivery-mvp-slice` at `170af45` (this repository's established convention — no branch-policy PR gate exists on this branch, unlike the ADO GitOps repo) |
 | `backstage-docs` | `docs/delivery/rollback-emergency-runbook.md` added on branch `docs/rollback-emergency-runbook`, PR #1 opened against `main` — **not yet merged**; this document and the `p1-residual-closure.md` corrective note (below) added directly to `main`, consistent with this repo's established pattern (no branch protection exists on `backstage-docs`, and every prior evidence checkpoint in this workstream was committed the same way) |
 
 ## 14. Human approvals still pending
@@ -230,7 +230,6 @@ Both suites green, both re-run after the `app-config.production.yaml` change, us
 ## 15. Deviations / limitations
 
 - **C2 and C5 are `BLOCKED`, not `PASS` or `CONDITIONAL_PASS` individually** — no first-rollout target exists to close them against. This is the expected, contract-mandated outcome (§3/§5/§8), not a deviation from the plan.
-- The `app-config.production.yaml` change (§5) has not yet been committed to `platform-devops-developer-portal` — it exists only in this session's working tree pending the same review discipline as the other two PRs (this repository's branch/PR conventions were not otherwise exercised by this checkpoint; see §16 for the explicit decision on how to land it).
 - The C4 alert mechanism shares its credential pair with the refresh mechanism it monitors — a named, accepted limitation (§7), not a defect: building a fully independent credential path for the alert channel alone would be the "new credential platform" contract §0 explicitly forbids.
 - The watchdog's staleness test used a `sed`-modified in-memory copy of the real script (threshold forced to 0) rather than waiting 90 real minutes for a live threshold breach; this proves the alert-firing code path correctly, while the *unmodified* threshold value (`5400`) is what is actually committed and applied live.
 

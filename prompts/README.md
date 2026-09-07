@@ -19,6 +19,10 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 - [`pre-rollout-condition-closure.md`](./pre-rollout-condition-closure.md) — close only the five explicit pre-rollout conditions from the independent Production Adoption Review `CONDITIONAL_GO`: (C1) make token-refresh manifests genuinely durable/version-controlled, (C2) replace the operator-laptop-bound Delivery Kubernetes credential with a production-appropriate non-human runtime identity, (C3) create and independently review the rollback/emergency runbook, (C4) add and safely prove a visible token-refresh failure alert without breaking live controller credentials, and (C5) replicate/re-verify the distinct reader/writer SP + protected-branch model on the actual first-rollout GitOps repository if it differs from the sandbox. The checkpoint must not invent a production target merely to pass, must not reopen ADR-012 or Deployments UX, and must not execute the production rollout. A successful result means only `Ready for final rollout-readiness re-review: YES`.
 
+## Next gated prompt
+
+- [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — **prepared but not yet executable as the current gate**. It is the independent, review-only final decision before the first controlled production rollout. Its prerequisite gate requires C1–C5 to be objectively closed, the actual first workload/runtime/cluster/namespace/GitOps repo/tenant/platform owner to be identified, the rollback runbook to be independently reviewed with a real escalation contact, and the production Delivery/Git authority to be proven on that actual target. If any prerequisite is still missing, the reviewer must return `NOT_READY` and STOP without implementing anything. If the full review runs, it returns only `GO` or `NO_GO`; it cannot create another generic `CONDITIONAL_GO` loop. A `GO` authorizes only one bounded first rollout and does not execute it.
+
 ## Completed / historical prompts
 
 - [`production-adoption-review.md`](./production-adoption-review.md) — completed with `CONDITIONAL_GO` for a narrow first production rollout only: one non-critical/medium-criticality component, one production namespace, platform-owner-attended, two-week observation before any second workload. The independent review evaluated all 14 mandatory gates against live Argo/Kargo/Kubernetes/ADO state and identified five objective pre-rollout conditions now owned by `pre-rollout-condition-closure.md`. ADR-012 remains Accepted; no rollout was executed by the review.
@@ -35,7 +39,9 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Launcher pattern
 
-Use a short launcher instead of pasting the long prompt into the agent session. Current launcher:
+Use a short launcher instead of pasting the long prompt into the agent session.
+
+### Current launcher — pre-rollout condition closure
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
@@ -55,4 +61,26 @@ Never expose secrets. Obey existing branch policies and human-review requirement
 After changes, rerun the high-value Delivery/eligibility/concurrency regressions and the final positive/negative authority checks against the committed/live state.
 
 Write factual evidence to `docs/delivery/pre-rollout-condition-closure.md`, update `docs/delivery/README.md`, and STOP. Do not execute the production rollout.
+```
+
+### Gated launcher — final rollout-readiness re-review
+
+Use only after canonical evidence says C1–C5 are all `PASS` and the actual first-rollout target is explicitly identified.
+
+```text
+Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
+
+Read `prompts/final-rollout-readiness-rereview.md` and treat it as a strict independent, review-only final gate.
+
+First execute its prerequisite gate. Independently verify that C1–C5 are all closed, all required human reviews are merged, a real rollback escalation contact exists, and the actual first workload, Delivery runtime, production cluster/namespace, GitOps repo/branch, ADO org/project, Entra tenant, and platform owner are explicitly identified.
+
+If any prerequisite is missing, return `Final rollout-readiness re-review: NOT_READY` and STOP. Do not implement or repair anything.
+
+If every prerequisite passes, inspect the actual target read-only, evaluate all mandatory final gates, rerun the documented non-mutating regressions and negative-authority checks, and return exactly `GO` or `NO_GO`.
+
+Do not create another generic `CONDITIONAL_GO`. Do not modify code, GitOps desired state, Kubernetes resources, credentials, ACLs, branch policies, or Backstage UI. Do not trigger the real production promotion.
+
+If GO, authorize only one non-critical/medium-criticality component, one production namespace, one cluster/account, mandatory human Git review, named platform owner, and a two-week observation period before any second workload.
+
+Write factual evidence to `docs/delivery/final-rollout-readiness-review.md`, update `docs/delivery/README.md`, commit documentation only, and STOP. The production rollout itself remains a separate execution activity.
 ```

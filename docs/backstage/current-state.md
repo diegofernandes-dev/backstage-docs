@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-19 (F3.1.1b CLOSED / ACCEPTED IMPLEMENTED BASELINE at ADO `188d8e9`; ADR-013 accepted; F3.1.2 plan architecture re-review **ACCEPT** — ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2a + F3.1.1c prompt/planning authoring GO; F3.1.2a/F3.1.1c/F3.1.2b implementation still require separate explicit authorization; F3.1.2b NO-GO until both prerequisites accepted)
+> **Last updated:** 2026-09-19 (F3.1.1b CLOSED / ACCEPTED IMPLEMENTED BASELINE at ADO `188d8e9`; ADR-013 accepted; F3.1.2 plan **ACCEPTED IMPLEMENTATION CONTRACT**; constrained F3.1.2a and F3.1.1c implementation prompts authored and ready for explicit launch; no new ADO implementation yet; F3.1.2b remains NO-GO until both prerequisites are independently accepted)
 
 ## Stack
 

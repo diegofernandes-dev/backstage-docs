@@ -1,12 +1,13 @@
 # F3.1.2a — Canonical Change Construction (implementation evidence)
 
-- **Status:** IMPLEMENTED / PUBLISHED — architecture/implementation acceptance **pending separate independent review**
+- **Status:** IMPLEMENTED / PUBLISHED — architecture/implementation acceptance **ACCEPT** ([`f3-1-2a-architecture-implementation-acceptance.md`](./f3-1-2a-architecture-implementation-acceptance.md))
 - **Date:** 2026-09-19
 - **Canonical docs baseline (start):** `backstage-docs@b36c725b8355cf377ac5d4ac3f6afd7fd7f27778`
 - **Authority:** ADR-006/007/008 + F3.1.2 ACCEPTED IMPLEMENTATION CONTRACT §7 / §20 A1–A4 + `prompts/f3-1-2a-canonical-change-implementation.md` (explicit launch)
 
-This document records what was implemented and what was actually proven. It does
-not authorize F3.1.1c or F3.1.2b and introduces no authorization/ledger behavior.
+This document records what was implemented and what was actually proven. Independent
+acceptance closed F3.1.2a as the accepted implemented baseline. It does not authorize
+F3.1.1c or F3.1.2b and introduces no authorization/ledger behavior.
 
 ## 1. Implementation baseline
 
@@ -101,6 +102,7 @@ frontend, Delivery, RBAC, `changeManagementPlugin.ts`, providers.
 
 ```text
 F3.1.2a implementation: PASS
+F3.1.2a architecture/implementation acceptance: ACCEPT
 Single canonical Change build: PASS
 Pending recovery reuses canonical snapshot: PASS
 Provider/index snapshot equality: PASS
@@ -108,7 +110,7 @@ Authorization/ledger behavior added: NO
 Migrations added: NO
 Implementation commit: ccee1e1676a2763e68880e5383ce1e5e48742843
 Remote ADO tip: ccee1e1676a2763e68880e5383ce1e5e48742843
-Next gate: F3.1.2a independent acceptance review
-F3.1.1c: not implemented by this checkpoint
+F3.1.2a: CLOSED / ACCEPTED IMPLEMENTED BASELINE
+F3.1.1c: still requires separate explicit authorization
 F3.1.2b: NO-GO
 ```

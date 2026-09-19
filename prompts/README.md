@@ -18,10 +18,9 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Current authorized activity
 
 - F3.1.2 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**.
-- F3.1.2a implementation is published at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843` with implementation evidence recorded.
-- [`f3-1-2a-architecture-implementation-acceptance.md`](./f3-1-2a-architecture-implementation-acceptance.md) — **current review-only checkpoint**. Independently review the exact ADO commit and return ACCEPT or REJECT. Do not repair code in the review.
-- [`f3-1-1c-cab-safe-policy-implementation.md`](./f3-1-1c-cab-safe-policy-implementation.md) remains authored but must not execute without a separate explicit user launch.
-- F3.1.2b remains **NO-GO** until F3.1.2a is accepted and F3.1.1c is implemented + independently accepted.
+- F3.1.2a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843` ([`f3-1-2a-architecture-implementation-acceptance.md`](../docs/backstage/f3-1-2a-architecture-implementation-acceptance.md)).
+- [`f3-1-1c-cab-safe-policy-implementation.md`](./f3-1-1c-cab-safe-policy-implementation.md) — **next implementation checkpoint**, authored and ready, but must not execute without a separate explicit user launch.
+- F3.1.2b remains **NO-GO** until F3.1.1c is implemented and independently accepted.
 - F3.2 CAB autonomy remains **NO-GO**.
 ## Production-rollout gate — deferred until a real target exists
 
@@ -29,9 +28,10 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
-- F3.1.2a implementation evidence checkpoint — implementation PASS and published to ADO `ccee1e1`; independent acceptance still pending.
-- [`f3-1-2a-canonical-change-implementation.md`](./f3-1-2a-canonical-change-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@ccee1e1676a2763e68880e5383ce1e5e48742843`. Canonical evidence: `docs/backstage/f3-1-2a-implementation-evidence.md`. Next gate is independent F3.1.2a acceptance review (not yet run).
-- Prompt-authoring checkpoint — F3.1.2a canonical-Change implementation prompt and F3.1.1c CAB-safe policy implementation prompt authored after final F3.1.2 plan ACCEPT. F3.1.2a later executed separately; F3.1.1c still awaiting explicit launch.
+- [`f3-1-2a-architecture-implementation-acceptance.md`](./f3-1-2a-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.2a as the accepted implemented baseline at ADO `ccee1e1`. F3.1.1c still requires separate explicit launch; F3.1.2b remains NO-GO.
+- F3.1.2a implementation evidence checkpoint — implementation PASS and published to ADO `ccee1e1`; independent acceptance completed separately (`ACCEPT`).
+- [`f3-1-2a-canonical-change-implementation.md`](./f3-1-2a-canonical-change-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@ccee1e1676a2763e68880e5383ce1e5e48742843`. Canonical evidence: `docs/backstage/f3-1-2a-implementation-evidence.md`. Acceptance completed separately (`ACCEPT`).
+- Prompt-authoring checkpoint — F3.1.2a canonical-Change implementation prompt and F3.1.1c CAB-safe policy implementation prompt authored after final F3.1.2 plan ACCEPT. F3.1.2a later executed and accepted; F3.1.1c still awaiting explicit launch.
 - [`f3-1-2-final-architecture-rereview.md`](./f3-1-2-final-architecture-rereview.md) — completed with `ACCEPT`. Canonical review: [`docs/backstage/f3-1-2-final-architecture-rereview.md`](../docs/backstage/f3-1-2-final-architecture-rereview.md). ADO tip independently verified `188d8e9`. Prior blockers 4/4 closed; concurrency + ADR-013 + F3.1.1c/2a/2b gates PASS. Plan is ACCEPTED IMPLEMENTATION CONTRACT. No ADO code modified; no implementation prompt authored inside the review.
 - ADR-013 CAB-safe plan realignment — documentation completed in canonical ADR/plan. Normal-low is now primary + CAB by default; F3.1.1c is required before F3.1.2b; bounded autonomy is deferred to F3.2.
 - [`f3-1-2-concurrency-plan-revision.md`](./f3-1-2-concurrency-plan-revision.md) — completed by documentation revision. Concurrency-corrected plan is `READY_FOR_REREVIEW`. Healthy Round-1 loser convergence is deterministic; C1–C4 concurrency proofs specified. ADO implementation unchanged; all F3.1.2 implementation remains NO-GO pending fresh independent ACCEPT.

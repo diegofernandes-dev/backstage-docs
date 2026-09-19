@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.2a IMPLEMENTED / PUBLISHED at ADO `ccee1e1` (full SHA `ccee1e1676a2763e68880e5383ce1e5e48742843`), parent F3.1.1b `188d8e9`; F3.1.2a acceptance review pending. F3.1.1b remains CLOSED / ACCEPTED at `188d8e9`.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2a implemented (acceptance pending); F3.1.1c prompt ready / implementation NO-GO until explicit launch; F3.1.2b NO-GO until F3.1.2a + F3.1.1c independently accepted
+> **Current GMUD implementation baseline:** F3.1.2a **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1` (full SHA `ccee1e1676a2763e68880e5383ce1e5e48742843`), parent F3.1.1b `188d8e9`.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.2a accepted; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.1c prompt ready / implementation NO-GO until explicit launch; F3.1.2b NO-GO until F3.1.1c independently accepted
 
 ## How to use this log
 
@@ -1878,3 +1878,34 @@ F3.1.2b implementation: NO-GO
 ```
 
 The acceptance review must inspect the exact ADO diff independently and may only ACCEPT or REJECT; it must not repair code.
+
+---
+
+## GMUD F3.1.2a — Architecture / implementation acceptance (ACCEPT)
+
+Documentation baseline SHA (review start): `a3c5c8b8299eb5ca5ba22ab13f8443bc52d9abcb`.
+
+Implementation candidate reviewed:
+`platform-devops-developer-portal@ccee1e1676a2763e68880e5383ce1e5e48742843`
+(parent `188d8e9cc43423f3644b3cacfb9849257838a583`, exact match).
+
+Independent ADO source verification: **YES** — HTTPS `git ls-remote` tip equals `ccee1e1`; complete diff `188d8e9..ccee1e1` inspected in isolated worktree; no later tip drift.
+
+### Outcome
+
+```text
+F3.1.2a architecture/implementation acceptance: ACCEPT
+F3.1.2a: CLOSED / ACCEPTED IMPLEMENTED BASELINE
+Accepted ADO SHA: ccee1e1676a2763e68880e5383ce1e5e48742843
+Gates: G1–G8 PASS
+F3.1.1c implementation: still requires separate explicit authorization
+F3.1.2b implementation: NO-GO until F3.1.1c is implemented and independently accepted
+ADO implementation modified by this review: NO
+```
+
+Canonical review:
+[`f3-1-2a-architecture-implementation-acceptance.md`](./f3-1-2a-architecture-implementation-acceptance.md).
+
+Independent proofs re-run at exact SHA: focused A1/A2/A3 suites PASS; full Change Management module 287 tests PASS with disposable PostgreSQL 16; lint/build PASS; TypeScript error set set-identical to `188d8e9`.
+
+**Next authorized activity:** F3.1.1c CAB-safe policy implementation only after separate explicit user launch of its authored prompt. Do not start F3.1.2b.

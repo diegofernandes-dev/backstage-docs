@@ -2,7 +2,11 @@
 
 ## Status
 
-REVIEW ONLY — NO IMPLEMENTATION AUTHORIZED.
+COMPLETED — ACCEPT recorded in
+[`docs/backstage/f3-1-2a-architecture-implementation-acceptance.md`](../docs/backstage/f3-1-2a-architecture-implementation-acceptance.md).
+Do not re-execute without a new authorization.
+
+REVIEW ONLY — NO IMPLEMENTATION AUTHORIZED (historical).
 
 Purpose: independently decide whether the published F3.1.2a implementation at ADO commit ccee1e1676a2763e68880e5383ce1e5e48742843 satisfies the accepted F3.1.2a contract without scope leakage.
 

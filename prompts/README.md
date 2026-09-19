@@ -17,7 +17,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current execution prompt
 
-- [`f3-1-1b-selector-resolution-implementation.md`](./f3-1-1b-selector-resolution-implementation.md) — resume the GMUD authorization roadmap after the Delivery/GitOps architecture work. Implement only F3.1.1b on `platform-devops-developer-portal/feat/ado-repo-governance`: selector-bundle/config domain, active policy + active selector-bundle startup validation, Catalog-backed principal resolution using backend service credentials, selector canonical digests, and selector-bundle publication identity appended to the existing F3.1.1a append-only manifest. Keep the slice completely unwired from `POST /changes`; do not create AuthorizationRounds, approval commands, Teams/CAB UI, Delivery coupling, frontend work, migrations, routes, or F3.1.2 behavior. F3.1.1a is already an accepted implemented baseline; F3.1.2 remains NO-GO pending a separate architecture implementation review.
+- [`f3-1-1b-architecture-implementation-acceptance.md`](./f3-1-1b-architecture-implementation-acceptance.md) — independent review-only acceptance gate for the already implemented/published F3.1.1b candidate at ADO `188d8e9cc43423f3644b3cacfb9849257838a583`. Verify lineage/scope, ADR-009 selector/principal semantics, Catalog service-credential resolution, fail-closed behavior, active-pair startup validation, append-only selector-bundle publication, separation-of-duty layer boundaries, and complete isolation from `POST /changes` / AuthorizationRound creation. Return only `ACCEPT` or `REJECT`; do not fix code. `ACCEPT` closes F3.1.1b and authorizes F3.1.2 planning only; F3.1.2 implementation remains NO-GO pending a separate reviewed plan and explicit authorization.
 
 ## Production-rollout gate — deferred until a real target exists
 
@@ -25,6 +25,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
+- [`f3-1-1b-selector-resolution-implementation.md`](./f3-1-1b-selector-resolution-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583`. Canonical evidence is `docs/backstage/f3-1-1b-implementation-evidence.md`. Architecture implementation acceptance is intentionally separate and is the current checkpoint.
 - [`pre-rollout-condition-closure.md`](./pre-rollout-condition-closure.md) — completed with `CONDITIONAL_PASS`. C1 token-refresh durability subsequently closed through governed PR #82; C4 alerting was proven. C2/C5 remain target-dependent and are deferred until a real production rollout target exists. C3 is an operational/runbook readiness item and is not a blocker to unrelated platform implementation slices.
 - [`production-adoption-review.md`](./production-adoption-review.md) — completed with `CONDITIONAL_GO` for a narrow first production rollout only: one non-critical/medium-criticality component, one production namespace, platform-owner-attended, two-week observation before any second workload. ADR-012 remains Accepted; no rollout was executed by the review.
 - [`p1-residual-closure-live-cutover.md`](./p1-residual-closure-live-cutover.md) — completed with `PASS`. Live Argo reader and Kargo/Delivery writer were moved from human PATs to distinct non-human Entra service principals; automatic token refresh was implemented; governed P1 GitOps control changes were approved/merged; negative authority evidence and regressions were rechecked.
@@ -42,26 +43,24 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 Use a short launcher instead of pasting the long prompt into the agent session.
 
-### Current launcher — F3.1.1b selector resolution
+### Current launcher — F3.1.1b architecture implementation acceptance
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 
-Read `prompts/f3-1-1b-selector-resolution-implementation.md` and treat it as the strict implementation-and-evidence contract.
+Read `prompts/f3-1-1b-architecture-implementation-acceptance.md` and treat it as a strict independent, review-only architecture acceptance contract.
 
-Verify the latest canonical Backstage/GMUD docs and the actual Azure DevOps `platform-devops-developer-portal/feat/ado-repo-governance` baseline before editing. Do not use or merge the Delivery branch `feat/delivery-mvp-slice` for this work.
+Review the exact ADO implementation candidate `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583` on `feat/ado-repo-governance`, with expected parent `d3c0751a15b908cec8f5595c97e52f41226344ed`. Independently inspect source and rerun high-value evidence when access permits; if ADO source is inaccessible, state that limitation explicitly and rely only on canonical evidence without inventing independent verification.
 
-Implement only F3.1.1b: selector-bundle/config types and reader, active policy + active selector-bundle startup validation, Catalog-backed principal resolution using `coreServices.auth.getOwnServiceCredentials()`, selector canonical digests, and selector-bundle publication identity appended to the existing F3.1.1a manifest/validator.
+Evaluate every mandatory G1-G17 gate in the prompt: ADR-009 authority boundaries; generic selector semantics; User/Group typing; no authority-member expansion; backend service credentials; fail-closed Catalog resolution; active-pair-only startup validation; selector-bundle digest/immutability; normal append-only publication with no genesis reuse; separation-of-duty layer boundaries; complete submission-path isolation; cross-cutover idempotency preservation; semantic architecture guards; environment/production separation; resolver provenance; no hidden F3.1.2+ behavior in plugin wiring; and test/evidence credibility.
 
-Preserve ADR-009 exactly: generic selectors, User vs Group principal typing, no email/job-title/provider identifiers, no authority-member expansion, no Catalog cache, fail-closed resolution, emergency A/B user narrowing, and active-pair-only startup validation.
+Do not modify implementation, manifest/config, routes, migrations, permissions, frontend, Delivery, or production infrastructure. Do not wire `POST /changes`, create AuthorizationRounds, or begin F3.1.2.
 
-Do not wire any of this into `POST /changes`; do not create AuthorizationRounds; do not implement F3.1.2, approval commands, Teams/CAB UI, Delivery integration, migrations, routes, or frontend work.
+Return exactly `ACCEPT` or `REJECT`. No generic conditional acceptance.
 
-Validate the selector-bundle publication as a normal append against the trusted F3.1.1a baseline. Do not use the genesis flag now that the manifest already exists.
+Write the factual result to `docs/backstage/f3-1-1b-architecture-acceptance.md`, update `docs/backstage/current-state.md`, `docs/backstage/implementation-progress.md`, and `prompts/README.md` only as required by the verdict, commit documentation only, and STOP.
 
-Run the required selector/config/Catalog/publication tests, all relevant Change Management regressions, backend lint/build, and set-identical TypeScript-baseline comparison. Use a running Backstage/Catalog for functional proof when available.
-
-Update factual canonical evidence, report F3.1.1b PASS/CONDITIONAL_PASS/FAIL, keep architecture implementation acceptance pending a separate review, keep F3.1.2 NO-GO, and STOP.
+If ACCEPT: F3.1.1b becomes CLOSED / ACCEPTED IMPLEMENTED BASELINE; F3.1.2 planning becomes GO; F3.1.2 implementation remains NO-GO pending a separate reviewed plan and explicit authorization.
 ```
 
 ### Gated launcher — final rollout-readiness re-review

@@ -17,12 +17,9 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-There is **no current implementation prompt**.
-
-- **F3.1.1b** is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `188d8e9cc43423f3644b3cacfb9849257838a583` — see [`docs/backstage/f3-1-1b-architecture-acceptance.md`](../docs/backstage/f3-1-1b-architecture-acceptance.md).
-- **F3.1.2 planning** is **GO** (review/plan preparation only).
-- **F3.1.2 implementation** remains **NO-GO** until a separate reviewed plan exists and is explicitly authorized.
-- Do not invent or execute an F3.1.2 implementation prompt from this checkpoint.
+- [`f3-1-2-planning.md`](./f3-1-2-planning.md) — **current planning-only checkpoint** for F3.1.2 (fail-closed submission + first AuthorizationRound). It must inspect the accepted ADO baseline `188d8e9`, resolve the single-canonical-Change correction, authorization-regime cutover, policy/selector binding, emergency A/B effective-principal distinctness, transaction/crash recovery under Model C, visibility/idempotent replay, rollback compatibility, and a concrete test matrix. It writes a reviewable plan only.
+- **F3.1.2 implementation remains NO-GO.** No code, migration, route, `POST /changes` wiring, or Round 1 creation is authorized by this prompt.
+- If the planning result is `READY_FOR_REVIEW`, the next checkpoint is an **independent architecture review of the F3.1.2 plan**, not implementation.
 
 ## Production-rollout gate — deferred until a real target exists
 
@@ -49,23 +46,24 @@ There is **no current implementation prompt**.
 
 Use a short launcher instead of pasting the long prompt into an agent session.
 
-### Current launcher — F3.1.2 planning only
-
-F3.1.2 implementation is **NO-GO**. When authorized to prepare the plan, fetch `backstage-docs@main`, read the accepted F3.1.1b baseline and carried-forward constraints, and produce a reviewable F3.1.2 plan only. Do not implement.
+### Current launcher — F3.1.2 planning
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 
-Treat F3.1.1b at platform-devops-developer-portal@188d8e9 as the accepted
-implemented baseline (docs/backstage/f3-1-1b-architecture-acceptance.md).
+Read `prompts/f3-1-2-planning.md` and treat it as a strict planning-only contract.
 
-Prepare an F3.1.2 planning document only. Do not implement code, wire
-POST /changes, create AuthorizationRounds, or modify Delivery/production.
+Inspect the actual Azure DevOps `platform-devops-developer-portal/feat/ado-repo-governance` baseline at `188d8e9cc43423f3644b3cacfb9849257838a583` before proposing changes. If the branch has advanced, reconcile relevant drift first.
 
-Must preserve: LEGACY_PRE_F3 idempotency semantics; fail-closed emergency A/B
-resolved-person distinctness; one canonical snapshot + pinned policy/selector
-bundle + atomic Round 1; fix buildChange()-twice before submission wiring;
-ADR-012 provider-neutral boundaries.
+Produce `docs/backstage/f3-1-2-implementation-plan.md` only. Do not modify implementation code.
+
+Resolve every P1-P20 planning gate and all 15 challenge scenarios, with special attention to: one canonical Change snapshot; immutable LEGACY_PRE_F3 vs LEDGER_REQUIRED idempotency regime; exact cutover mechanism; pinned policy + selector bundle; emergency A/B same-person fail-closed behavior; Round 1 + requirements + audit mapping; Model C provider transaction/crash-recovery boundaries; discoverability/finalization; replay/concurrency; rollback with outstanding LEDGER_REQUIRED reservations; and a concrete SQLite/Postgres/failure-injection test matrix.
+
+Do not claim distributed atomicity across an external provider. Preserve ADR-009 and ADR-012 provider-neutral authority boundaries.
+
+Do not implement F3.1.2, fix buildChange(), add migrations/routes, wire POST /changes, create AuthorizationRounds, create an implementation prompt, or start F3.1.3/F3.1.4.
+
+Update canonical planning docs, return READY_FOR_REVIEW or BLOCKED, keep F3.1.2 implementation NO-GO, commit documentation only, and STOP.
 ```
 
 ### Gated launcher — final rollout-readiness re-review

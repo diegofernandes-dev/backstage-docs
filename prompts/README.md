@@ -17,17 +17,18 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- Focused independent architecture re-review of the concurrency-corrected F3.1.2 plan in [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md).
-- Primary focus: G14/G19 concurrent Round-1 loser convergence plus regression of the four already-closed architecture blockers.
-- Historical REJECT evidence to preserve: [`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md) and [`docs/backstage/f3-1-2-revised-plan-architecture-rereview.md`](../docs/backstage/f3-1-2-revised-plan-architecture-rereview.md).
-- **F3.1.2a / F3.1.2b implementation and implementation-prompt authoring remain NO-GO until that re-review returns ACCEPT.**
-
+- [`f3-1-2-final-architecture-rereview.md`](./f3-1-2-final-architecture-rereview.md) — **current review-only checkpoint**.
+- Re-review the concurrency-corrected F3.1.2 plan after ADR-013 alignment.
+- Verify all prior blockers remain closed, the healthy Round-1 loser contract still passes, F3.1.1c is a narrow immutable-policy prerequisite, F3.1.2a remains CAB-independent, and F3.1.2b is autonomy-free while materializing primary + CAB for normal-low.
+- Independently verify the actual ADO branch tip before deciding.
+- **All implementation remains NO-GO.** ACCEPT may authorize only subsequent implementation-prompt/planning authoring for F3.1.2a and F3.1.1c; F3.1.2b remains gated on both prerequisites.
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
+- ADR-013 CAB-safe plan realignment — documentation completed in canonical ADR/plan. Normal-low is now primary + CAB by default; F3.1.1c is required before F3.1.2b; bounded autonomy is deferred to F3.2.
 - [`f3-1-2-concurrency-plan-revision.md`](./f3-1-2-concurrency-plan-revision.md) — completed by documentation revision. Concurrency-corrected plan is `READY_FOR_REREVIEW`. Healthy Round-1 loser convergence is deterministic; C1–C4 concurrency proofs specified. ADO implementation unchanged; all F3.1.2 implementation remains NO-GO pending fresh independent ACCEPT.
 - [`f3-1-2-plan-revision.md`](./f3-1-2-plan-revision.md) — completed by documentation revision. Revised plan was `READY_FOR_REREVIEW` at docs `6284195`; subsequent focused re-review REJECTED on concurrency only (18/20). ADO implementation unchanged.
 - [`f3-1-2-plan-architecture-review.md`](./f3-1-2-plan-architecture-review.md) — completed with `REJECT`. Canonical review: [`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md). ADO baseline verified `188d8e9`. Gates 12/20 PASS. Critical decisions resolved by review (not yet embodied in plan): keep repository mode-mismatch CONFLICT + service orchestration; mandate caller-owned `trx` (API already exists); Option A `requirementId = requirementRole` + uniqueness validation. Next: plan revision only.
@@ -51,20 +52,28 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 Use a short launcher instead of pasting the long prompt into an agent session.
 
-### Current launcher — F3.1.2 concurrency-corrected plan re-review
+### Current launcher — final F3.1.2 re-review after ADR-013
 
 ```text
 Fetch the latest main from diegofernandes-dev/backstage-docs.
 
-Independently re-review the concurrency-corrected F3.1.2 plan in docs/backstage/f3-1-2-implementation-plan.md.
+Read prompts/f3-1-2-final-architecture-rereview.md and treat it as a strict independent review-only contract.
 
-Focus on the healthy Round-1 loser convergence contract and its C1–C4 proof, and regress the four already-closed architecture blockers.
+Verify the actual current ADO platform-devops-developer-portal/feat/ado-repo-governance source, then re-review docs/backstage/f3-1-2-implementation-plan.md against ADR-009 as partially superseded by ADR-013.
 
-Do not modify ADO code. Do not author an implementation prompt unless the review returns ACCEPT and a separate prompt is explicitly authorized.
+Regress the four original blockers and the corrected Round-1 concurrency contract. Verify F3.1.1c is a narrow new immutable policy publication prerequisite, F3.1.2a remains canonical-Change-only, and F3.1.2b contains no CAB autonomy/bypass while normal-low materializes primary + CAB.
 
-Preserve historical REJECT review documents. Return ACCEPT or REJECT. Keep F3.1.2 implementation NO-GO unless ACCEPT, then only authorize the next gated activity.
+Return exactly ACCEPT or REJECT. Do not modify ADO code and do not author implementation prompts from inside the review.
+
+Write docs/backstage/f3-1-2-final-architecture-rereview.md, update canonical state/progress/prompts, commit documentation only, and STOP.
 ```
 
+### Historical launcher — concurrency-corrected plan re-review (superseded by ADR-013 alignment)
+
+```text
+Fetch the latest main from diegofernandes-dev/backstage-docs.
+Independently re-review the concurrency-corrected F3.1.2 plan in docs/backstage/f3-1-2-implementation-plan.md.
+```
 ### Historical launcher — F3.1.2 narrow concurrency plan revision (completed)
 
 ```text

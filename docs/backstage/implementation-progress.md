@@ -1859,3 +1859,22 @@ F3.1.2b: NO-GO
 ```
 
 **STOP.** Do not implement F3.1.1c or F3.1.2b from this checkpoint.
+
+---
+
+## GMUD F3.1.2a-AR — Acceptance review prompt prepared
+
+F3.1.2a is implemented/published at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843`, but remains pending independent acceptance.
+
+Canonical review prompt:
+`prompts/f3-1-2a-architecture-implementation-acceptance.md`
+
+Current gate:
+```text
+F3.1.2a implementation: PASS
+F3.1.2a architecture/implementation acceptance: PENDING
+F3.1.1c implementation: NOT STARTED
+F3.1.2b implementation: NO-GO
+```
+
+The acceptance review must inspect the exact ADO diff independently and may only ACCEPT or REJECT; it must not repair code.

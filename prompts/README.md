@@ -17,10 +17,11 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- **F3.1.2 plan revision — concurrent Round 1 convergence only.** The fresh revised-plan re-review returned `REJECT` with 18/20 gates PASS; the four original architecture blockers are closed. See [`docs/backstage/f3-1-2-revised-plan-architecture-rereview.md`](../docs/backstage/f3-1-2-revised-plan-architecture-rereview.md).
-- Revise [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) so a healthy concurrent same-key/same-payload Round-1 loser has one deterministic contract: roll back its losing transaction, re-read the winner's completed reservation + finalized matching index + Round 1, and return the same logical success; only true committed inconsistency fails closed.
-- Add the required end-to-end concurrency proof to the plan: two concurrent identical create calls converge to the same `changeId`/result with exactly one finalized index, one Round 1, one requirement set, one canonical submission-audit set, one completed reservation, and no Round 2. Add a different-payload concurrent negative case.
-- **F3.1.2a / F3.1.2b implementation and implementation-prompt authoring remain NO-GO.** After the narrow revision, perform a focused fresh re-review.
+- [f3-1-2-concurrency-plan-revision.md](./f3-1-2-concurrency-plan-revision.md) — **current planning/docs-only checkpoint**. Revise only the remaining F3.1.2 concurrency ambiguity identified by the 18/20 re-review.
+- Required outcome: for two concurrent same-actor / same-Idempotency-Key / same-payload submissions, a healthy Round-1 loser must roll back, re-read the winner's coherent completed/finalized/Round-1 facts, and return the same logical success; only true committed inconsistency fails closed. Transient DB locking/serialization remains retryable.
+- Add authoritative PostgreSQL end-to-end concurrency proof plus different-payload and invariant-corruption negative cases.
+- **F3.1.2a / F3.1.2b implementation and implementation-prompt authoring remain NO-GO.** After this revision reaches READY_FOR_REREVIEW, the next activity is one focused independent architecture re-review.
+
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
@@ -52,18 +53,21 @@ Use a short launcher instead of pasting the long prompt into an agent session.
 ### Current launcher — F3.1.2 narrow concurrency plan revision
 
 ```text
-Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
+Fetch the latest main from diegofernandes-dev/backstage-docs.
 
-Read `docs/backstage/f3-1-2-revised-plan-architecture-rereview.md` and revise only the remaining concurrency ambiguity in `docs/backstage/f3-1-2-implementation-plan.md`.
+Read prompts/f3-1-2-concurrency-plan-revision.md and treat it as a strict planning/documentation-only contract.
 
-For two concurrent same actor + Idempotency-Key + payload submissions that both reach Round 1 finalization, define one deterministic loser contract: the expected Round-1 uniqueness loser rolls back its transaction, re-reads the winner's durable completed reservation/finalized matching index/Round 1, and returns the same logical success when coherent. Transient DB lock/serialization remains retryable; committed fact mismatch is an invariant error. Never create Round 2.
+Revise docs/backstage/f3-1-2-implementation-plan.md only for the remaining concurrency ambiguity from docs/backstage/f3-1-2-revised-plan-architecture-rereview.md.
 
-Add an end-to-end concurrency test requirement proving both identical callers converge to the same changeId/result and exactly one finalized index, Round 1, requirement set, canonical submission-audit set, and completed reservation. Add the different-payload concurrent conflict case.
+For a healthy concurrent same actor + Idempotency-Key + payload race, define exactly one loser behavior: roll back the losing Round-1 transaction, re-read the winner's committed reservation/index/Round-1 facts, return the same logical success when coherent, classify only transient DB visibility/serialization as retryable, and fail closed only on genuine committed invariant mismatch. Never create Round 2.
 
-Do not reopen the four closed review decisions, do not modify ADO code, and do not create an implementation prompt.
+Add authoritative PostgreSQL end-to-end concurrency proof plus the concurrent different-payload conflict case and invariant-corruption negative case.
 
-Update canonical docs, mark the revised plan READY_FOR_REREVIEW, commit documentation only, and STOP.
+Do not reopen the four already-closed architecture decisions. Do not modify ADO code and do not create an implementation prompt.
+
+Update canonical docs, return READY_FOR_REREVIEW or BLOCKED, keep all F3.1.2 implementation NO-GO, commit documentation only, and STOP.
 ```
+
 ### Historical launcher — F3.1.2 plan architecture review (completed — REJECT)
 
 ```text

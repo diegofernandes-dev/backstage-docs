@@ -15,7 +15,7 @@
   byte-for-byte identical to `06ec9cf`'s tree (`ad970c288f7d983de1210e34987de52851fb0c86`).
 - Documentation baseline for this closure: `backstage-docs@ef1e97253e6e0fb11e1a9d69368f3332ad5ffa74`
 - Documentation baseline for this publication checkpoint (F3.1.0-P): `backstage-docs@f5df375fb332bbb9eb2d8f76c973674b1d53c87f`
-- Architecture authority: [ADR-009](../adr/ADR-009-change-authorization-model.md)
+- Architecture authority: [ADR-009](../adr/ADR-009-change-authorization-model.md) as partially superseded by [ADR-013](../adr/ADR-013-cab-governance-delegated-low-risk-autonomy.md)
 
 ## Outcome
 
@@ -27,9 +27,13 @@ authorize merge, ADO publication, or a later slice:
    four append-only ledger tables, repository contracts, legacy marking, and
    SQLite/Postgres tests.
 2. **F3.1.1 — Published policy and selector resolution**.
+   - accepted implementation slices: F3.1.1a policy + F3.1.1b selector runtime;
+   - **F3.1.1c** is a narrow follow-up required by ADR-013 before F3.1.2b: publish a new immutable CAB-safe policy baseline where normal-low requires primary + CAB by default.
 3. **F3.1.2 — Fail-closed submission and first AuthorizationRound**.
 4. **F3.1.3 — Server-authoritative decision command and new-round semantics**.
 5. **F3.1.4 — Composed read representation and permission boundaries**.
+
+After the core F3.1 authorization path, **F3.2 — CAB Governance & Delegated Autonomy** owns bounded low-risk autonomy grants, grant/revoke RBAC, Round applicability, and the CAB Workbench. F3.2 is not folded into F3.1.2.
 
 F3.1.0 introduces no route, submission integration, permission grant, frontend
 behavior, policy runtime, selector lookup, Teams integration, CAB Workbench, or
@@ -303,3 +307,5 @@ Carried-forward mandatory invariants for F3.1.2:
   remains open and **must be fixed before F3.1.2** submission integration.
 - Committed app config still references RBAC CSV/conditional-policy files absent
   from HEAD; this remains a prerequisite for F3.1.4, not F3.1.0/F3.1.1.
+- ADR-013 now requires a conservative normal-low baseline: primary + CAB by default. Before F3.1.2b can enable ledger submissions, F3.1.1c must publish/pin a new immutable policy version with that behavior. The existing accepted F3.1.1a policy identity remains historical and must not be edited/reused.
+- CAB low-risk autonomy is a later F3.2 concern. F3.1.2b must not add bypass/grant/waiver logic; until F3.2 exists, normal-low ledger submissions require CAB.

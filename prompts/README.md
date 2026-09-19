@@ -17,11 +17,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- [`f3-1-2-plan-architecture-review.md`](./f3-1-2-plan-architecture-review.md) — **current review-only checkpoint**. Independently review the published F3.1.2 implementation plan against ADR-006/007/008/009/012 and the actual ADO baseline `188d8e9`. Resolve all G1–G20 gates, with special focus on the three critical decisions: idempotency mode semantics, real transaction participation, and deterministic requirement identity.
-- The review must also challenge rollback behavior against the actual pre-F3.1.2 binary, external-provider crash recovery, finalization visibility, and whether the proposed two-slice decomposition is genuinely sufficient.
-- **F3.1.2a and F3.1.2b implementation remain NO-GO.** The review may only return `ACCEPT` or `REJECT` and update documentation.
-- If `ACCEPT`: next activity is authoring a separate constrained F3.1.2a implementation prompt. Do not implement from this review.
-- If `REJECT`: next activity is plan revision only.
+- **F3.1.2 plan revision only** — the independent architecture review returned `REJECT` ([`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md)). Revise [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) to embody the three critical decisions (service-orchestrated stored-mode wins without weakening repository mode-mismatch CONFLICT; mandatory caller-owned `trx` for ledger/index/idempotency/provider; Option A `requirementId = requirementRole` with publication uniqueness). Do not implement.
+- **F3.1.2a / F3.1.2b implementation remain NO-GO.** F3.1.2a implementation-prompt authoring remains **NO-GO** until a revised plan is independently `ACCEPT`ed.
 
 ## Production-rollout gate — deferred until a real target exists
 
@@ -29,7 +26,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
-- [`f3-1-2-planning.md`](./f3-1-2-planning.md) — completed with `READY_FOR_REVIEW`. Produced [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) against ADO `188d8e9` (20/20 gates, 15/15 challenges). F3.1.2 implementation remains NO-GO; next activity is independent plan review.
+- [`f3-1-2-plan-architecture-review.md`](./f3-1-2-plan-architecture-review.md) — completed with `REJECT`. Canonical review: [`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md). ADO baseline verified `188d8e9`. Gates 12/20 PASS. Critical decisions resolved by review (not yet embodied in plan): keep repository mode-mismatch CONFLICT + service orchestration; mandate caller-owned `trx` (API already exists); Option A `requirementId = requirementRole` + uniqueness validation. Next: plan revision only.
+- [`f3-1-2-planning.md`](./f3-1-2-planning.md) — completed with `READY_FOR_REVIEW`. Produced [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) against ADO `188d8e9` (20/20 gates, 15/15 challenges). Subsequent architecture review rejected the plan as implementation contract; see review document.
 - [`f3-1-1b-architecture-implementation-acceptance.md`](./f3-1-1b-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.1b as the accepted implemented baseline at ADO `188d8e9`. Authorized F3.1.2 planning only; F3.1.2 implementation remains NO-GO.
 - [`f3-1-1b-selector-resolution-implementation.md`](./f3-1-1b-selector-resolution-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583`. Canonical evidence is `docs/backstage/f3-1-1b-implementation-evidence.md`. Architecture acceptance completed separately (`ACCEPT`).
 - [`pre-rollout-condition-closure.md`](./pre-rollout-condition-closure.md) — completed with `CONDITIONAL_PASS`. C1 token-refresh durability subsequently closed through governed PR #82; C4 alerting was proven. C2/C5 remain target-dependent and are deferred until a real production rollout target exists. C3 is an operational/runbook readiness item and is not a blocker to unrelated platform implementation slices.
@@ -49,31 +47,21 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 Use a short launcher instead of pasting the long prompt into an agent session.
 
-### Current launcher — F3.1.2 plan architecture review
+### Current launcher — F3.1.2 plan revision
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 
-Read `prompts/f3-1-2-plan-architecture-review.md` and treat it as a strict independent, review-only contract.
+Read `docs/backstage/f3-1-2-plan-architecture-review.md` (REJECT) and revise
+`docs/backstage/f3-1-2-implementation-plan.md` so it embodies the three critical
+decisions and clears the failed gates. Planning/docs only — no ADO implementation.
+```
 
-Review `docs/backstage/f3-1-2-implementation-plan.md` against ADR-006/007/008/009/012 and the exact ADO baseline `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583`.
+### Historical launcher — F3.1.2 plan architecture review (completed — REJECT)
 
-Inspect actual source before accepting any transaction, repository, rollback, or idempotency assumption.
-
-Resolve all G1-G20 gates. In particular, make explicit architecture decisions on:
-1. whether repository mode-mismatch semantics must actually change, or whether service orchestration can preserve explicit mismatch fail-closed behavior while still making stored mode win across deployment-default changes;
-2. whether AuthorizationLedgerRepository really participates in the caller-owned transaction required by the plan, including createRound/audit/index/idempotency/provider writes;
-3. one deterministic requirementId scheme with no runtime fallback or “pick during implementation”.
-
-Also verify the actual old-binary behavior for pending LEDGER_REQUIRED reservations, external-provider orphan/retry convergence, finalization visibility, no-migration correctness, and two-slice sufficiency.
-
-Return exactly ACCEPT or REJECT. Do not use conditional acceptance.
-
-Do not modify ADO code, fix buildChange(), change idempotency, add transaction support/config/migrations/routes, wire POST /changes, create AuthorizationRounds, create an implementation prompt, or start F3.1.3/F3.1.4.
-
-Write the factual review to `docs/backstage/f3-1-2-plan-architecture-review.md`, update current-state / implementation-progress / prompts README as required by the verdict, commit documentation only, and STOP.
-
-If ACCEPT: F3.1.2 plan becomes the accepted implementation contract; F3.1.2a implementation-prompt authoring becomes GO; F3.1.2a/b implementation remain NO-GO until separate explicit authorization.
+```text
+Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
+Read `prompts/f3-1-2-plan-architecture-review.md` and produce the review document only.
 ```
 
 ### Historical launcher — F3.1.2 planning (completed)

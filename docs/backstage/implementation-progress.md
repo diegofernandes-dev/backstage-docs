@@ -1503,6 +1503,78 @@ implementation.
 
 ---
 
+## F3.1.2 — Plan architecture review (REJECT)
+
+Implementation repository/branch/SHA verified: ADO
+`platform-devops-developer-portal` / `feat/ado-repo-governance` /
+**`188d8e9cc43423f3644b3cacfb9849257838a583`** (`origin` tip equal; no
+post-baseline drift on the F3.1.2 surface). Unrelated local
+`feat/delivery-mvp-slice@170af45` classified as outside surface.
+
+Documentation baseline (review start): `4b28eb20969dad7b7273464e28ae809f0da87a39`.
+
+### Objective
+
+Independently decide whether
+[`f3-1-2-implementation-plan.md`](./f3-1-2-implementation-plan.md) is a safe,
+concrete implementation contract for F3.1.2a/b — review-only.
+
+### Architecture applied
+
+Canonical review:
+[`f3-1-2-plan-architecture-review.md`](./f3-1-2-plan-architecture-review.md).
+
+Verdict **REJECT**. Gates **12/20 PASS**. Three critical decisions resolved by
+the review (plan must be revised to embody them):
+
+1. **Idempotency mode:** keep repository explicit mode-mismatch `CONFLICT`;
+   service orchestration makes stored mode win across deployment-default flips
+   (do **not** change `reserve()` to ignore mismatches).
+2. **Transactions:** `createRound` / `appendAuditEvent` already accept caller
+   `trx?`; omitting opens an independent txn — plan must mandate passing the
+   outer platform `trx` (same DB ≠ same txn).
+3. **requirementId:** Option A only — `requirementId = requirementRole` plus
+   publication/registry uniqueness validation; no runtime hash fallback.
+
+Also confirmed: pre-F3.1.2 binary **will finalize** pending `LEDGER_REQUIRED`
+without Round 1 (correctness-level binary-rollback forbid); external orphan/retry
+OK; no migration needed; two-slice split remains structurally sufficient after
+plan corrections.
+
+### ADO files changed
+
+**None.** Documentation-only checkpoint.
+
+### Tests / functional verification
+
+Source inspection at exact `188d8e9` (idempotency reserve, ledger trx behavior,
+create/finalize path, provider idempotency contract, published policy roles).
+No ADO tests executed as part of this review.
+
+### Deviations
+
+None new in ADO. Plan revision required before any implementation contract
+acceptance.
+
+### Gate
+
+```text
+F3.1.2 plan architecture review: REJECT
+F3.1.2 plan: REVISION REQUIRED
+Architecture gates: 12/20 PASS
+Critical decisions resolved by review: 3/3
+F3.1.2a implementation prompt authoring: NO-GO
+F3.1.2a implementation: NO-GO
+F3.1.2b implementation: NO-GO
+ADO implementation modified: NO
+```
+
+**Next checkpoint:** revise
+[`f3-1-2-implementation-plan.md`](./f3-1-2-implementation-plan.md) only —
+then re-review. Do not author an F3.1.2a implementation prompt yet.
+
+---
+
 ## Next checkpoint template
 
 ```text

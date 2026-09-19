@@ -17,17 +17,17 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- [`f3-1-2-plan-revision.md`](./f3-1-2-plan-revision.md) — **current planning/docs-only checkpoint** after the F3.1.2 plan architecture review returned `REJECT`. Revise `docs/backstage/f3-1-2-implementation-plan.md` so it embodies the review decisions exactly: keep repository explicit mode-mismatch `CONFLICT` and make stored-mode-wins a service-orchestration concern; mandate caller-owned `trx` for ledger/audit/index/idempotency/provider writes; lock `requirementId = requirementRole` with publication-time uniqueness; and make rollback to pre-F3.1.2 a mandatory runbook correctness gate while pending `LEDGER_REQUIRED` reservations exist.
-- The revision must also correct the crash matrix, visibility authority, test matrix, expected source paths, stale rejected alternatives, and the construction-progress header.
-- **F3.1.2a / F3.1.2b implementation remain NO-GO.** Implementation-prompt authoring remains NO-GO until the revised plan receives a fresh independent `ACCEPT`.
-- If the revision reaches `READY_FOR_REREVIEW`, the next activity is a fresh independent architecture re-review of the revised plan.
-
+- **Fresh independent architecture re-review of the revised F3.1.2 plan** — review [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) after revision commit `6284195`, using the prior REJECT findings in [`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md) as mandatory regression checks.
+- Re-verify the current ADO `platform-devops-developer-portal/feat/ado-repo-governance` tip before deciding. The last independently verified implementation baseline remains `188d8e9`.
+- The re-review must confirm the four corrections are coherent end-to-end: service-orchestrated stored-mode semantics without weakening repository mismatch-CONFLICT; caller-owned `trx`; `requirementId = requirementRole` + uniqueness validation; mandatory rollback runbook correctness gate.
+- **F3.1.2a / F3.1.2b implementation remain NO-GO.** Implementation-prompt authoring remains NO-GO until the revised plan receives an independent `ACCEPT`.
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
+- [`f3-1-2-plan-revision.md`](./f3-1-2-plan-revision.md) — completed by documentation revision. Revised plan is `READY_FOR_REREVIEW` at docs `6284195`; ADO implementation unchanged; all implementation remains NO-GO pending fresh independent ACCEPT.
 - [`f3-1-2-plan-architecture-review.md`](./f3-1-2-plan-architecture-review.md) — completed with `REJECT`. Canonical review: [`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md). ADO baseline verified `188d8e9`. Gates 12/20 PASS. Critical decisions resolved by review (not yet embodied in plan): keep repository mode-mismatch CONFLICT + service orchestration; mandate caller-owned `trx` (API already exists); Option A `requirementId = requirementRole` + uniqueness validation. Next: plan revision only.
 - [`f3-1-2-planning.md`](./f3-1-2-planning.md) — completed with `READY_FOR_REVIEW`. Produced [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) against ADO `188d8e9` (20/20 gates, 15/15 challenges). Subsequent architecture review rejected the plan as implementation contract; see review document.
 - [`f3-1-1b-architecture-implementation-acceptance.md`](./f3-1-1b-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.1b as the accepted implemented baseline at ADO `188d8e9`. Authorized F3.1.2 planning only; F3.1.2 implementation remains NO-GO.
@@ -49,30 +49,29 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 Use a short launcher instead of pasting the long prompt into an agent session.
 
-### Current launcher — F3.1.2 plan revision
+### Current launcher — F3.1.2 revised-plan architecture re-review
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 
-Read `prompts/f3-1-2-plan-revision.md` and treat it as a strict planning/documentation-only revision contract.
+Independently re-review the revised `docs/backstage/f3-1-2-implementation-plan.md` against ADR-006/007/008/009/012, the prior REJECT review, and the actual current ADO `platform-devops-developer-portal/feat/ado-repo-governance` source.
 
-Read the rejected review `docs/backstage/f3-1-2-plan-architecture-review.md` and revise `docs/backstage/f3-1-2-implementation-plan.md` so every failed gate is concretely corrected.
+Re-verify the ADO branch tip before deciding.
 
-Mandatory decisions:
-1. Keep KnexIdempotencyRepository explicit authorization-mode mismatch as CONFLICT. Make stored-mode-wins a service orchestration rule for existing reservations; newSubmissionAuthorizationMode applies only to a genuinely new reservation, including race-safe first-insert behavior.
-2. Make one caller-owned Knex transaction mandatory for DevelopmentProvider + createRound + appendAuditEvent + index.finalize + idempotency.complete. External providers stay outside the platform transaction and converge through idempotent create/orphan retry.
-3. Lock requirementId = requirementRole. Enforce per-rule requirementRole uniqueness at policy registration/publication; no hash fallback.
-4. Make rollback to a pre-F3.1.2 binary a mandatory RUNBOOK CORRECTNESS GATE while any pending LEDGER_REQUIRED reservation exists; delete optional-hard-guard language.
+The revised plan must prove all four corrections without reintroducing ambiguity:
+1. repository explicit authorization-mode mismatch remains CONFLICT; stored-mode-wins is service orchestration for existing reservations and race-safe first insert;
+2. one caller-owned trx governs Round 1 + requirements + audit + index.finalize + idempotency.complete, with DevelopmentProvider joining the same transaction;
+3. requirementId is exactly requirementRole with fail-closed per-rule uniqueness at policy registration/publication;
+4. rollback to pre-F3.1.2 with pending LEDGER_REQUIRED reservations is a mandatory RUNBOOK CORRECTNESS GATE.
 
-Correct the crash matrix so Round/finalize/idempotency completion cannot appear as separately committed states when they are in one platform transaction. Correct visibility authority, tests, expected source paths, rejected alternatives, challenge answers, acceptance criteria and appendices. Remove every stale statement from the rejected design.
+Also verify the corrected crash matrix, visibility invariant, expected source paths, test matrix, two-slice decomposition, no-migration decision, external-provider convergence, and that no stale rejected alternative survives as current architecture.
 
-Do not modify ADO code, fix buildChange(), change repository semantics, add runtime transaction wiring/config/migrations/routes, wire POST /changes, create AuthorizationRounds, author an implementation prompt, or start F3.1.3/F3.1.4.
+Return exactly ACCEPT or REJECT. Do not implement code and do not author an implementation prompt from the review itself.
 
-Update current-state, implementation-progress (including the stale top header), and prompts README. Commit documentation only.
+Write a fresh factual re-review document (do not overwrite the historical REJECT), update canonical state/progress/prompts, commit documentation only, and STOP.
 
-Return READY_FOR_REREVIEW or BLOCKED. Keep all F3.1.2 implementation and implementation-prompt authoring NO-GO. STOP.
+Only ACCEPT may authorize subsequent F3.1.2a implementation-prompt authoring. F3.1.2a/b implementation remain NO-GO until separate explicit authorization.
 ```
-
 ### Historical launcher — F3.1.2 plan architecture review (completed — REJECT)
 
 ```text

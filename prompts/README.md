@@ -18,9 +18,10 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Current authorized activity
 
 - F3.1.2 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**.
-- F3.1.2a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843` ([`f3-1-2a-architecture-implementation-acceptance.md`](../docs/backstage/f3-1-2a-architecture-implementation-acceptance.md)).
-- [`f3-1-1c-cab-safe-policy-implementation.md`](./f3-1-1c-cab-safe-policy-implementation.md) — **executed**; implementation PASS and published to ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`. Canonical evidence: [`docs/backstage/f3-1-1c-implementation-evidence.md`](../docs/backstage/f3-1-1c-implementation-evidence.md). **Next gate:** independent F3.1.1c acceptance review.
-- F3.1.2b remains **NO-GO** until F3.1.1c is independently accepted.
+- F3.1.2a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843`.
+- F3.1.1c implementation is published at ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f` and remains pending independent acceptance.
+- [`f3-1-1c-architecture-implementation-acceptance.md`](./f3-1-1c-architecture-implementation-acceptance.md) — **current review-only checkpoint**. Independently inspect the exact ADO diff and return ACCEPT or REJECT. Do not repair code in the review.
+- F3.1.2b remains **NO-GO** until F3.1.1c is accepted. If F3.1.1c is ACCEPTED, only F3.1.2b implementation-prompt authoring becomes GO; implementation still requires separate explicit launch.
 - F3.2 CAB autonomy remains **NO-GO**.
 ## Production-rollout gate — deferred until a real target exists
 

@@ -1695,3 +1695,39 @@ Frozen decisions 1–13 from the concurrency revision prompt were **not** reopen
 Both historical REJECT review documents are preserved.
 
 **Next gate:** one focused independent architecture re-review of the concurrency-corrected F3.1.2 plan. No implementation prompt yet.
+
+---
+
+## GMUD ADR-013 / F3.1.2-CAB — CAB-safe governance realignment
+
+Architecture checkpoint after the F3.1.2 concurrency correction.
+
+### Outcome
+
+```text
+ADR-013: ACCEPTED
+F3.1.2 concurrency + CAB-safe plan: READY_FOR_REREVIEW
+F3.1.1c CAB-safe policy publication: PLANNED PREREQUISITE / implementation NO-GO
+F3.1.2a implementation: NO-GO pending plan ACCEPT
+F3.1.2b implementation: NO-GO
+F3.2 CAB Governance & Delegated Autonomy: architecture accepted / implementation NO-GO
+```
+
+ADR-013 changes the target normal-low governance baseline from primary-only to **primary + CAB by default**. A future bounded CAB-issued autonomy grant may omit only the normal-low CAB requirement, but that capability is explicitly deferred to F3.2.
+
+Side effects recorded:
+
+- the accepted F3.1.1a policy identity remains immutable historical evidence;
+- a new immutable **F3.1.1c** policy publication is required before F3.1.2b: normal-low becomes primary + CAB; medium/high/emergency otherwise unchanged;
+- F3.1.2a remains fully independent and still only fixes canonical Change construction/recovery reuse;
+- F3.1.2b consumes the CAB-safe policy and contains no skipCab/autonomy/grant/waiver logic;
+- F3.2 owns bounded Group + System autonomy grants, grant/revoke/renew RBAC, Round applicability, multi-activity all-covered semantics, grant/revoke concurrency, and future CAB Workbench;
+- CAB Change-decision authority and CAB autonomy-governance authority are separate backend/RBAC powers;
+- platform_admin does not automatically imply CAB business authority;
+- autonomy history is append-only and revocation is prospective; committed Rounds are never rewritten.
+
+Canonical ADR: [`../adr/ADR-013-cab-governance-delegated-low-risk-autonomy.md`](../adr/ADR-013-cab-governance-delegated-low-risk-autonomy.md).
+
+Canonical plan: [`f3-1-2-implementation-plan.md`](./f3-1-2-implementation-plan.md).
+
+**Next gate:** final focused independent architecture re-review of the concurrency-corrected, ADR-013-aligned F3.1.2 plan. No implementation is authorized by this checkpoint.

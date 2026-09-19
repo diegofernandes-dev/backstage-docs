@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.1c **IMPLEMENTED / PUBLISHED** at ADO `3b302ab` (full SHA `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`), parent F3.1.2a `ccee1e1`; F3.1.2a remains **CLOSED / ACCEPTED** at `ccee1e1676a2763e68880e5383ce1e5e48742843`.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.2a accepted; F3.1.1c implemented/published pending independent acceptance; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2b NO-GO until F3.1.1c independently accepted
+> **Current GMUD implementation baseline:** F3.1.1c **CLOSED / ACCEPTED** at ADO `3b302ab` (full SHA `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`), parent F3.1.2a `ccee1e1`; F3.1.2a remains **CLOSED / ACCEPTED** at `ccee1e1676a2763e68880e5383ce1e5e48742843`.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a accepted; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2b implementation-prompt authoring GO; F3.1.2b implementation still requires separate explicit authorization; F3.2 NO-GO
 
 ## How to use this log
 
@@ -1951,17 +1951,37 @@ acceptance review. Do **not** start F3.1.2b until that acceptance ACCEPTs.
 
 ## GMUD F3.1.1c-AR — Acceptance review prompt prepared
 
-F3.1.1c is implemented/published at ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f` and remains pending independent acceptance.
+F3.1.1c is implemented/published at ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`. The independent acceptance review was subsequently executed (see next checkpoint).
 
 Canonical review prompt:
 `prompts/f3-1-1c-architecture-implementation-acceptance.md`
 
-Current gate:
+---
+
+## GMUD F3.1.1c — Architecture / implementation acceptance (ACCEPT)
+
+Documentation review baseline: `backstage-docs@d3c4b13915afc462df25fadb7a4cb294db303d13`.
+
+Reviewed ADO commit: `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`
+Parent verified: exact `ccee1e1676a2763e68880e5383ce1e5e48742843`.
+
+### Outcome
+
 ```text
-F3.1.2a: CLOSED / ACCEPTED
-F3.1.1c implementation: PASS / PUBLISHED
-F3.1.1c architecture/implementation acceptance: PENDING
-F3.1.2b implementation: NO-GO
+F3.1.1c architecture/implementation acceptance: ACCEPT
+F3.1.1c: CLOSED / ACCEPTED IMPLEMENTED BASELINE
+Accepted ADO SHA: 3b302ab5c9caab38f96491b389b7ea9fe0b66c2f
+F3.1.2a: CLOSED / ACCEPTED IMPLEMENTED BASELINE
+F3.1.2b implementation-prompt authoring: GO
+F3.1.2b implementation: still requires separate explicit authorization
+F3.2 implementation: NO-GO
+Gates: G1–G8 PASS
+ADO implementation modified by this review: NO
 ```
 
-The acceptance review must independently inspect the exact ADO diff `ccee1e1..3b302ab`, verify the CAB-safe matrix and append-only policy publication, and may only ACCEPT or REJECT. It must not repair code.
+Canonical review:
+[`f3-1-1c-architecture-implementation-acceptance.md`](./f3-1-1c-architecture-implementation-acceptance.md).
+
+Independent proofs re-run at exact SHA: non-genesis publication validation PASS; focused policy/selector/architecture 120 tests PASS; full Change Management module 306 tests PASS with disposable PostgreSQL 16; lint/build PASS; TypeScript error locations identical to `ccee1e1`.
+
+**Next authorized activity:** author a constrained F3.1.2b implementation prompt from the already accepted F3.1.2 implementation contract. Do **not** implement F3.1.2b, F3.1.3, F3.1.4, or F3.2 inside this gate.

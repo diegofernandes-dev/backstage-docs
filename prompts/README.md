@@ -18,9 +18,9 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Current authorized activity
 
 - F3.1.2 plan is an **ACCEPTED IMPLEMENTATION CONTRACT** ([`docs/backstage/f3-1-2-final-architecture-rereview.md`](../docs/backstage/f3-1-2-final-architecture-rereview.md)).
-- [`f3-1-2a-canonical-change-implementation.md`](./f3-1-2a-canonical-change-implementation.md) — implementation prompt authored and ready, but **must not execute without explicit user launch**.
+- [`f3-1-2a-canonical-change-implementation.md`](./f3-1-2a-canonical-change-implementation.md) — **EXECUTED** on explicit launch; ADO `ccee1e1` published; evidence [`docs/backstage/f3-1-2a-implementation-evidence.md`](../docs/backstage/f3-1-2a-implementation-evidence.md). **Next:** independent F3.1.2a acceptance review. Do not re-execute without a new authorization.
 - [`f3-1-1c-cab-safe-policy-implementation.md`](./f3-1-1c-cab-safe-policy-implementation.md) — implementation prompt authored and ready, but **must not execute without explicit user launch**.
-- Recommended order: F3.1.2a first, then F3.1.1c. They are architecturally independent, but F3.1.2b remains **NO-GO** until both are independently implemented and accepted.
+- F3.1.2b remains **NO-GO** until F3.1.2a acceptance + F3.1.1c are independently completed.
 - F3.2 CAB autonomy remains **NO-GO**.
 ## Production-rollout gate — deferred until a real target exists
 
@@ -28,7 +28,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
-- Prompt-authoring checkpoint — F3.1.2a canonical-Change implementation prompt and F3.1.1c CAB-safe policy implementation prompt authored after final F3.1.2 plan ACCEPT. No ADO implementation executed by prompt authoring.
+- [`f3-1-2a-canonical-change-implementation.md`](./f3-1-2a-canonical-change-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@ccee1e1676a2763e68880e5383ce1e5e48742843`. Canonical evidence: `docs/backstage/f3-1-2a-implementation-evidence.md`. Next gate is independent F3.1.2a acceptance review (not yet run).
+- Prompt-authoring checkpoint — F3.1.2a canonical-Change implementation prompt and F3.1.1c CAB-safe policy implementation prompt authored after final F3.1.2 plan ACCEPT. F3.1.2a later executed separately; F3.1.1c still awaiting explicit launch.
 - [`f3-1-2-final-architecture-rereview.md`](./f3-1-2-final-architecture-rereview.md) — completed with `ACCEPT`. Canonical review: [`docs/backstage/f3-1-2-final-architecture-rereview.md`](../docs/backstage/f3-1-2-final-architecture-rereview.md). ADO tip independently verified `188d8e9`. Prior blockers 4/4 closed; concurrency + ADR-013 + F3.1.1c/2a/2b gates PASS. Plan is ACCEPTED IMPLEMENTATION CONTRACT. No ADO code modified; no implementation prompt authored inside the review.
 - ADR-013 CAB-safe plan realignment — documentation completed in canonical ADR/plan. Normal-low is now primary + CAB by default; F3.1.1c is required before F3.1.2b; bounded autonomy is deferred to F3.2.
 - [`f3-1-2-concurrency-plan-revision.md`](./f3-1-2-concurrency-plan-revision.md) — completed by documentation revision. Concurrency-corrected plan is `READY_FOR_REREVIEW`. Healthy Round-1 loser convergence is deterministic; C1–C4 concurrency proofs specified. ADO implementation unchanged; all F3.1.2 implementation remains NO-GO pending fresh independent ACCEPT.

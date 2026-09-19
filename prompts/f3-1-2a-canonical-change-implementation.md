@@ -2,14 +2,19 @@
 
 ## Status
 
-IMPLEMENTATION PROMPT — execute only after explicit user launch.
+IMPLEMENTED / PUBLISHED at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843` after
+explicit user launch. Canonical evidence:
+[`docs/backstage/f3-1-2a-implementation-evidence.md`](../docs/backstage/f3-1-2a-implementation-evidence.md).
+**Next gate:** independent F3.1.2a architecture/implementation acceptance review.
+Do not re-execute this prompt without a new authorization.
 
 Architecture authority:
 - docs/backstage/f3-1-2-implementation-plan.md
 - docs/backstage/f3-1-2-final-architecture-rereview.md
 - ADR-006, ADR-007, ADR-008, ADR-009, ADR-012, ADR-013
 
-Final review status: F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT. This prompt authoring is authorized; implementation is not automatically authorized.
+Final review status: F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT. This prompt was
+executed under explicit user launch; F3.1.1c and F3.1.2b remain unauthorized by it.
 
 ## Objective
 

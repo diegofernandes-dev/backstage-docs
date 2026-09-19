@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.1b — ADO `188d8e9` (full SHA `188d8e9cc43423f3644b3cacfb9849257838a583`), CLOSED / ACCEPTED IMPLEMENTED BASELINE on `feat/ado-repo-governance`  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT (final re-review ACCEPT); F3.1.2a + F3.1.1c prompt/planning authoring GO; F3.1.2a/F3.1.1c/F3.1.2b implementation NO-GO pending separate authorization
+> **Current GMUD implementation baseline:** F3.1.2a IMPLEMENTED / PUBLISHED at ADO `ccee1e1` (full SHA `ccee1e1676a2763e68880e5383ce1e5e48742843`), parent F3.1.1b `188d8e9`; F3.1.2a acceptance review pending. F3.1.1b remains CLOSED / ACCEPTED at `188d8e9`.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2a implemented (acceptance pending); F3.1.1c prompt ready / implementation NO-GO until explicit launch; F3.1.2b NO-GO until F3.1.2a + F3.1.1c independently accepted
 
 ## How to use this log
 
@@ -1774,10 +1774,10 @@ Historical REJECT documents preserved:
 
 ## GMUD F3.1.2-NEXT — Implementation prompts authored
 
-After final F3.1.2 architecture ACCEPT, two constrained implementation prompts were authored. No ADO implementation was executed by this documentation checkpoint.
+After final F3.1.2 architecture ACCEPT, two constrained implementation prompts were authored. No ADO implementation was executed by this documentation checkpoint at the time.
 
 ```text
-F3.1.2a implementation prompt: READY_FOR_EXPLICIT_LAUNCH
+F3.1.2a implementation prompt: later EXECUTED (see F3.1.2a checkpoint below)
 F3.1.1c implementation prompt: READY_FOR_EXPLICIT_LAUNCH
 F3.1.2b implementation: NO-GO
 F3.2 implementation: NO-GO
@@ -1788,3 +1788,74 @@ Prompts:
 - `prompts/f3-1-1c-cab-safe-policy-implementation.md`
 
 Recommended order: F3.1.2a first, then F3.1.1c. Each implementation must stop at its own independent acceptance-review gate. F3.1.2b remains blocked until both prerequisites are implemented and independently accepted.
+
+---
+
+## GMUD F3.1.2a — Canonical Change Construction (implementation)
+
+Implementation repository/branch/SHA: `platform-devops-developer-portal` /
+`feat/ado-repo-governance` / **`ccee1e1676a2763e68880e5383ce1e5e48742843`**
+(direct child of `188d8e9`; verified via HTTPS `git ls-remote` and Azure DevOps
+REST `az repos ref list` both before and after the push).
+
+Documentation baseline SHA (start): `b36c725b8355cf377ac5d4ac3f6afd7fd7f27778`.
+
+Starting ADO baseline (verified live before any edit):
+`188d8e9cc43423f3644b3cacfb9849257838a583` — exact match to the accepted
+F3.1.1b implemented baseline. **Source drift: NONE.** Delivery branch was not
+used.
+
+Full evidence: [`f3-1-2a-implementation-evidence.md`](./f3-1-2a-implementation-evidence.md).
+
+### Objective
+
+Implement only F3.1.2a: one logical create builds the canonical Change at most
+once; recovery reuses the durable pending index snapshot instead of regenerating
+server-generated `activityId` / `createdAt`.
+
+### Architecture applied
+
+In `ChangeManagementService.createChange`:
+
+- When no pending index exists: `buildChange()` once → `insertPending` → re-read
+  durable snapshot.
+- When pending index already exists: reuse `indexRecord.snapshot`; never call
+  `buildChange()`.
+- `finalizeCreate` always receives the durable snapshot.
+
+No AuthorizationRuntime, ledger, Round, policy/selector, migration, route,
+frontend, or `authorization_mode` change. `POST /changes` remains
+`LEGACY_PRE_F3` with no `AuthorizationRound`.
+
+### ADO files changed
+
+```
+packages/backend/src/modules/changeManagement/ChangeManagementService.ts
+packages/backend/src/modules/changeManagement/ChangeManagementService.test.ts
+packages/backend/src/modules/changeManagement/ChangeManagementService.recovery.test.ts
+```
+
+### Tests / functional verification
+
+- A1/A2/A3 focused proofs PASS; A4 F2 regressions PASS.
+- Change Management module: 287 tests PASS (4 skipped live Catalog); SQLite +
+  disposable PostgreSQL 16 PASS.
+- Lint PASS; build PASS; TypeScript error set set-identical to `188d8e9` (5
+  pre-existing Knex duplicate-type errors in `changeManagementPlugin.ts`).
+
+### Deviations
+
+None new. Carried forward: F3.1.1c CAB-safe policy still required before
+F3.1.2b; production selector-bundle publication still a production-rollout
+prerequisite; RBAC CSV files still F3.1.4.
+
+### Gate
+
+```text
+F3.1.2a implementation: PASS
+Architecture/implementation acceptance: PENDING SEPARATE REVIEW
+F3.1.1c: not implemented
+F3.1.2b: NO-GO
+```
+
+**STOP.** Do not implement F3.1.1c or F3.1.2b from this checkpoint.

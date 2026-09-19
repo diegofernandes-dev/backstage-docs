@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.1b — ADO `188d8e9` (full SHA `188d8e9cc43423f3644b3cacfb9849257838a583`), CLOSED / ACCEPTED IMPLEMENTED BASELINE on `feat/ado-repo-governance`  
-> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 concurrency plan revision READY_FOR_REREVIEW; prior revised-plan re-review REJECT preserved (18/20); implementation NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT (final re-review ACCEPT); F3.1.2a + F3.1.1c prompt/planning authoring GO; F3.1.2a/F3.1.1c/F3.1.2b implementation NO-GO pending separate authorization
 
 ## How to use this log
 
@@ -1731,3 +1731,41 @@ Canonical ADR: [`../adr/ADR-013-cab-governance-delegated-low-risk-autonomy.md`](
 Canonical plan: [`f3-1-2-implementation-plan.md`](./f3-1-2-implementation-plan.md).
 
 **Next gate:** final focused independent architecture re-review of the concurrency-corrected, ADR-013-aligned F3.1.2 plan. No implementation is authorized by this checkpoint.
+
+---
+
+## GMUD F3.1.2-FR — Final architecture re-review (ACCEPT)
+
+Independent review-only checkpoint against `backstage-docs@7bfb8bc` and live ADO `feat/ado-repo-governance` tip `188d8e9`.
+
+### Outcome
+
+```text
+F3.1.2 plan architecture re-review: ACCEPT
+F3.1.2 plan: ACCEPTED IMPLEMENTATION CONTRACT
+F3.1.2a implementation-prompt authoring: GO
+F3.1.1c implementation planning/prompt authoring: GO
+F3.1.2a implementation: still requires separate explicit authorization
+F3.1.1c implementation: still requires separate explicit authorization
+F3.1.2b implementation: NO-GO until F3.1.2a + F3.1.1c accepted
+F3.2 implementation: NO-GO
+ADO implementation modified: NO
+```
+
+### Verification
+
+- Independent ADO tip verification: **YES** (HTTPS `git ls-remote` + exact-SHA worktree); tip equals expected baseline `188d8e9`; no post-baseline drift on create/idempotency/ledger/policy/selector/finalize surfaces.
+- Prior critical blockers closed: **4/4**.
+- Concurrency convergence gate: **PASS** (deterministic healthy Round-1 loser; C1–C4; authoritative PostgreSQL).
+- ADR-013 alignment: **PASS** (normal-low/medium/high = primary + CAB; autonomy deferred to F3.2).
+- F3.1.1c prerequisite: **PASS** (narrow new immutable policy publication; not a third F3.1.2 slice).
+- F3.1.2a isolation: **PASS** (canonical Change only).
+- F3.1.2b autonomy-free scope: **PASS** (no skipCab / CabAutonomyGrant / waiver / Workbench / autonomy RBAC).
+
+Canonical review: [`f3-1-2-final-architecture-rereview.md`](./f3-1-2-final-architecture-rereview.md).
+
+Historical REJECT documents preserved:
+[`f3-1-2-plan-architecture-review.md`](./f3-1-2-plan-architecture-review.md),
+[`f3-1-2-revised-plan-architecture-rereview.md`](./f3-1-2-revised-plan-architecture-rereview.md).
+
+**Next authorized documentation activity:** author the constrained F3.1.2a implementation prompt and/or F3.1.1c planning/prompt. Do not implement from this checkpoint.

@@ -17,17 +17,17 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- [`f3-1-2-final-architecture-rereview.md`](./f3-1-2-final-architecture-rereview.md) — **current review-only checkpoint**.
-- Re-review the concurrency-corrected F3.1.2 plan after ADR-013 alignment.
-- Verify all prior blockers remain closed, the healthy Round-1 loser contract still passes, F3.1.1c is a narrow immutable-policy prerequisite, F3.1.2a remains CAB-independent, and F3.1.2b is autonomy-free while materializing primary + CAB for normal-low.
-- Independently verify the actual ADO branch tip before deciding.
-- **All implementation remains NO-GO.** ACCEPT may authorize only subsequent implementation-prompt/planning authoring for F3.1.2a and F3.1.1c; F3.1.2b remains gated on both prerequisites.
+- F3.1.2 plan is an **ACCEPTED IMPLEMENTATION CONTRACT** ([`docs/backstage/f3-1-2-final-architecture-rereview.md`](../docs/backstage/f3-1-2-final-architecture-rereview.md)).
+- **Next documentation work (not yet authored):** constrained F3.1.2a implementation prompt and/or F3.1.1c CAB-safe policy publication planning/prompt.
+- F3.1.2a and F3.1.1c may be planned independently; F3.1.2b remains **NO-GO** until both are accepted.
+- **All F3.1.2a / F3.1.1c / F3.1.2b / F3.2 implementation remains NO-GO** until a separate explicit authorization launches an implementation prompt.
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
+- [`f3-1-2-final-architecture-rereview.md`](./f3-1-2-final-architecture-rereview.md) — completed with `ACCEPT`. Canonical review: [`docs/backstage/f3-1-2-final-architecture-rereview.md`](../docs/backstage/f3-1-2-final-architecture-rereview.md). ADO tip independently verified `188d8e9`. Prior blockers 4/4 closed; concurrency + ADR-013 + F3.1.1c/2a/2b gates PASS. Plan is ACCEPTED IMPLEMENTATION CONTRACT. No ADO code modified; no implementation prompt authored inside the review.
 - ADR-013 CAB-safe plan realignment — documentation completed in canonical ADR/plan. Normal-low is now primary + CAB by default; F3.1.1c is required before F3.1.2b; bounded autonomy is deferred to F3.2.
 - [`f3-1-2-concurrency-plan-revision.md`](./f3-1-2-concurrency-plan-revision.md) — completed by documentation revision. Concurrency-corrected plan is `READY_FOR_REREVIEW`. Healthy Round-1 loser convergence is deterministic; C1–C4 concurrency proofs specified. ADO implementation unchanged; all F3.1.2 implementation remains NO-GO pending fresh independent ACCEPT.
 - [`f3-1-2-plan-revision.md`](./f3-1-2-plan-revision.md) — completed by documentation revision. Revised plan was `READY_FOR_REREVIEW` at docs `6284195`; subsequent focused re-review REJECTED on concurrency only (18/20). ADO implementation unchanged.
@@ -52,7 +52,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 Use a short launcher instead of pasting the long prompt into an agent session.
 
-### Current launcher — final F3.1.2 re-review after ADR-013
+### Historical launcher — final F3.1.2 re-review after ADR-013 (completed — ACCEPT)
 
 ```text
 Fetch the latest main from diegofernandes-dev/backstage-docs.

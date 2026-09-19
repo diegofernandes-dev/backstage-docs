@@ -1769,3 +1769,22 @@ Historical REJECT documents preserved:
 [`f3-1-2-revised-plan-architecture-rereview.md`](./f3-1-2-revised-plan-architecture-rereview.md).
 
 **Next authorized documentation activity:** author the constrained F3.1.2a implementation prompt and/or F3.1.1c planning/prompt. Do not implement from this checkpoint.
+
+---
+
+## GMUD F3.1.2-NEXT — Implementation prompts authored
+
+After final F3.1.2 architecture ACCEPT, two constrained implementation prompts were authored. No ADO implementation was executed by this documentation checkpoint.
+
+```text
+F3.1.2a implementation prompt: READY_FOR_EXPLICIT_LAUNCH
+F3.1.1c implementation prompt: READY_FOR_EXPLICIT_LAUNCH
+F3.1.2b implementation: NO-GO
+F3.2 implementation: NO-GO
+```
+
+Prompts:
+- `prompts/f3-1-2a-canonical-change-implementation.md`
+- `prompts/f3-1-1c-cab-safe-policy-implementation.md`
+
+Recommended order: F3.1.2a first, then F3.1.1c. Each implementation must stop at its own independent acceptance-review gate. F3.1.2b remains blocked until both prerequisites are implemented and independently accepted.

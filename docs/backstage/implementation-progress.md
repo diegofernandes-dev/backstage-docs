@@ -1946,3 +1946,22 @@ Canonical evidence:
 
 **Next authorized activity:** independent F3.1.1c architecture/implementation
 acceptance review. Do **not** start F3.1.2b until that acceptance ACCEPTs.
+
+---
+
+## GMUD F3.1.1c-AR — Acceptance review prompt prepared
+
+F3.1.1c is implemented/published at ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f` and remains pending independent acceptance.
+
+Canonical review prompt:
+`prompts/f3-1-1c-architecture-implementation-acceptance.md`
+
+Current gate:
+```text
+F3.1.2a: CLOSED / ACCEPTED
+F3.1.1c implementation: PASS / PUBLISHED
+F3.1.1c architecture/implementation acceptance: PENDING
+F3.1.2b implementation: NO-GO
+```
+
+The acceptance review must independently inspect the exact ADO diff `ccee1e1..3b302ab`, verify the CAB-safe matrix and append-only policy publication, and may only ACCEPT or REJECT. It must not repair code.

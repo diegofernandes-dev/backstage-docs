@@ -17,8 +17,10 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- **F3.1.2 plan revision only** — the independent architecture review returned `REJECT` ([`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md)). Revise [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) to embody the three critical decisions (service-orchestrated stored-mode wins without weakening repository mode-mismatch CONFLICT; mandatory caller-owned `trx` for ledger/index/idempotency/provider; Option A `requirementId = requirementRole` with publication uniqueness). Do not implement.
-- **F3.1.2a / F3.1.2b implementation remain NO-GO.** F3.1.2a implementation-prompt authoring remains **NO-GO** until a revised plan is independently `ACCEPT`ed.
+- [`f3-1-2-plan-revision.md`](./f3-1-2-plan-revision.md) — **current planning/docs-only checkpoint** after the F3.1.2 plan architecture review returned `REJECT`. Revise `docs/backstage/f3-1-2-implementation-plan.md` so it embodies the review decisions exactly: keep repository explicit mode-mismatch `CONFLICT` and make stored-mode-wins a service-orchestration concern; mandate caller-owned `trx` for ledger/audit/index/idempotency/provider writes; lock `requirementId = requirementRole` with publication-time uniqueness; and make rollback to pre-F3.1.2 a mandatory runbook correctness gate while pending `LEDGER_REQUIRED` reservations exist.
+- The revision must also correct the crash matrix, visibility authority, test matrix, expected source paths, stale rejected alternatives, and the construction-progress header.
+- **F3.1.2a / F3.1.2b implementation remain NO-GO.** Implementation-prompt authoring remains NO-GO until the revised plan receives a fresh independent `ACCEPT`.
+- If the revision reaches `READY_FOR_REREVIEW`, the next activity is a fresh independent architecture re-review of the revised plan.
 
 ## Production-rollout gate — deferred until a real target exists
 
@@ -52,9 +54,23 @@ Use a short launcher instead of pasting the long prompt into an agent session.
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 
-Read `docs/backstage/f3-1-2-plan-architecture-review.md` (REJECT) and revise
-`docs/backstage/f3-1-2-implementation-plan.md` so it embodies the three critical
-decisions and clears the failed gates. Planning/docs only — no ADO implementation.
+Read `prompts/f3-1-2-plan-revision.md` and treat it as a strict planning/documentation-only revision contract.
+
+Read the rejected review `docs/backstage/f3-1-2-plan-architecture-review.md` and revise `docs/backstage/f3-1-2-implementation-plan.md` so every failed gate is concretely corrected.
+
+Mandatory decisions:
+1. Keep KnexIdempotencyRepository explicit authorization-mode mismatch as CONFLICT. Make stored-mode-wins a service orchestration rule for existing reservations; newSubmissionAuthorizationMode applies only to a genuinely new reservation, including race-safe first-insert behavior.
+2. Make one caller-owned Knex transaction mandatory for DevelopmentProvider + createRound + appendAuditEvent + index.finalize + idempotency.complete. External providers stay outside the platform transaction and converge through idempotent create/orphan retry.
+3. Lock requirementId = requirementRole. Enforce per-rule requirementRole uniqueness at policy registration/publication; no hash fallback.
+4. Make rollback to a pre-F3.1.2 binary a mandatory RUNBOOK CORRECTNESS GATE while any pending LEDGER_REQUIRED reservation exists; delete optional-hard-guard language.
+
+Correct the crash matrix so Round/finalize/idempotency completion cannot appear as separately committed states when they are in one platform transaction. Correct visibility authority, tests, expected source paths, rejected alternatives, challenge answers, acceptance criteria and appendices. Remove every stale statement from the rejected design.
+
+Do not modify ADO code, fix buildChange(), change repository semantics, add runtime transaction wiring/config/migrations/routes, wire POST /changes, create AuthorizationRounds, author an implementation prompt, or start F3.1.3/F3.1.4.
+
+Update current-state, implementation-progress (including the stale top header), and prompts README. Commit documentation only.
+
+Return READY_FOR_REREVIEW or BLOCKED. Keep all F3.1.2 implementation and implementation-prompt authoring NO-GO. STOP.
 ```
 
 ### Historical launcher — F3.1.2 plan architecture review (completed — REJECT)

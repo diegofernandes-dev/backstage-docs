@@ -4,6 +4,7 @@
 - Date: 2026-09-01
 - Related: [ADR-002](./ADR-002-backstage-change-onramp.md), [ADR-003](./ADR-003-provider-agnostic-change-management.md), [ADR-006](./ADR-006-change-management-backend-contract.md), [ADR-007](./ADR-007-change-record-authority.md), [ADR-008](./ADR-008-multi-activity-change-execution-plan.md)
 - Review packet: [Architect review brief — F3 change authorization](../architect-review-f3-change-authorization.md)
+- **Partial supersession:** [ADR-013](./ADR-013-cab-governance-delegated-low-risk-autonomy.md) supersedes the normal-low baseline and introduces bounded CAB-granted low-risk autonomy. All other ADR-009 authorization semantics remain in force.
 
 ## Context
 
@@ -177,7 +178,9 @@ A fundamentally different business change receives a new Change and `changeId`.
 
 ## Normal-change policy baseline
 
-The F3 MVP policy baseline is configuration, not hardcoded lifecycle behavior:
+> **Superseded for the current target by ADR-013.** The original F3 baseline below is retained as historical architecture context because the accepted F3.1.1a implementation was built from it. New implementation planning must use ADR-013.
+
+Historical ADR-009 baseline:
 
 | Classification/risk | Mandatory pre-execution requirements |
 |---|---|
@@ -185,9 +188,15 @@ The F3 MVP policy baseline is configuration, not hardcoded lifecycle behavior:
 | Normal + medium | One configured primary approval + CAB |
 | Normal + high | One configured primary approval + CAB |
 
-For normal low risk, approval of the primary requirement yields `AUTHORIZED`; a closed window still yields execution `DENY`, and an open valid window/context may yield `ALLOW`.
+Current effective target per ADR-013:
 
-For normal medium/high, one approval with CAB pending remains `PENDING`; both approved yields `AUTHORIZED`.
+| Classification/risk | Mandatory pre-execution requirements |
+|---|---|
+| Normal + low | Primary approval + CAB by default; CAB may later be omitted only by a valid bounded CAB autonomy grant |
+| Normal + medium | Primary approval + CAB |
+| Normal + high | Primary approval + CAB |
+
+Until the bounded autonomy workstream exists, normal-low ledger submissions require both primary and CAB approval. Medium/high are never eligible for the low-risk autonomy path.
 
 ## Emergency policy baseline
 
@@ -205,7 +214,7 @@ When A and B approve, authorization is `AUTHORIZED`. The retrospective does not 
 
 Additional requirements may be proposed before or as part of submission only by an actor authorized through a dedicated backend-enforced capability such as `change.authorization.requirement.add`.
 
-They may resolve to platform users or configured authorities/groups and are additive only. They cannot remove, replace, downgrade, waive, or make optional a policy-generated requirement. Once the Change is submitted, the active round and its effective requirements are immutable. An approver cannot dynamically add another approver in F3 MVP.
+They may resolve to platform users or configured authorities/groups and are additive only. They cannot remove, replace, downgrade, waive, or make optional a policy-generated requirement. **Narrow supersession:** ADR-013 permits only the normal-low CAB requirement to be omitted from a future round's effective requirements when a valid CAB-issued low-risk autonomy grant applies; this is not a general requirement-waiver mechanism. Once the Change is submitted, the active round and its effective requirements are immutable. An approver cannot dynamically add another approver in F3 MVP.
 
 Example: policy produces `P1` and `P2`, and an authorized submission adds `A1`; all three must approve. `A1` cannot replace either policy requirement.
 
@@ -351,7 +360,7 @@ The exact retrospective SLA duration is intentionally a published policy value, 
 | 10 | What happens if its SLA is missed? | Governance becomes `NON_COMPLIANT`; exception/follow-up evidence is recorded. |
 | 11 | Are emergency Approver A/B required to be distinct? | Yes, as distinct human decision actors in the same round; overlap fails closed. |
 | 12 | Are corporate titles present in canonical semantics? | No. |
-| 13 | How are normal low-risk changes authorized? | One configured mandatory pre-execution approval. |
+| 13 | How are normal low-risk changes authorized? | **Current target per ADR-013:** primary + CAB by default. A later bounded CAB autonomy grant may omit only the CAB requirement for an eligible low-risk round. |
 | 14 | How are normal medium/high changes authorized? | One configured mandatory pre-execution approval plus CAB pre-execution approval. |
 | 15 | Can additional mandatory approvers weaken policy? | No; they are additive only. |
 | 16 | Who may add them? | Only an actor granted the dedicated server-enforced capability. |

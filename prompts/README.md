@@ -17,10 +17,10 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- **Fresh independent architecture re-review of the revised F3.1.2 plan** — review [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) after revision commit `6284195`, using the prior REJECT findings in [`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md) as mandatory regression checks.
-- Re-verify the current ADO `platform-devops-developer-portal/feat/ado-repo-governance` tip before deciding. The last independently verified implementation baseline remains `188d8e9`.
-- The re-review must confirm the four corrections are coherent end-to-end: service-orchestrated stored-mode semantics without weakening repository mismatch-CONFLICT; caller-owned `trx`; `requirementId = requirementRole` + uniqueness validation; mandatory rollback runbook correctness gate.
-- **F3.1.2a / F3.1.2b implementation remain NO-GO.** Implementation-prompt authoring remains NO-GO until the revised plan receives an independent `ACCEPT`.
+- **F3.1.2 plan revision — concurrent Round 1 convergence only.** The fresh revised-plan re-review returned `REJECT` with 18/20 gates PASS; the four original architecture blockers are closed. See [`docs/backstage/f3-1-2-revised-plan-architecture-rereview.md`](../docs/backstage/f3-1-2-revised-plan-architecture-rereview.md).
+- Revise [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) so a healthy concurrent same-key/same-payload Round-1 loser has one deterministic contract: roll back its losing transaction, re-read the winner's completed reservation + finalized matching index + Round 1, and return the same logical success; only true committed inconsistency fails closed.
+- Add the required end-to-end concurrency proof to the plan: two concurrent identical create calls converge to the same `changeId`/result with exactly one finalized index, one Round 1, one requirement set, one canonical submission-audit set, one completed reservation, and no Round 2. Add a different-payload concurrent negative case.
+- **F3.1.2a / F3.1.2b implementation and implementation-prompt authoring remain NO-GO.** After the narrow revision, perform a focused fresh re-review.
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
@@ -49,28 +49,20 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 Use a short launcher instead of pasting the long prompt into an agent session.
 
-### Current launcher — F3.1.2 revised-plan architecture re-review
+### Current launcher — F3.1.2 narrow concurrency plan revision
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 
-Independently re-review the revised `docs/backstage/f3-1-2-implementation-plan.md` against ADR-006/007/008/009/012, the prior REJECT review, and the actual current ADO `platform-devops-developer-portal/feat/ado-repo-governance` source.
+Read `docs/backstage/f3-1-2-revised-plan-architecture-rereview.md` and revise only the remaining concurrency ambiguity in `docs/backstage/f3-1-2-implementation-plan.md`.
 
-Re-verify the ADO branch tip before deciding.
+For two concurrent same actor + Idempotency-Key + payload submissions that both reach Round 1 finalization, define one deterministic loser contract: the expected Round-1 uniqueness loser rolls back its transaction, re-reads the winner's durable completed reservation/finalized matching index/Round 1, and returns the same logical success when coherent. Transient DB lock/serialization remains retryable; committed fact mismatch is an invariant error. Never create Round 2.
 
-The revised plan must prove all four corrections without reintroducing ambiguity:
-1. repository explicit authorization-mode mismatch remains CONFLICT; stored-mode-wins is service orchestration for existing reservations and race-safe first insert;
-2. one caller-owned trx governs Round 1 + requirements + audit + index.finalize + idempotency.complete, with DevelopmentProvider joining the same transaction;
-3. requirementId is exactly requirementRole with fail-closed per-rule uniqueness at policy registration/publication;
-4. rollback to pre-F3.1.2 with pending LEDGER_REQUIRED reservations is a mandatory RUNBOOK CORRECTNESS GATE.
+Add an end-to-end concurrency test requirement proving both identical callers converge to the same changeId/result and exactly one finalized index, Round 1, requirement set, canonical submission-audit set, and completed reservation. Add the different-payload concurrent conflict case.
 
-Also verify the corrected crash matrix, visibility invariant, expected source paths, test matrix, two-slice decomposition, no-migration decision, external-provider convergence, and that no stale rejected alternative survives as current architecture.
+Do not reopen the four closed review decisions, do not modify ADO code, and do not create an implementation prompt.
 
-Return exactly ACCEPT or REJECT. Do not implement code and do not author an implementation prompt from the review itself.
-
-Write a fresh factual re-review document (do not overwrite the historical REJECT), update canonical state/progress/prompts, commit documentation only, and STOP.
-
-Only ACCEPT may authorize subsequent F3.1.2a implementation-prompt authoring. F3.1.2a/b implementation remain NO-GO until separate explicit authorization.
+Update canonical docs, mark the revised plan READY_FOR_REREVIEW, commit documentation only, and STOP.
 ```
 ### Historical launcher — F3.1.2 plan architecture review (completed — REJECT)
 

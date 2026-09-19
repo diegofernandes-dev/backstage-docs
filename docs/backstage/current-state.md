@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-19 (F3.1.1b CLOSED / ACCEPTED IMPLEMENTED BASELINE at ADO `188d8e9`; F3.1.2 concurrency plan revision **READY_FOR_REREVIEW**; prior revised-plan re-review REJECT preserved; F3.1.2 implementation remains NO-GO)
+> **Last updated:** 2026-09-19 (F3.1.1b CLOSED / ACCEPTED IMPLEMENTED BASELINE at ADO `188d8e9`; ADR-013 accepted; F3.1.2 concurrency + CAB-safe plan **READY_FOR_REREVIEW**; F3.1.1c CAB-safe policy publication is now a prerequisite before F3.1.2b; implementation remains NO-GO)
 
 ## Stack
 
@@ -109,12 +109,14 @@
 | **F3.1.0 Authorization Ledger Foundation** | **ACCEPTED IMPLEMENTED BASELINE — CLOSED** at ADO `4bad41d` (full SHA `4bad41d058edf5c5314d17275e0c8bdb5abf690f`), the F3.1.0-H typing-only hotfix, a direct child of published commit `7663883` (full SHA `766388393458f82fbdc2e0502b8c193d0a85e605`), which is itself a direct child of `6e28611`. `7663883` remains historically accurate architectural content; only its TypeScript typing was corrected by `4bad41d`. The review lineage `be16ffb` → `7a9347e` → `06ec9cf` is retained as **review-only local evidence** on `review/f3-1-0-cutover-safety`, excluded from official history. |
 | F3.1.1a — Policy domain, registry & publication integrity | **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `d3c0751` (full SHA `d3c0751a15b908cec8f5595c97e52f41226344ed`), direct child of `4bad41d`, on `feat/ado-repo-governance`. Pure, I/O-free published authorization-policy foundation. See [`f3-1-1a-architecture-acceptance.md`](./f3-1-1a-architecture-acceptance.md). |
 | F3.1.1b — Selector bundle, resolver & selector publication integrity | **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `188d8e9` (full SHA `188d8e9cc43423f3644b3cacfb9849257838a583`), direct child of `d3c0751`, on `feat/ado-repo-governance`. Accepted by independent architecture review on 2026-09-19 (`backstage-docs` review baseline `cf9f96c`): G1–G17 all PASS. Selector/config half of F3.1.1 is closed. **`POST /changes` remains unwired; no `AuthorizationRound` is created.** See [`f3-1-1b-architecture-acceptance.md`](./f3-1-1b-architecture-acceptance.md) and [`f3-1-1b-implementation-evidence.md`](./f3-1-1b-implementation-evidence.md). |
-| F3.1.2 — First-round submission integration | **Concurrency plan revision READY_FOR_REREVIEW / implementation NO-GO** — healthy same-key/same-payload Round-1 loser must roll back, re-read coherent winner facts, and return the same logical success; true invariant mismatch remains fail-closed; authoritative PostgreSQL concurrency proof + C3/C4 negatives specified. Historical REJECT re-review preserved: [`f3-1-2-revised-plan-architecture-rereview.md`](./f3-1-2-revised-plan-architecture-rereview.md). Canonical plan: [`f3-1-2-implementation-plan.md`](./f3-1-2-implementation-plan.md). Next: focused independent architecture re-review. Implementation prompt authoring remains NO-GO. |
-| F3.1.3–F3.1.4                        | **NOT AUTHORIZED**                                                                                                                        |
+| F3.1.1c — CAB-safe policy baseline publication | **PLANNED PREREQUISITE / implementation NO-GO** — publish a new immutable policy version per ADR-013: normal-low becomes primary + CAB; medium/high/emergency otherwise unchanged. Existing accepted policy identity remains immutable. Must be accepted before F3.1.2b can enable LEDGER_REQUIRED. |
+| F3.1.2 — First-round submission integration | **Concurrency + CAB-safe plan READY_FOR_REREVIEW / implementation NO-GO** — healthy same-key/same-payload Round-1 loser convergence is deterministic; ADR-013 dependency is explicit. F3.1.2a remains CAB-independent. F3.1.2b consumes the future F3.1.1c CAB-safe policy and contains no autonomy/bypass path. Canonical plan: [`f3-1-2-implementation-plan.md`](./f3-1-2-implementation-plan.md). Next: focused independent architecture re-review. |
+| F3.1.3–F3.1.4 | **NOT AUTHORIZED** |
+| F3.2 — CAB Governance & Delegated Autonomy | **ARCHITECTURE ACCEPTED / implementation NOT AUTHORIZED** — ADR-013 defines bounded Group + System low-risk autonomy, separate CAB decision vs autonomy RBAC, append-only grant/revoke history, all-covered multi-activity rule, prospective revocation, and future CAB Workbench. |
 
-### F3.0.1 accepted authorization architecture (documentation only)
+### Accepted authorization architecture (ADR-009 + ADR-013)
 
-[ADR-009](../adr/ADR-009-change-authorization-model.md) defines the accepted target without changing the F2.2.1 implementation:
+[ADR-009](../adr/ADR-009-change-authorization-model.md), as narrowly superseded by [ADR-013](../adr/ADR-013-cab-governance-delegated-low-risk-autonomy.md), defines the current target without changing the accepted ADO baseline:
 
 | Concern                          | Accepted decision                                                                                                                      |
 | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
@@ -123,7 +125,7 @@
 | Requirements                     | Effective, snapshotted, provider-neutral; policy-generated plus additive mandatory requirements                                        |
 | Decisions                        | Immutable/append-only `approved` or `rejected` human/governance facts                                                                  |
 | Principal identity               | Configured selectors resolved to snapshotted platform principal refs; no titles/names in domain                                        |
-| CAB                              | One collective authority decision by default; recorded by an authorized operator/delegate                                              |
+| CAB                              | One collective Change-decision authority plus a separate governance authority over bounded low-risk autonomy; normal-low requires CAB by default until a valid future autonomy grant applies |
 | Emergency                        | Multiple generic pre-execution approvals plus post-execution CAB retrospective                                                         |
 | Orthogonal state                 | Lifecycle excludes `authorized`; `AUTHORIZED` is derived pre-execution authorization; post-execution governance has its own evaluation |
 | Lifecycle                        | `submitted`, `executing`, `completed`, `rejected`, `cancelled`; start/completion require accepted execution evidence                   |
@@ -142,11 +144,12 @@ See [`implementation-progress.md`](./implementation-progress.md) §12–§19 for
 ### Normative references
 
 - UI contracts: [`gmud-create-screen.md`](../ui/gmud-create-screen.md) · [`gmud-my-changes-screen.md`](../ui/gmud-my-changes-screen.md) · [`gmud-detail-screen.md`](../ui/gmud-detail-screen.md)
-- Architecture decisions: [`docs/adr/`](../adr/README.md) (ADR-001 through ADR-009 on `main`)
+- Architecture decisions: [`docs/adr/`](../adr/README.md) (ADR-001 through ADR-013 on `main`)
 - Backend contract: [ADR-006](../adr/ADR-006-change-management-backend-contract.md)
 - Record authority: [ADR-007](../adr/ADR-007-change-record-authority.md)
 - Execution plan domain: [ADR-008](../adr/ADR-008-multi-activity-change-execution-plan.md)
-- Authorization model: [ADR-009](../adr/ADR-009-change-authorization-model.md) — accepted F3.0.1 architecture; no implementation
+- Authorization model: [ADR-009](../adr/ADR-009-change-authorization-model.md) — accepted base model, partially superseded by ADR-013
+- CAB governance/autonomy: [ADR-013](../adr/ADR-013-cab-governance-delegated-low-risk-autonomy.md) — accepted default-deny low-risk CAB governance and future delegated autonomy
 - Handoff detail: [`implementation-progress.md`](./implementation-progress.md) §9–§19
 
 ### Visual baseline

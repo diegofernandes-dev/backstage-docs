@@ -15,9 +15,14 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 - Do not expand scope to "helpfully" implement the next checkpoint.
 - Prefer a demonstrable vertical product slice over additional horizontal hardening unless a real blocker requires it.
 
-## Current execution prompt
+## Current authorized activity
 
-- [`f3-1-1b-architecture-implementation-acceptance.md`](./f3-1-1b-architecture-implementation-acceptance.md) — independent review-only acceptance gate for the already implemented/published F3.1.1b candidate at ADO `188d8e9cc43423f3644b3cacfb9849257838a583`. Verify lineage/scope, ADR-009 selector/principal semantics, Catalog service-credential resolution, fail-closed behavior, active-pair startup validation, append-only selector-bundle publication, separation-of-duty layer boundaries, and complete isolation from `POST /changes` / AuthorizationRound creation. Return only `ACCEPT` or `REJECT`; do not fix code. `ACCEPT` closes F3.1.1b and authorizes F3.1.2 planning only; F3.1.2 implementation remains NO-GO pending a separate reviewed plan and explicit authorization.
+There is **no current implementation prompt**.
+
+- **F3.1.1b** is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `188d8e9cc43423f3644b3cacfb9849257838a583` — see [`docs/backstage/f3-1-1b-architecture-acceptance.md`](../docs/backstage/f3-1-1b-architecture-acceptance.md).
+- **F3.1.2 planning** is **GO** (review/plan preparation only).
+- **F3.1.2 implementation** remains **NO-GO** until a separate reviewed plan exists and is explicitly authorized.
+- Do not invent or execute an F3.1.2 implementation prompt from this checkpoint.
 
 ## Production-rollout gate — deferred until a real target exists
 
@@ -25,7 +30,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
-- [`f3-1-1b-selector-resolution-implementation.md`](./f3-1-1b-selector-resolution-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583`. Canonical evidence is `docs/backstage/f3-1-1b-implementation-evidence.md`. Architecture implementation acceptance is intentionally separate and is the current checkpoint.
+- [`f3-1-1b-architecture-implementation-acceptance.md`](./f3-1-1b-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.1b as the accepted implemented baseline at ADO `188d8e9`. Authorized F3.1.2 planning only; F3.1.2 implementation remains NO-GO.
+- [`f3-1-1b-selector-resolution-implementation.md`](./f3-1-1b-selector-resolution-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583`. Canonical evidence is `docs/backstage/f3-1-1b-implementation-evidence.md`. Architecture acceptance completed separately (`ACCEPT`).
 - [`pre-rollout-condition-closure.md`](./pre-rollout-condition-closure.md) — completed with `CONDITIONAL_PASS`. C1 token-refresh durability subsequently closed through governed PR #82; C4 alerting was proven. C2/C5 remain target-dependent and are deferred until a real production rollout target exists. C3 is an operational/runbook readiness item and is not a blocker to unrelated platform implementation slices.
 - [`production-adoption-review.md`](./production-adoption-review.md) — completed with `CONDITIONAL_GO` for a narrow first production rollout only: one non-critical/medium-criticality component, one production namespace, platform-owner-attended, two-week observation before any second workload. ADR-012 remains Accepted; no rollout was executed by the review.
 - [`p1-residual-closure-live-cutover.md`](./p1-residual-closure-live-cutover.md) — completed with `PASS`. Live Argo reader and Kargo/Delivery writer were moved from human PATs to distinct non-human Entra service principals; automatic token refresh was implemented; governed P1 GitOps control changes were approved/merged; negative authority evidence and regressions were rechecked.
@@ -41,26 +47,25 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Launcher pattern
 
-Use a short launcher instead of pasting the long prompt into the agent session.
+Use a short launcher instead of pasting the long prompt into an agent session.
 
-### Current launcher — F3.1.1b architecture implementation acceptance
+### Current launcher — F3.1.2 planning only
+
+F3.1.2 implementation is **NO-GO**. When authorized to prepare the plan, fetch `backstage-docs@main`, read the accepted F3.1.1b baseline and carried-forward constraints, and produce a reviewable F3.1.2 plan only. Do not implement.
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 
-Read `prompts/f3-1-1b-architecture-implementation-acceptance.md` and treat it as a strict independent, review-only architecture acceptance contract.
+Treat F3.1.1b at platform-devops-developer-portal@188d8e9 as the accepted
+implemented baseline (docs/backstage/f3-1-1b-architecture-acceptance.md).
 
-Review the exact ADO implementation candidate `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583` on `feat/ado-repo-governance`, with expected parent `d3c0751a15b908cec8f5595c97e52f41226344ed`. Independently inspect source and rerun high-value evidence when access permits; if ADO source is inaccessible, state that limitation explicitly and rely only on canonical evidence without inventing independent verification.
+Prepare an F3.1.2 planning document only. Do not implement code, wire
+POST /changes, create AuthorizationRounds, or modify Delivery/production.
 
-Evaluate every mandatory G1-G17 gate in the prompt: ADR-009 authority boundaries; generic selector semantics; User/Group typing; no authority-member expansion; backend service credentials; fail-closed Catalog resolution; active-pair-only startup validation; selector-bundle digest/immutability; normal append-only publication with no genesis reuse; separation-of-duty layer boundaries; complete submission-path isolation; cross-cutover idempotency preservation; semantic architecture guards; environment/production separation; resolver provenance; no hidden F3.1.2+ behavior in plugin wiring; and test/evidence credibility.
-
-Do not modify implementation, manifest/config, routes, migrations, permissions, frontend, Delivery, or production infrastructure. Do not wire `POST /changes`, create AuthorizationRounds, or begin F3.1.2.
-
-Return exactly `ACCEPT` or `REJECT`. No generic conditional acceptance.
-
-Write the factual result to `docs/backstage/f3-1-1b-architecture-acceptance.md`, update `docs/backstage/current-state.md`, `docs/backstage/implementation-progress.md`, and `prompts/README.md` only as required by the verdict, commit documentation only, and STOP.
-
-If ACCEPT: F3.1.1b becomes CLOSED / ACCEPTED IMPLEMENTED BASELINE; F3.1.2 planning becomes GO; F3.1.2 implementation remains NO-GO pending a separate reviewed plan and explicit authorization.
+Must preserve: LEGACY_PRE_F3 idempotency semantics; fail-closed emergency A/B
+resolved-person distinctness; one canonical snapshot + pinned policy/selector
+bundle + atomic Round 1; fix buildChange()-twice before submission wiring;
+ADR-012 provider-neutral boundaries.
 ```
 
 ### Gated launcher — final rollout-readiness re-review

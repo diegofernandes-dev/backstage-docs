@@ -1398,6 +1398,39 @@ remains **MUST FIX BEFORE F3.1.2**.
 
 ---
 
+## F3.1.1b — Architecture Implementation Acceptance
+
+Documentation baseline SHA: `cf9f96cbf0ae8488a356c32f6f13c0ebb62b2ee3`
+(`diegofernandes-dev/backstage-docs@main` at review start).
+
+Implementation candidate reviewed:
+`platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583`
+(parent `d3c0751a15b908cec8f5595c97e52f41226344ed`, exact match).
+
+Independent source verification: **PARTIAL** — exact SHA inspected and high-value
+tests re-run in an isolated worktree; fresh Azure DevOps `git fetch` failed in
+this session; live Catalog / disposable Postgres were not re-executed and remain
+grounded in the prior implementation evidence.
+
+### Gate
+
+```text
+F3.1.1b architecture implementation acceptance: ACCEPT
+Architecture gates: 17/17 PASS
+F3.1.1b: CLOSED / ACCEPTED IMPLEMENTED BASELINE
+F3.1.2 planning: GO
+F3.1.2 implementation: NO-GO
+ADO implementation modified by this review: NO
+```
+
+Canonical review document:
+[`f3-1-1b-architecture-acceptance.md`](./f3-1-1b-architecture-acceptance.md).
+
+Carried forward unchanged: `buildChange()`-twice **MUST FIX BEFORE F3.1.2**;
+`LEGACY_PRE_F3` reservation semantics; emergency A/B resolved-person distinctness
+at submission; production selector-bundle publication as a production-rollout
+prerequisite; RBAC CSV / conditional policies as an F3.1.4 prerequisite.
+
 ---
 
 ## Next checkpoint template

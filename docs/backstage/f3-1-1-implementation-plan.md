@@ -52,6 +52,23 @@ remains append-only, and the F3.1.1a/F3.1.1b split is unchanged. **F3.1.1a
 implementation remains unauthorized**; no ADO source, test, config, script,
 migration, pipeline, or runtime behavior was modified to produce this revision.
 
+## ADR-013 follow-up (2026-09-19)
+
+The accepted F3.1.1a/F3.1.1b implementation history remains valid and immutable.
+
+[ADR-013](../adr/ADR-013-cab-governance-delegated-low-risk-autonomy.md) changes the **future active policy target** for normal-low Changes from primary-only to primary + CAB by default. Do not edit or reuse the already-published policy identity produced by F3.1.1a.
+
+A narrow follow-up checkpoint, **F3.1.1c — CAB-safe policy baseline publication**, must publish a new immutable policy version using the existing manifest/digest/publication-integrity mechanism before F3.1.2b enables ledger-governed submissions.
+
+F3.1.1c changes only the published policy data needed by the new target:
+- normal.low -> primary + CAB;
+- normal.medium/high unchanged;
+- emergency unchanged;
+- existing `cab-authority` selector reused;
+- no autonomy grants, waiver engine, RBAC, or CAB Workbench.
+
+The bounded autonomy mechanism belongs to F3.2.
+
 ## Objective
 
 F3.1.0 created the durable, append-only authorization ledger

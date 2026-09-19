@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.0 — ADO `7663883` (full SHA `766388393458f82fbdc2e0502b8c193d0a85e605`), published `feat/ado-repo-governance`  
-> **Current GMUD architecture baseline:** F3.0.1 — ADR-009 Accepted; F3.1.0 published as ACCEPTED IMPLEMENTED BASELINE; F3.1.1 planning authorized, implementation not authorized
+> **Current GMUD implementation baseline:** F3.1.1b — ADO `188d8e9` (full SHA `188d8e9cc43423f3644b3cacfb9849257838a583`), CLOSED / ACCEPTED IMPLEMENTED BASELINE on `feat/ado-repo-governance`  
+> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 planning GO, implementation NO-GO
 
 ## How to use this log
 

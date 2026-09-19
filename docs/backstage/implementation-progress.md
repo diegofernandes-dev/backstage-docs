@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.1b — ADO `188d8e9` (full SHA `188d8e9cc43423f3644b3cacfb9849257838a583`), CLOSED / ACCEPTED IMPLEMENTED BASELINE on `feat/ado-repo-governance`  
-> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 first plan review REJECT, revised plan READY_FOR_REREVIEW; implementation NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 revised-plan re-review REJECT (18/20), narrow concurrency revision required; implementation NO-GO
 
 ## How to use this log
 
@@ -1637,3 +1637,29 @@ The rejected first plan was revised without changing ADO implementation. The rev
 ADO source was **not modified** by this revision. The immediately preceding architecture review independently verified ADO `188d8e9` and no F3.1.2-surface drift; the fresh re-review must verify the branch tip again before ACCEPT.
 
 Next gate: **fresh independent architecture re-review of the revised F3.1.2 plan**.
+
+---
+
+## GMUD F3.1.2-RR — Revised-plan architecture re-review (REJECT)
+
+Canonical review: [`f3-1-2-revised-plan-architecture-rereview.md`](./f3-1-2-revised-plan-architecture-rereview.md).
+
+### Outcome
+
+```text
+F3.1.2 revised-plan architecture re-review: REJECT
+Architecture gates: 18/20 PASS
+Original critical blockers closed: 4/4
+Remaining blocker: concurrent Round 1 loser convergence
+F3.1.2a implementation prompt authoring: NO-GO
+F3.1.2a implementation: NO-GO
+F3.1.2b implementation: NO-GO
+```
+
+The re-review accepted every correction from the first REJECT: repository mode-mismatch remains fail-closed while stored-mode-wins is service orchestration; caller-owned transaction is explicit; `requirementId = requirementRole` is locked with publication-time uniqueness; rollback is a mandatory runbook correctness gate.
+
+One remaining implementation-contract ambiguity was found. When two workers concurrently reach the Round 1 transaction for the same logical submission, the plan says the loser may re-read completed state or fail closed, but does not define the exact healthy-race convergence behavior. The required correction is narrow: a loser of the expected Round-1 uniqueness race must roll back, re-read the winner's completed/finalized/Round-1 facts, and return the same logical success when those facts are coherent; true committed inconsistency remains fail-closed. Add an end-to-end concurrent same-key/same-payload test proving one Change, one Round, one requirement/audit set, one completed reservation, and the same logical result to both callers.
+
+Independent ADO source verification in this ChatGPT re-review was **PARTIAL**: it relied on the immediately preceding exact-source review of ADO `188d8e9`; the current ADO tip could not be re-fetched from this environment. This limitation is not the reason for REJECT.
+
+**Next checkpoint:** revise only the concurrency contract and proof, then perform a focused fresh re-review. No implementation prompt yet.

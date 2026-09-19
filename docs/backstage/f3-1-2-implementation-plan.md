@@ -1,31 +1,41 @@
-# F3.1.2 — Fail-Closed Submission + First AuthorizationRound — Implementation Plan
+# F3.1.2 — Fail-Closed Submission + First AuthorizationRound — Revised Implementation Plan
 
-- **Status:** PLANNING COMPLETE — READY FOR INDEPENDENT ARCHITECTURE REVIEW
+- **Status:** REVISED PLANNING COMPLETE — READY FOR INDEPENDENT RE-REVIEW
 - **Date:** 2026-09-19
-- **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009, ADR-012; F3.1 / F3.1.1 plans; F3.1.1a/b accepted baselines
-- **Prompt:** `prompts/f3-1-2-planning.md`
-- **Docs baseline reviewed:** `diegofernandes-dev/backstage-docs@d65bf5e1446e682576557583b841ddde7e5a890c`
-- **ADO baseline inspected:** `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583` (`feat/ado-repo-governance`)
-- **ADO remote tip at planning time:** `188d8e9` (HTTPS `git ls-remote`; SSH fetch unavailable — tip equal to accepted baseline; **no post-baseline drift to reconcile**)
-- **F3.1.2 implementation:** **NO-GO** (this document is planning only)
+- **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009, ADR-012; F3.1 / F3.1.1 plans; F3.1.1a/b accepted baselines; F3.1.2 architecture review decisions
+- **Revision prompt:** `prompts/f3-1-2-plan-revision.md`
+- **Rejected first-plan review:** `docs/backstage/f3-1-2-plan-architecture-review.md` at `backstage-docs@0daa8fc0719bafd4d8b1e2f95c1ad0abeaa03422`
+- **Docs revision baseline:** `diegofernandes-dev/backstage-docs@34d7257e0ed44d991ed9f7085d55125c47904ff7`
+- **ADO accepted implementation baseline:** `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583` (`feat/ado-repo-governance`)
+- **ADO source verification for this revision:** not independently repeated in this checkpoint; the immediately preceding architecture review independently verified exact SHA `188d8e9` and no F3.1.2-surface drift. A fresh re-review must re-verify the branch tip before ACCEPT.
+- **F3.1.2 implementation:** **NO-GO**
 
 ```text
-F3.1.2 planning: READY_FOR_REVIEW
+F3.1.2 revised planning: READY_FOR_REREVIEW
 F3.1.2 implementation: NO-GO
-Planning gates resolved: 20/20
-Challenge scenarios answered: 15/15
+F3.1.2a implementation prompt authoring: NO-GO pending re-review ACCEPT
+F3.1.2a implementation: NO-GO
+F3.1.2b implementation: NO-GO
 Migration required: NO
 Planned implementation slices: 2
-ADO implementation modified by this checkpoint: NO
+ADO implementation modified by this revision: NO
 ```
 
----
 
 ## 1. Status / authority / baselines
 
-### What this plan is
+### Revision status
 
-A reviewable, implementation-ready design for the first composition of:
+The first F3.1.2 plan was independently reviewed and rejected because it left three persisted-semantics decisions wrong or ambiguous and one rollback control optional. This revision incorporates the review decisions as normative architecture:
+
+1. repository explicit authorization-mode mismatch remains fail-closed `CONFLICT`; stored-mode-wins is implemented by service orchestration;
+2. the ledger finalize path must use one caller-owned Knex transaction for all platform writes (and the DevelopmentProvider write);
+3. `requirementId = requirementRole` with fail-closed per-rule role uniqueness at policy registration/publication;
+4. rollback to a pre-F3.1.2 binary while pending `LEDGER_REQUIRED` reservations exist is a mandatory operational correctness gate.
+
+### What this revised plan is
+
+A re-review candidate and implementation contract proposal for the first composition of:
 
 1. existing `POST /changes` / Model C create path;
 2. immutable idempotency `authorization_mode` (`LEGACY_PRE_F3` | `LEDGER_REQUIRED`);
@@ -36,56 +46,49 @@ A reviewable, implementation-ready design for the first composition of:
 ### What this plan is not
 
 - Not implementation authorization.
-- Not an F3.1.2 implementation prompt.
+- Not an F3.1.2a/F3.1.2b implementation prompt.
 - Not F3.1.3 decisions, F3.1.4 RBAC, Teams, CAB UI, Delivery, or execution eligibility transport.
 - Not a claim of distributed atomicity across an external ITSM provider.
+- Not a change to ADR-009 or ADR-012.
 
-### Primary architecture question (answered)
+### Primary architecture answer
 
-> How can F3.1.2 introduce first-round authorization for genuinely new submissions without changing the authorization regime of any pre-existing logical submission, without creating divergent Change snapshots, without weakening Model C/provider isolation, and without leaving ambiguous or unrecoverable partial state across crash/retry boundaries?
-
-**Answer in one paragraph:** A config-owned cutover selects `LEDGER_REQUIRED` only for *new* reservations; an existing reservation’s stored mode wins forever (including across deployment). One canonical `Change` is built once and reused from the pending index snapshot thereafter. Ledger path evaluates the pinned active policy + active selector bundle once, fail-closes on principal/SoD failures *before* Round 1 commit, then persists Round 1 + requirements + submission audit and finalizes the index in the same platform DB transaction that completes idempotency (DevelopmentProvider may join that transaction; a future external provider create remains outside it and reuses F2 orphan/retry reconciliation). Discoverability requires finalized index; for `LEDGER_REQUIRED`, finalize is forbidden unless Round 1 exists. Replay after Round 1 is bound to the durable round artifacts and never re-evaluates a newer policy/bundle. Rollback past a binary that understands `LEDGER_REQUIRED` is forbidden while any pending `LEDGER_REQUIRED` reservation remains.
-
-ADR-009 and ADR-012 are **not** modified; no contradiction was found.
+A genuinely new logical submission receives its authorization mode exactly once when its idempotency reservation is first created. Existing reservations always resume with the stored mode; the service must not re-request the deployment's current default for them. One canonical Change snapshot is built once and durably reused. For `LEDGER_REQUIRED`, policy/selector resolution happens only while Round 1 is absent; all required authorization facts are validated before persistence. On the DevelopmentProvider path, provider state + Round 1 + requirements + submission audit + index finalization + idempotency completion commit in one caller-owned transaction. For an external provider, the provider side effect remains outside the platform transaction and converges by idempotent create/orphan retry. No ledger-governed Change is discoverable until the platform transaction commits. Rollback to a binary that predates the ledger branch is forbidden while pending ledger reservations exist.
 
 ---
 
 ## 2. Current source reality at ADO baseline `188d8e9`
 
-Inspected in isolated worktree at exact SHA `188d8e9cc43423f3644b3cacfb9849257838a583` (parent `d3c0751`). Remote tip confirmed equal via HTTPS `git ls-remote`.
+The independent architecture review inspected the exact accepted SHA `188d8e9cc43423f3644b3cacfb9849257838a583` and found no post-baseline drift on the F3.1.2 surface at review time. This revision does not claim a newer live ADO verification; the fresh re-review must repeat that check.
 
-### P1 inventory — current responsibilities
+### P1 inventory — current responsibilities and verified capabilities
 
-| Surface | Path / symbol | Current responsibility at `188d8e9` |
+| Surface | Path / symbol | Current responsibility / capability at `188d8e9` |
 |---|---|---|
 | HTTP create | `changeManagementPlugin.ts` `POST /changes` | AuthZ permission, Idempotency-Key header, `service.createChange`, 201 JSON |
-| Service create | `ChangeManagementService.createChange` | Parse → reserve (`LEGACY_PRE_F3` only) → recover → buildChange **twice** → `insertPending` → `finalizeCreate` |
-| `buildChange()` | private method | Server `activityId` UUIDs + `createdAt` ISO — **non-deterministic across calls** |
-| Idempotency | `KnexIdempotencyRepository.reserve/claimChangeId/complete` | Actor-scoped key; immutable `authorization_mode`; payload-hash CONFLICT; **mode-mismatch CONFLICT if caller re-requests a different mode** |
-| Index | `KnexChangeIndexRepository` | `insertPending` (`is_finalized=false`), `finalize`, `findFinalizedByChangeId` / `listReadable` (**finalized only**) |
-| Provider | `ProviderRegistry` / `IChangeManagementProvider` / `DevelopmentProvider` | Model C operational record; Dev provider supports `createWithTransaction` + idempotent upsert by `changeId` |
-| Finalize txn | `finalizeCreate` | Dev: single knex txn (provider + finalize + complete). External: provider.create then platform txn (finalize + complete) with `change.create.orphan` on platform failure |
-| Ledger | `KnexAuthorizationLedgerRepository.createRound` | Requires parent `change_index` row; monotonic `roundNumber`; inserts round + requirements in one txn; append-only |
-| Policy | `evaluatePolicy` + `createPolicyRegistry` + published `default-change-authorization@2026-09-02.1` | Pure; input `{classification,risk}` only; not called from submission |
-| Selector | `bootstrapAuthorization` → `AuthorizationRuntime` | Startup-validated active policy + bundle + `CatalogPrincipalResolver`; **held in plugin local, not passed to service** |
-| Guards | `architecture.test.ts` | Asserts `ChangeManagementService` source does **not** contain `createRound(` |
-| Errors | `ChangeManagementError` codes | `VALIDATION_ERROR`, `UNAUTHORIZED`, `FORBIDDEN`, `NOT_FOUND`, `CONFLICT`, `PROVIDER_UNAVAILABLE`, `INTERNAL_ERROR` |
+| Service create | `ChangeManagementService.createChange` | Parse → reserve (service currently omits explicit mode) → recover → `buildChange` **twice** → `insertPending` → `finalizeCreate` |
+| `buildChange()` | private method | Server `activityId` UUIDs + `createdAt` ISO — divergent across the two current calls |
+| Idempotency | `KnexIdempotencyRepository.reserve/claimChangeId/complete` | Actor-scoped key; immutable `authorization_mode`; payload mismatch `CONFLICT`; explicit requested-mode mismatch on an existing row `CONFLICT`; omitting mode returns the stored row without triggering the mode-mismatch check |
+| Index | `KnexChangeIndexRepository` | `insertPending` (`is_finalized=false`), `finalize(..., trx?)`, finalized-only list/detail reads |
+| Provider | `IChangeManagementProvider` / `DevelopmentProvider` | Model C operational record; create is idempotent by `changeId`; DevelopmentProvider supports caller-owned transaction via `createWithTransaction` |
+| Current finalize | `finalizeCreate` | Dev: provider + finalize + complete in one Knex transaction. External: provider create outside platform transaction, then finalize + complete with orphan/retry behavior |
+| Ledger | `KnexAuthorizationLedgerRepository.createRound(..., trx?)` | Inserts Round + requirements; caller-owned `trx` is already supported. If `trx` is omitted it opens/uses an independent transaction path |
+| Ledger audit | `appendAuditEvent(..., trx?)` | Caller-owned `trx` already supported; F3.1.2b must pass the outer transaction explicitly |
+| Policy | `evaluatePolicy` + `createPolicyRegistry` + published `default-change-authorization@2026-09-02.1` | Pure evaluator; current published rules use unique `requirementRole` values, but registry does not yet enforce that uniqueness |
+| Selector | `bootstrapAuthorization` → `AuthorizationRuntime` | Startup-validated active policy + selector bundle + `CatalogPrincipalResolver`; runtime is not yet passed to submission service |
+| Guards | `architecture.test.ts` | Still forbids `ChangeManagementService` from creating a Round |
+| Errors | `ChangeManagementError` | Existing stable codes are sufficient for the planned F3.1.2 error contract |
 
-### Confirmed deviations carried into this plan
+### Confirmed source defects / gaps carried into implementation
 
-1. **Double `buildChange()`** — index pending snapshot and provider/finalize input can diverge (`activityId`, `createdAt`). **Must fix before Round 1 hashing.**
-2. **Authorization runtime unwired** — deliberate F3.1.1b STOP; F3.1.2 wires it.
-3. **Pre-F3.1.2 binary does not refuse `LEDGER_REQUIRED`** — if an old binary recovered a `LEDGER_REQUIRED` reservation it would finalize without Round 1. Cutover/rollback sequencing must make this unreachable (see §6, §19).
+1. **Double `buildChange()`** — must be corrected in F3.1.2a before any Round hash exists.
+2. **Authorization runtime unwired** — deliberate F3.1.1b STOP; F3.1.2b wires it.
+3. **Old-binary rollback hazard** — `188d8e9` accepts an existing `LEDGER_REQUIRED` reservation when mode is omitted and then follows the legacy finalize path with no Round.
+4. **Policy role uniqueness not enforced** — F3.1.2b must add fail-closed registration/publication validation before using `requirementRole` as the canonical requirement ID.
 
-### Drift reconciliation
+### Drift rule for the next review
 
-| Check | Result |
-|---|---|
-| Accepted planning baseline | `188d8e9` |
-| Local `origin/feat/ado-repo-governance` | `188d8e9` |
-| HTTPS remote tip | `188d8e9` |
-| Post-baseline commits on F3.1.2 surface | **None** |
-| Action | Plan against `188d8e9` directly |
+A fresh architecture re-review must verify the current ADO branch tip before ACCEPT. Any drift touching Change creation, idempotency, ledger transaction APIs, policy registry, selector runtime, or provider finalization must be reconciled before this revised plan can become the implementation contract.
 
 ---
 
@@ -135,73 +138,94 @@ POST /changes
 
 ## 5. Proposed submission state machine
 
-### Shared prefix (all modes)
+### Shared prefix and reservation-mode orchestration
 
 ```text
 parse + payloadHash
-→ reserve(idempotency)     [durable regime boundary]
+→ lookup existing idempotency reservation
+   ├─ existing:
+   │    reserve/recover WITHOUT re-requesting deployment default
+   │    repository validates payload; stored authorization_mode wins
+   └─ absent:
+        attempt first reserve with config newSubmissionAuthorizationMode
+        └─ if concurrent unique race is lost:
+             reserve/recover with mode omitted
+             same payload => winner's stored mode wins
+             different payload => CONFLICT
 → if completed → return cached {changeId,status}
-→ if changeId+finalized index → heal complete → return
-→ catalog target + executionPlan validation
+→ validate target + executionPlan
 → ensure changeId claimed
 → ensure pending index exists with ONE canonical Change snapshot
-→ branch on authorizationMode
+→ branch only on reserved.authorizationMode
 ```
 
-### `LEGACY_PRE_F3` branch (unchanged semantics)
+The service never changes a reservation's mode. The repository retains its explicit mode-mismatch fail-closed contract.
+
+### `LEGACY_PRE_F3` branch
 
 ```text
-canonicalChange = index.snapshot
-→ finalizeCreate (provider + finalize + complete)   [existing Model C]
+canonicalChange = durable pending index snapshot
+→ existing F2 Model C finalize path
+→ provider + index.finalize + idempotency.complete
 → return {changeId, status: submitted}
 ```
 
-No policy, no selector resolution, no Round.
+No policy, selector resolution, Round, requirement, or authorization audit.
 
 ### `LEDGER_REQUIRED` branch
 
+Healthy pending state for a new F3.1.2 submission has no committed Round 1 yet.
+
 ```text
-canonicalChange = index.snapshot
-→ if Round 1 already exists:
-     skip policy/selector; jump to finalizeCreateLedgerRecovery
-→ else:
-     bind pins from AuthorizationRuntime (activePolicy, selectorBundle)
-     evaluatePolicy(activePolicy, {classification, risk})
-     resolve each requirement.selectorKey via principalResolver
-     validate requiredPrincipalType vs snapshot.principalType
-     fail-closed separation-of-duty on resolved User refs
-     build AuthorizationRound(roundNumber=1, ...) + audit events (in memory)
-→ finalizeCreateLedger:
-     [Dev provider] ONE platform txn:
-        provider.createWithTransaction(canonicalChange)
-        ledger.createRound(round)          # inserts requirements
-        ledger.appendAuditEvent(...) × N
-        index.finalize(...)
-        idempotency.complete(...)
-     [External provider] provider.create OUTSIDE txn, then platform txn:
-        createRound + audits + finalize + complete
-        on platform failure → change.create.orphan + retryable PROVIDER_UNAVAILABLE
+canonicalChange = durable pending index snapshot
+→ pin immutable AuthorizationRuntime references for this attempt
+→ evaluate active published policy exactly once
+→ resolve required selector principals in deterministic order
+→ validate principal types
+→ validate submission-time separation of duty
+→ build Round 1 + requirements + submission audit events in memory
+→ provider/platform finalization:
+   DevelopmentProvider:
+     BEGIN caller-owned trx
+       provider.createWithTransaction(trx, canonicalChange)
+       ledger.createRound(round1, trx)
+       ledger.appendAuditEvent(event, trx) × N
+       index.finalize(..., trx)
+       idempotency.complete(..., trx)
+     COMMIT
+   External provider:
+     provider.create(canonicalChange) outside platform trx (idempotent by changeId)
+     BEGIN caller-owned platform trx
+       ledger.createRound(round1, trx)
+       ledger.appendAuditEvent(event, trx) × N
+       index.finalize(..., trx)
+       idempotency.complete(..., trx)
+     COMMIT
 → return {changeId, status: submitted}
 ```
 
-### Authoritative completion condition (LEDGER)
+If a committed Round 1 is observed while the same reservation/index are still pending/unfinalized, that state is not a normal F3.1.2 crash window because Round/finalize/complete must commit together. F3.1.2 fails closed on that invariant breach; it does not create Round 2 and does not silently heal around an atomicity violation.
 
-A logical `LEDGER_REQUIRED` submission is **complete** iff all hold:
+### Authoritative completion condition
 
-1. `change_idempotency.state = completed`;
-2. `change_index.is_finalized = true` with matching `authorization_mode`;
-3. `change_authorization_rounds` contains `(changeId, roundNumber=1)` with mandatory requirements rows;
-4. provider record exists for `changeId` (reconciled on retry if orphaned).
+For `LEDGER_REQUIRED`, completion is the successful platform-transaction commit that makes these durable together:
 
-Readers (`GET` list/detail) observe the Change only when (2) holds; (3) is enforced as a precondition of (2).
+1. Round 1 and effective requirements;
+2. required submission authorization audit events;
+3. `change_index.is_finalized = true`;
+4. `change_idempotency.state = completed`.
+
+On the DevelopmentProvider path, the provider write joins that same transaction. On an external-provider path, provider existence is a prerequisite side effect outside the transaction and is reconciled by idempotent create on retry.
+
+Readers remain index-finalization based; therefore a ledger-governed Change cannot become discoverable before Round 1 is committed.
 
 ---
 
 ## 6. Authorization-regime cutover decision
 
-### Decision (required #1)
+### Decision
 
-**Cutover mechanism:** a single required config pin under existing authorization config:
+One config pin under the existing authorization configuration:
 
 ```yaml
 changeManagement:
@@ -211,47 +235,76 @@ changeManagement:
 
 | Property | Rule |
 |---|---|
-| Owner | Platform/DevOps via reviewed app-config (same ownership as active policy pin) |
-| Default at F3.1.2 land | `LEGACY_PRE_F3` (binary ships capable; ledger path dark until enabled) |
-| Startup validation | Value must be exactly one of the two enums; invalid → fail boot |
-| Applies to | **First insert only** of a new idempotency reservation |
-| Does not apply to | Existing reservations — stored `authorization_mode` always wins |
-| Rollback of switch | Setting back to `LEGACY_PRE_F3` stops *new* ledger reservations; does not reinterpret existing `LEDGER_REQUIRED` rows |
+| Owner | Platform/DevOps via reviewed Backstage app-config |
+| Default when F3.1.2 capability first deploys | `LEGACY_PRE_F3` |
+| Startup validation | Exact enum only; invalid value fails boot |
+| Applies to | First creation of a genuinely new idempotency reservation |
+| Never applies to | Existing reservations |
+| Switch LEDGER → LEGACY | Stops creating new ledger reservations; existing ledger reservations continue ledger path |
+| Generalized feature-flag framework | Not introduced |
 
-No generalized feature-flag framework.
+### Repository contract remains unchanged
 
-### Reserve semantics refinement (required for cutover safety)
+```text
+payload mismatch on existing key                => CONFLICT
+explicit requested authorizationMode mismatch   => CONFLICT
+stored authorization_mode                       => immutable
+```
 
-**Today (`188d8e9`):** retry that *re-requests* a different `authorizationMode` → `CONFLICT`.
+F3.1.2 must **not** weaken this repository behavior.
 
-**F3.1.2 required behavior:** on an existing row, **stored mode always wins**; a differing requested mode is **not** a CONFLICT (optional warn log only). Payload mismatch remains CONFLICT.
+### Service orchestration — stored mode wins without weakening the repository
 
-Rationale: F3.1.0-P / planning contract forbid a misleading conflict merely because the deployed binary now defaults to `LEDGER_REQUIRED`. The F3.1.0-V test asserting mode-mismatch CONFLICT must be updated to assert “stored wins”.
-
-Service algorithm:
+Normative algorithm:
 
 ```text
 desiredMode = config.newSubmissionAuthorizationMode
-reserved = idempotency.reserve({ ..., authorizationMode: desiredMode })
-# repository: insert with desiredMode OR return existing (ignore desiredMode mismatch)
-mode = reserved.authorizationMode   # never the desiredMode if existing
-if mode == LEGACY → legacy path
-if mode == LEDGER_REQUIRED → ledger path (even if config later flipped off)
+existing = idempotency.find(lookup)   # add/read-only lookup if not already exposed
+
+if existing:
+  # validate payload and recover existing reservation without re-requesting config mode
+  reserved = idempotency.reserve({
+    ...lookup,
+    payloadHash,
+    # authorizationMode intentionally omitted
+  })
+else:
+  try:
+    reserved = idempotency.reserve({
+      ...lookup,
+      payloadHash,
+      authorizationMode: desiredMode,
+    })
+  catch CONFLICT:
+    # handles a concurrent first-insert race without parsing an error message.
+    # If the race winner used the same payload, recover its stored mode.
+    # If the payload differs, this second reserve remains CONFLICT.
+    reserved = idempotency.reserve({
+      ...lookup,
+      payloadHash,
+      # authorizationMode intentionally omitted
+    })
+
+mode = reserved.authorizationMode
+branch on mode only
 ```
+
+The read-only lookup is orchestration support, not a semantic change to `reserve`. If the implementation baseline already exposes an equivalent lookup through the repository interface, use it; otherwise add the smallest read-only repository method in F3.1.2b.
 
 ### Required cases
 
 | Case | Behavior |
 |---|---|
-| Existing `LEGACY_PRE_F3` + same payload after F3.1.2 | Resume legacy path; no policy |
-| Existing `LEGACY_PRE_F3` + mismatching payload | `CONFLICT` before Catalog/policy |
-| Existing `LEDGER_REQUIRED` + crash retry | Resume ledger recovery; no second Round |
-| No reservation yet + switch `LEDGER_REQUIRED` | Insert `LEDGER_REQUIRED`; ledger path |
-| No reservation yet + switch `LEGACY` | Insert `LEGACY_PRE_F3`; legacy path |
-| Two concurrent first attempts same actor/key | Unique constraint on idempotency PK arbitrates; loser observes winner’s row |
-| Same key different actor | Independent reservations (unchanged) |
+| Existing `LEGACY_PRE_F3` + same payload after config flips to LEDGER | Stored legacy mode; legacy path; no policy work |
+| Existing `LEGACY_PRE_F3` + different payload | `CONFLICT` before policy/Catalog |
+| Existing `LEDGER_REQUIRED` + config flipped to LEGACY | Stored ledger mode; ledger path |
+| New row + current config LEDGER | First winner stores `LEDGER_REQUIRED` |
+| New row + current config LEGACY | First winner stores `LEGACY_PRE_F3` |
+| Concurrent first attempts with different desired defaults | Idempotency unique key chooses one winner; loser recovers winner's row with mode omitted if payload matches |
+| Explicit repository caller re-requests a different mode | Repository still returns `CONFLICT` |
+| Same key under different actor | Independent reservation, unchanged |
 
-Regime is **never** inferred from app version, schema version, wall clock, branch, or mere presence of ledger tables.
+Authorization regime is never inferred from app version, schema version, deployment time, wall clock, branch, or mere table presence.
 
 ---
 
@@ -319,106 +372,146 @@ On SoD failure: no Round, no finalize, pending index may exist (invisible); clie
 
 ## 10. Effective requirement + Round 1 mapping
 
-### Additive mandatory requirements — Decision (required #7)
+### Additive mandatory requirements
 
-**DEFER** outside F3.1.2. Request contract and dedicated permission (`change.authorization.requirement.add` conceptual) are not ready. F3.1.2 persists `source: 'policy'` only.
+**DEFER** outside F3.1.2. F3.1.2 materializes policy-sourced requirements only.
+
+### Canonical requirement identity
+
+Normative rule:
+
+```text
+requirementId = requirementRole
+```
+
+There is no hash fallback and no runtime alternate scheme.
+
+Hard policy invariant:
+
+> Within the effective `requirements[]` of every published rule, `requirementRole` must be unique.
+
+F3.1.2b must enforce that invariant fail-closed at policy registration/publication/startup (extend `createPolicyRegistry` or the existing equivalent validation boundary). A duplicate role prevents the policy from becoming usable; submission must never discover the collision while materializing a Round.
 
 ### Requirement field mapping
 
 | `ApprovalRequirement` field | Source |
 |---|---|
-| `changeId` / `roundNumber` | Parent round (`1`) |
-| `requirementId` | Server: stable round-local id = `requirementRole` (unique per published rule set; deterministic, no UUID drift on retry-before-commit). If collision ever appears across roles, use `sha256Canonical({role,selectorKey}).slice(0,32)` — pick one scheme and test it; **prefer `requirementRole` as id** given current published artifact uniqueness |
+| `changeId` / `roundNumber` | Parent Round 1 |
+| `requirementId` | Exactly `RequirementDefinition.requirementRole` |
 | `kind` / `phase` / `mandatory` | `RequirementDefinition` |
 | `source` | `'policy'` |
 | `sourceRef` | `requirementRole` |
-| `sourceProvenance` | Round `policyProvenance` (policy identity provenance string) |
+| `sourceProvenance` | Round policy provenance |
 | `principalSnapshot` | Resolver output |
-| `separationOfDutyKey` | Definition (optional) |
-| `slaPolicyKey` / `slaPolicyVersion` | Round’s `policyKey` / `policyVersion` when definition has `sla`; else omitted |
-| `slaDurationSeconds` / `slaAnchor` | Definition `sla` |
-| `createdAt` | Server timestamp shared with round `createdAt` for all requirements in the round |
-| `addedByActorRef` / `additionReason` | Omitted (no additive path) |
+| `separationOfDutyKey` | Definition, if present |
+| `slaPolicyKey` / `slaPolicyVersion` | Round policy identity when the definition has SLA metadata |
+| `slaDurationSeconds` / `slaAnchor` | Definition SLA |
+| `createdAt` | Same server timestamp as Round 1 creation |
+| `addedByActorRef` / `additionReason` | Omitted |
 | `decision` | Absent |
 
-Requirements are immutable after insert (existing triggers).
+Requirements are immutable after insert.
 
 ### Round 1 record
 
 | Field | Value |
 |---|---|
 | `roundNumber` | `1` |
-| `changeSnapshot` / `changeSnapshotSha256` | Canonical index snapshot + `sha256Canonical` |
-| Policy identity fields | From evaluation result / active policy |
+| `changeSnapshot` / `changeSnapshotSha256` | Canonical pending-index snapshot + existing `sha256Canonical` |
+| Policy identity fields | Pinned active published policy/evaluation result |
 | `policyInput` | `{ classification, risk }` only |
-| Selector bundle fields | From `selectorBundle` (`contentDigest` → `selectorBundleSha256`) |
-| `createdAt` | One server ISO timestamp for the round |
-| `requirements` | Mapped as above |
+| Selector-bundle identity fields | Pinned active selector bundle identity/digest/provenance |
+| `createdAt` | One server timestamp |
+| `requirements` | Deterministic mapping above |
 
-### Minimum audit events (ADR-009 submission subset)
+### Minimum submission authorization audit
 
-Append in the same platform transaction as Round 1 (system identity `systemRef: 'change-management'`):
+Append inside the same caller-owned platform transaction as Round 1:
 
-| `eventType` | Payload (low cardinality) |
+| `eventType` | Payload |
 |---|---|
-| `change.authorization.round_created` | `{ roundNumber: 1, changeSnapshotSha256, policyKey, policyVersion, selectorBundleKey, selectorBundleVersion }` |
-| `change.authorization.policy_selected` | `{ policyKey, policyVersion, policyArtifactSha256, matchedRuleProvenance, policyInputSha256 }` |
-| `change.authorization.selector_bundle_bound` | `{ selectorBundleKey, selectorBundleVersion, selectorBundleSha256 }` |
-| `change.authorization.requirement_materialized` | one per requirement: `{ requirementId, selectorKey, principalType, resolvedPrincipalRef }` (refs are Catalog entity refs already used as principals — not emails) |
+| `change.authorization.round_created` | Round number, Change hash, policy identity, selector-bundle identity |
+| `change.authorization.policy_selected` | Policy key/version/digest, matched-rule provenance, input hash |
+| `change.authorization.selector_bundle_bound` | Bundle key/version/digest |
+| `change.authorization.requirement_materialized` | One event per requirement with requirementId, selectorKey, principalType, resolved principal ref |
 
-No decision, rejection, execution, or eligibility events.
+No decision, rejection, execution, or eligibility events are introduced by F3.1.2.
 
 ---
 
 ## 11. Transaction boundaries and crash-recovery matrix
 
-### Decision (required #3)
+### Transaction contract
 
-**Do not claim distributed atomicity.** Stores and participation:
+Do not claim distributed atomicity.
 
-| Store | Same DB as platform knex? | In create txn today? |
+| Store / action | Platform DB? | F3.1.2 transaction rule |
 |---|---|---|
-| `change_idempotency` | Yes | Reserve **before** create txn; complete **inside** finalize txn |
-| `change_index` | Yes | Pending outside/before; finalize inside |
-| Authorization ledger | Yes | **New:** createRound + audits inside finalize txn for LEDGER |
-| `DevelopmentProvider` | Yes (same knex) | Inside finalize txn via `createWithTransaction` |
-| Future external provider | **No** | `create` outside; platform txn after |
+| Idempotency reservation / changeId claim | Yes | Durable before final platform transaction |
+| Pending index snapshot | Yes | Durable and invisible before final platform transaction |
+| `ledger.createRound(round1, trx)` | Yes | Caller-owned platform `trx` is mandatory |
+| `ledger.appendAuditEvent(event, trx)` | Yes | Same caller-owned platform `trx` is mandatory |
+| `index.finalize(..., trx)` | Yes | Same caller-owned platform `trx` |
+| `idempotency.complete(..., trx)` | Yes | Same caller-owned platform `trx` |
+| DevelopmentProvider create | Same Knex DB | Joins same caller-owned `trx` |
+| Future external provider create | No / independent authority | Outside platform `trx`; idempotent by `changeId` |
 
-### Crash matrix
+Calling `createRound(round1)` or `appendAuditEvent(event)` without the outer `trx` from the LEDGER finalization path is an implementation defect.
+
+### Corrected crash matrix
 
 | # | Crash point | Durable facts | Retry behavior |
 |---|---|---|---|
-| C1 | After reserve, before changeId claim | Idempotency pending, mode set, no changeId | Claim new/existing changeId; continue |
-| C2 | After changeId, before pending index | Reservation has changeId; no index | `buildChange` once → `insertPending` |
-| C3 | After pending index, before provider | Pending invisible index; no round | Reuse snapshot; LEDGER: evaluate if no round |
-| C4 | After provider create, before platform txn (external) | Provider orphan possible | F2 orphan log; retry `provider.create` by changeId (idempotent); then platform txn |
-| C5 | During platform txn before commit | Nothing new durable | Retry from C3/C4 |
-| C6 | After Round 1+finalize committed, before idempotency complete | Finalized + Round 1 | `healCompletedIdempotency` / complete; return success |
-| C7 | After complete, response lost | Fully complete | `reserve` sees `completed` → return same `{changeId,status}` |
+| C1 | After reservation, before changeId claim | Pending reservation with immutable mode | Claim/recover changeId; continue on stored mode |
+| C2 | After changeId claim, before pending index | Reservation + changeId | Build Change once and insert pending snapshot |
+| C3 | After pending index, before policy/provider | Reservation + canonical invisible snapshot | Reuse snapshot; evaluate/resolve because no Round is committed |
+| C4 | External provider create succeeds, before platform transaction | External provider orphan + pending invisible platform state | Log/recover orphan; retry idempotent provider create by same `changeId`, then attempt platform transaction |
+| C5 | Failure anywhere inside platform transaction before commit | No Round/requirement/audit/finalize/complete writes from that transaction are durable; DevelopmentProvider write also rolls back | Retry from pending snapshot (external provider may already exist and is idempotently reconciled) |
+| C6 | Platform transaction commits, response not yet delivered | Round 1 + requirements + audit + finalized index + completed idempotency are all durable together; Dev provider durable too | Retry observes completed reservation and returns same logical result |
+| C7 | Response lost after commit | Same fully durable state as C6 | Idempotent completed return |
 
-### LEDGER extension to F2 orphan semantics
+There is **no normal F3.1.2 state** where Round 1/finalized index are committed but idempotency completion from the same path is still pending.
 
-Reuse `change.create.orphan` when external provider succeeded and platform txn failed. On retry, before finalize: if Round 1 missing, create it in the platform txn; if Round 1 present, only finalize+complete as needed. **Never** call `createRound` with `roundNumber=2` from submission retry — monotonic guard + `findRound(1)` short-circuit.
+A committed Round 1 alongside pending/unfinalized platform state is an invariant breach, not a normal recovery milestone; fail closed rather than inventing Round 2 or silently normalizing the inconsistency.
 
-### DevelopmentProvider path
+### External-provider convergence
 
-Single knex transaction includes provider upsert + `createRound` + audits + finalize + complete. Stronger atomicity than external providers; still not a general distributed claim.
+External provider create remains outside the platform transaction. Correctness is retry convergence:
+
+1. provider create must be idempotent by canonical `changeId`;
+2. provider success + platform transaction failure creates an orphan/retry situation;
+3. retry repeats idempotent provider create and then retries the complete platform transaction;
+4. no XA/2PC or outbox framework is introduced in F3.1.2.
 
 ---
 
 ## 12. Visibility / finalization invariant
 
-### Decision
-
 | Reader | Sees Change when |
 |---|---|
-| `GET /changes` | `is_finalized=true` (+ participant predicate) |
-| `GET /changes/:id` | `findFinalizedByChangeId` |
-| Future authorization reads | Round exists (F3.1.3+); out of scope to expose now |
+| `GET /changes` | `change_index.is_finalized=true` plus participant predicate |
+| `GET /changes/:id` | finalized index route |
+| Future authorization reads | Out of scope for F3.1.2 |
 
-**Invariant:** never finalize a `LEDGER_REQUIRED` index row unless `findRound(changeId,1)` would succeed inside the same transaction (check-then-finalize). Conversely, unfinalized pending + optional absent round remains invisible.
+For a new `LEDGER_REQUIRED` submission, **visibility authority is the platform transaction itself**:
 
-**Authoritative completion:** §5 completion condition.
+```text
+create Round 1 + requirements
+append required submission audit
+finalize index
+complete idempotency
+COMMIT
+```
+
+These writes use the same caller-owned `trx`. Do not use a non-transactional `findRound()` check as the authority that permits index finalization.
+
+Therefore:
+
+- before commit: index remains pending/invisible and no Round from that attempt is durable;
+- after commit: Round 1 and finalized index are durable together;
+- a finalized LEDGER Change without Round 1 is a correctness violation.
+
+Legacy finalized Changes and legacy create semantics remain unchanged.
 
 ---
 
@@ -428,26 +521,42 @@ Single knex transaction includes provider upsert + `createRound` + audits + fina
 
 | Invariant | Mechanism |
 |---|---|
-| No duplicate provider record | Provider upsert / create-by-changeId |
-| No duplicate index | PK on `change_id`; insert race → re-read |
-| No Round 2 from submission retry | `findRound(1)` short-circuit; `createRound` monotonicity |
-| No duplicate Round 1 | Unique `(change_id, round_number)` |
-| No duplicate requirements | Inserted only with Round 1 |
-| No principal drift after Round 1 | Skip resolve when round exists |
-| No policy/bundle drift after Round 1 | Skip evaluate when round exists |
-| Conflicting payload | `CONFLICT` at reserve |
+| Authorization regime never changes | Existing reservation's stored `authorization_mode` is the only branch authority |
+| Repository explicit mode reinterpretation remains fail-closed | Existing `reserve` mismatch-CONFLICT contract retained |
+| No duplicate provider record | Provider create idempotent by `changeId` |
+| No duplicate index | `change_id` uniqueness + pending snapshot reuse |
+| No Round 2 from initial-submission retry | Round 1 is the only submission round; DB uniqueness/monotonic rules remain |
+| No duplicate requirements/audit from a committed submission | They commit once with Round 1 in the platform transaction |
+| No principal/policy drift after commit | Completed reservation short-circuits; Round 1 is durable evidence |
+| Conflicting payload | Repository `CONFLICT` before policy/Catalog work |
+| Canonical Change stability | Pending index snapshot reused; no second `buildChange()` on recovery |
 
-### Concurrency
+### Reservation concurrency
+
+Two processes may race to create the first reservation while running different deployment defaults.
+
+Correctness sequence:
+
+1. both pre-read no row;
+2. both attempt `reserve(... authorizationMode=desiredMode)`;
+3. DB unique key chooses one winner;
+4. loser handles the conflict by re-reserving/recovering with mode omitted;
+5. same payload → winner's stored mode is returned;
+6. different payload → remains `CONFLICT`.
+
+The service never overwrites the winner's mode.
+
+### Other concurrency
 
 | Scenario | Arbiter |
 |---|---|
-| Two workers same actor/key | Idempotency PK unique insert |
-| Duplicate index insert | `change_id` PK; loser re-reads |
+| Duplicate pending-index insert | `change_id` uniqueness; loser re-reads canonical snapshot |
 | Concurrent provider create | Provider idempotency by `changeId` |
-| Two different keys | Two Changes |
-| Retry vs in-flight complete | Finalized/completed short-circuits; DB constraints on double finalize/complete are benign (complete updates `state=pending` only) |
+| Concurrent Round 1 platform transactions | DB uniqueness + one transaction wins; loser re-reads completed/finalized state or fails closed on invariant mismatch |
+| Two different idempotency keys | Two independent Changes |
+| Retry racing with commit | Before commit sees pending; after commit sees completed; no partial Round/finalize visibility |
 
-**No in-memory mutex as correctness authority.**
+No in-memory mutex is correctness authority.
 
 ---
 
@@ -537,225 +646,306 @@ Never log emails, tokens, raw evidence/comments, or full provider payloads.
 
 ## 19. Deployment and rollback sequencing
 
-### Decision (required #10)
+### Verified old-binary threat model
 
-**Question:** What happens to a logical submission reserved as `LEDGER_REQUIRED` if the binary rolls back before completion?
+At `188d8e9`:
 
-**Answer:** A pre-F3.1.2 binary must **never** process that reservation. Therefore:
+1. service calls `reserve` without an explicit mode;
+2. an existing `LEDGER_REQUIRED` reservation is returned rather than rejected for mode mismatch;
+3. service copies the stored mode but has no ledger branch;
+4. it follows the legacy provider/finalize/complete path and can make the Change discoverable with no Round 1.
 
-### Safe sequence
+Therefore rollback to a pre-F3.1.2 binary while a ledger reservation is pending is a **correctness hazard**.
 
-1. **Deploy F3.1.2 binary** with `newSubmissionAuthorizationMode: LEGACY_PRE_F3` (ledger path present but unused for *new* keys).
-2. Verify legacy + recovery tests in target env.
-3. **Enable** `LEDGER_REQUIRED` for new submissions.
-4. **Rollback rules:**
-   - **Switch rollback** (LEDGER → LEGACY): allowed anytime; pending `LEDGER_REQUIRED` still handled by F3.1.2 binary ledger path; new keys become legacy.
-   - **Binary rollback to pre-F3.1.2:** **FORBIDDEN** while any `change_idempotency` row exists with `authorization_mode='LEDGER_REQUIRED'` AND `state='pending'`. Ops must drain (complete or abandon via supported recovery) first.
-   - Optional hard guard in F3.1.2a/b: if somehow an older build is unavoidable, do not ship cutover enablement until monitoring proves zero pending ledger reservations.
+### Safe deployment sequence
 
-5. Document runbook query:
+1. Deploy F3.1.2-capable binary with:
+   `newSubmissionAuthorizationMode: LEGACY_PRE_F3`.
+2. Prove legacy create/recovery behavior and F3.1.2a invariants.
+3. Intentionally enable `LEDGER_REQUIRED` for new reservations.
+4. Existing reservations always continue using their stored mode.
+5. Switching config back to `LEGACY_PRE_F3` is allowed on the F3.1.2-capable binary; it affects new reservations only.
+
+### Mandatory rollback correctness gate
+
+Before rollback to **any binary that predates F3.1.2 ledger submission support**, operators must run:
 
 ```sql
-SELECT COUNT(*) FROM change_idempotency
-WHERE authorization_mode = 'LEDGER_REQUIRED' AND state = 'pending';
+SELECT COUNT(*)
+FROM change_idempotency
+WHERE authorization_mode = 'LEDGER_REQUIRED'
+  AND state = 'pending';
 ```
 
-Must be `0` before binary rollback past F3.1.2.
+Required result:
 
-This is a **compatibility gate + config sequencing**, not a feature-flag product.
+```text
+0
+```
+
+If the count is nonzero, binary rollback is **FORBIDDEN** until those logical submissions are completed/drained through supported F3.1.2 recovery.
+
+This is a mandatory **RUNBOOK CORRECTNESS GATE** for F3.1.2. It is not an optional code guard. Deployment automation may enforce the same query in the future, but such automation is outside this slice unless separately authorized.
+
+Completed ledger submissions remain durable facts and do not block rollback solely because they exist; the hazard is pending ledger reservations that an old binary could finalize without Round 1.
 
 ---
 
 ## 20. Test matrix
 
-### Pure / domain (unit)
-
-| ID | Case | Dialect |
-|---|---|---|
-| U1 | Single `buildChange` → identical snapshot/hash for index & round | n/a |
-| U2 | Policy input derivation `{classification,risk}` only | n/a |
-| U3 | Requirement mapping from definition + snapshot | n/a |
-| U4 | Emergency A/B same `User` ref rejected | n/a |
-| U5 | Deterministic Round 1 construction (stable requirementIds) | n/a |
-
-### Idempotency / cutover (unit + integration)
+### F3.1.2a — canonical Change
 
 | ID | Case |
 |---|---|
-| I1 | Legacy reservation retry after F3.1.2 binary + switch LEDGER → legacy path |
-| I2 | New LEDGER happy path |
-| I3 | Same key/same payload replay after complete |
-| I4 | Same key/different payload CONFLICT (no policy work) |
-| I5 | Stored mode wins when desired mode differs (replace old CONFLICT test) |
-| I6 | Crash C1–C7 recovery (failure injection) |
+| A1 | One logical create calls `buildChange()` at most once before pending snapshot exists |
+| A2 | Provider input and pending index snapshot are structurally identical |
+| A3 | Recovery with existing pending index never rebuilds activity IDs/timestamps |
+| A4 | Existing F2 create/recovery regressions remain green |
 
-### Persistence
+### Idempotency / cutover
+
+| ID | Case |
+|---|---|
+| I1 | Repository explicit authorization-mode mismatch remains `CONFLICT` (keep F3.1.0-V contract) |
+| I2 | Existing LEGACY reservation + config LEDGER resumes legacy with no policy work |
+| I3 | Existing LEDGER reservation + config LEGACY resumes ledger |
+| I4 | New reservation stores the current config mode |
+| I5 | Same key / same payload replay returns same logical result |
+| I6 | Same key / different payload is `CONFLICT` before policy/Catalog |
+| I7 | Concurrent first insert across processes with different desired defaults converges on DB winner's stored mode |
+| I8 | Same key under different actor remains independent |
+
+### Policy / requirement identity
+
+| ID | Case |
+|---|---|
+| Q1 | Duplicate `requirementRole` inside one published rule fails registry/publication/startup validation |
+| Q2 | Round materialization always sets `requirementId === requirementRole` |
+| Q3 | Retry-before-commit uses the same single identity scheme; no hash fallback |
+| Q4 | Active published policy/bundle used and exact identities persisted |
+
+### Principal resolution / SoD
+
+| ID | Case |
+|---|---|
+| S1 | Catalog principal missing → fail closed; no platform final transaction |
+| S2 | Catalog unavailable → retryable provider-unavailable semantics; no Round durable |
+| S3 | Required principal-type mismatch fails closed |
+| S4 | Emergency A/B resolving to same User ref → `CONFLICT` with `details.reason=separation_of_duty`; no Round durable |
+| S5 | Different User refs materialize deterministic requirements |
+
+### Caller-owned transaction — SQLite + disposable PostgreSQL
 
 | ID | Case | SQLite | Postgres |
 |---|---|---|---|
-| P1 | Round+requirements+audit commit | ✓ | ✓ |
-| P2 | Platform txn rollback leaves no round/finalize | ✓ | ✓ |
-| P3 | Uniqueness / concurrent createRound(1) | ✓ | ✓ |
-| P4 | Finalize rejected without Round 1 (LEDGER) | ✓ | ✓ |
-| P5 | Immutability triggers still pass | ✓ | ✓ |
+| T1 | DevelopmentProvider + Round + requirements + audit + index.finalize + idempotency.complete use one caller-owned `trx` | ✓ | ✓ |
+| T2 | Throw after `createRound(..., trx)` before commit → no provider/Round/audit/finalize/complete mutation durable | ✓ | ✓ |
+| T3 | Throw after audit append before finalize → entire platform transaction rolls back | ✓ | ✓ |
+| T4 | Successful commit exposes Round/requirements/audit/finalized index/completed idempotency together | ✓ | ✓ |
+| T5 | Service/unit transaction spy proves non-undefined outer `trx` is passed to `createRound` and every `appendAuditEvent` call | ✓ | ✓ |
+| T6 | Concurrent Round 1 create is constrained by DB uniqueness; no Round 2 from submission retry | ✓ | ✓ |
+| T7 | Immutability triggers remain green | ✓ | ✓ |
 
-### Provider / Model C
-
-| ID | Case |
-|---|---|
-| M1 | Dev provider success inside shared txn |
-| M2 | External fake provider fail before create |
-| M3 | External success + platform txn fail → orphan log + retry converges |
-| M4 | No provider-specific auth fields in round JSON |
-
-### Policy / selector
+### External Model C provider
 
 | ID | Case |
 |---|---|
-| S1 | Active published policy/bundle used |
-| S2 | Catalog missing → NOT_FOUND; no round |
-| S3 | Catalog unavailable → 503; no round |
-| S4 | Same-person emergency |
-| S5 | After Round 1, flip runtime pins in test double → replay unchanged |
+| M1 | External provider failure before side effect → platform state remains pending/invisible |
+| M2 | External provider success + platform transaction failure → orphan log / retry converges by same `changeId` |
+| M3 | Retry never duplicates provider operational record |
+| M4 | No provider-specific authorization fields enter Round/requirements |
 
-### Regression
+### Rollback compatibility
 
 | ID | Case |
 |---|---|
-| R1 | All F2 / F3.1.0 / F3.1.1 suites green |
-| R2 | List/detail participant visibility unchanged |
-| R3 | Architecture guards updated, still forbid Delivery/Teams authority leakage |
-| R4 | Lint / build |
-| R5 | Repo-wide `tsc` error set set-identical to `188d8e9` baseline (file/line/col/code) |
+| B1 | Source/evidence proves pre-F3.1.2 binary can process pending `LEDGER_REQUIRED` through legacy finalize |
+| B2 | Implementation evidence contains the mandatory pending-ledger rollback query and zero-count rule |
+| B3 | Switching config LEDGER → LEGACY on F3.1.2 binary leaves existing ledger reservations on ledger path |
 
-### Failure-injection harness
+### Regression / quality
 
-Reuse patterns in `ChangeManagementService.recovery.test.ts` / fake provider: throw after reserve, after pending insert, after provider create, after round insert (txn abort), after finalize before complete.
+- all F2 / F3.1.0 / F3.1.1 suites;
+- participant list/detail visibility;
+- architecture guards for provider/Delivery/Teams authority leakage;
+- lint/build;
+- repository-wide TypeScript error set set-identical to the accepted `188d8e9` baseline;
+- live Catalog remains opt-in evidence, not a merge dependency when fail-closed resolver fakes cover the contract.
 
-**Live Catalog:** opt-in only (existing `CatalogPrincipalResolver.live.test.ts` style); not required for merge if unit resolver fakes cover fail-closed paths.
+Failure injection must target actual transaction boundaries, not impossible “after finalize but before complete commit” states.
 
 ---
 
 ## 21. Exact source paths expected to change
 
-### F3.1.2a — canonical Change (micro-slice)
+### F3.1.2a — canonical Change
 
-```
+Expected:
+
+```text
 packages/backend/src/modules/changeManagement/ChangeManagementService.ts
 packages/backend/src/modules/changeManagement/ChangeManagementService.test.ts
 packages/backend/src/modules/changeManagement/ChangeManagementService.recovery.test.ts
 packages/backend/src/modules/changeManagement/ChangeManagementService.integration.test.ts
 ```
 
+No ledger wiring and no authorization-mode config change in 2a.
+
 ### F3.1.2b — ledger submission
 
-```
+Expected implementation surface after source re-verification:
+
+```text
 packages/backend/src/modules/changeManagement/ChangeManagementService.ts
 packages/backend/src/plugins/changeManagementPlugin.ts
+
+# idempotency orchestration / read-only lookup if not already exposed:
+packages/backend/src/modules/changeManagement/persistence/IdempotencyRepository.ts
 packages/backend/src/modules/changeManagement/persistence/KnexIdempotencyRepository.ts
 packages/backend/src/modules/changeManagement/persistence/idempotencyAuthorizationMode.test.ts
-packages/backend/src/modules/changeManagement/authorization/selector/config.ts  # read newSubmissionAuthorizationMode
+
+# authorization config / runtime:
+packages/backend/src/modules/changeManagement/authorization/selector/config.ts
 packages/backend/src/modules/changeManagement/authorization/selector/types.ts
-app-config.yaml  # default LEGACY_PRE_F3 + comment
+app-config.yaml
+
+# policy requirementRole uniqueness:
+packages/backend/src/modules/changeManagement/authorization/policy/registry.ts
+packages/backend/src/modules/changeManagement/authorization/policy/registry.test.ts  # or the existing registry/publication test file
+
+# guards / focused submission tests:
 packages/backend/src/modules/changeManagement/architecture.test.ts
-# new focused tests:
 packages/backend/src/modules/changeManagement/ChangeManagementService.ledgerSubmit*.test.ts
 ```
 
-Possibly small pure helpers (same module tree), e.g. `authorization/buildRoundFromPolicy.ts` — only if it keeps the service readable; not a new package.
+Important repository rule:
 
-**Must not change:** frontend, Delivery, migrations (unless review finds a true schema gap — none found), ADR-009/012, decision APIs, production selector fabrication.
+- `KnexIdempotencyRepository.reserve` **must keep** explicit mode-mismatch `CONFLICT`.
+- A `KnexIdempotencyRepository.ts` change is justified only to add/expose the smallest read-only lookup needed by service orchestration or equivalent race-safe support; not to weaken `reserve`.
+- `KnexAuthorizationLedgerRepository` transaction capability already exists and should be **used**, not redesigned, unless fresh source drift proves otherwise.
+
+Small pure helpers under the existing authorization module are allowed only when they reduce service complexity without creating another framework.
+
+Must not change: frontend, Delivery, decision APIs, migrations unless the fresh re-review discovers a real schema contradiction, or production selector data.
 
 ---
 
 ## 22. Slice decomposition / implementation order
 
-### Decision (required #12)
+Exactly two ordered micro-slices remain sufficient:
 
-**Two explicitly ordered micro-slices:**
-
-| Order | Slice | Content | Enables LEDGER submissions? |
+| Order | Slice | Content | Enables new LEDGER submissions? |
 |---|---|---|---|
-| 1 | **F3.1.2a** | Single canonical `buildChange` + snapshot reuse on recovery | No (`LEGACY` only still) |
-| 2 | **F3.1.2b** | Mode-wins reserve semantics, DI wiring, LEDGER path, Round 1, tests, config switch default OFF then enablement runbook | Yes, when switch set |
+| 1 | **F3.1.2a** | Single canonical Change construction + recovery reuse; no authorization integration | No |
+| 2 | **F3.1.2b** | New-reservation mode orchestration, runtime DI, policy-role uniqueness validation, selector/SoD, Round 1 + requirements + audit, mandatory caller-owned transaction, rollback runbook evidence | Yes, only after config intentionally switches to `LEDGER_REQUIRED` |
 
-Split justified by correctness risk isolation (hash/snapshot) and safer rollback of review comments — not aesthetics.
+No third transaction-capability slice: the ledger APIs already accept caller-owned `trx`.
 
-No third slice for tests/docs.
+F3.1.2b does not modify repository mismatch semantics; it may add the smallest read-only reservation lookup required by service orchestration.
 
 ---
 
 ## 23. Risks and rejected alternatives
 
-| Rejected | Why |
+| Rejected alternative | Why |
 |---|---|
-| Infer mode from deploy time / schema | Violates cross-cutover invariant |
-| Keep mode-mismatch CONFLICT | Breaks legacy retry after cutover binary |
-| Second `buildChange` “usually ok” | Breaks Round hash / provider equality |
-| Distributed XA / outbox framework | Out of scope; F2 orphan/retry suffices |
-| Additive requirements in F3.1.2 | Permission/contract incomplete |
-| Migration “just in case” | No missing invariant |
-| Re-evaluate policy on every retry | Violates immutable round evidence |
-| Finalize before Round 1 | Violates visibility invariant |
-| Roll back binary freely after enablement | Can finalize LEDGER without Round on old binary |
-| Put authorization inside provider | Violates ADR-007/009 |
-| Delivery correlation fields on Round | Violates ADR-012 |
+| Infer authorization mode from deploy time / schema / app version | Reinterprets logical submissions across deploys |
+| Remove repository explicit mode-mismatch `CONFLICT` | Weakens an accepted fail-closed invariant unnecessarily |
+| Always pass current config mode on retry | Produces false conflicts after cutover and violates stored-mode authority |
+| Runtime fallback from `requirementRole` to hash | Creates two persisted identity schemes |
+| Non-transactional `findRound` check as finalize authority | Cannot guarantee Round + visibility atomicity |
+| Omit `trx` when calling ledger writes | Allows independent ledger commit and breaks the platform-transaction contract |
+| Second `buildChange()` | Allows provider/index/Round snapshot divergence |
+| Distributed XA / 2PC / generic outbox framework | Out of scope; Model C recovery is idempotent convergence |
+| Additive user requirements in F3.1.2 | Permission/contract not ready |
+| Migration “for future proofing” | No durable-state gap identified |
+| Re-evaluate policy/selector after committed Round | Violates immutable authorization evidence |
+| Roll back freely to pre-F3.1.2 with pending ledger reservations | Old binary can finalize without Round 1 |
+| Optional rollback hard guard | Correctness control cannot be optional; use mandatory runbook gate |
+| Put authorization into provider | Violates ADR-007/009 |
+| Put Delivery correlation/provider IDs into Round | Violates ADR-012 |
 
-### Residual risks (accepted, mitigated)
+### Residual risks accepted by this plan
 
-- Window between pending index and Round 1 where Catalog/policy can still change on retry — mitigated by fail-closed + invisible pending; binding at Round commit.
-- External provider orphan — mitigated by existing reconciliation.
-- Production still inherits dev selector bundle until prod publication — **unchanged F3.1.1b deviation**; production rollout separately gated.
+- Before Round commit, Catalog/policy may change between retries. This is acceptable because the pending Change remains invisible and no canonical authorization artifact has been committed.
+- External provider orphan is possible by Model C design; idempotent create/retry is the recovery contract.
+- Production selector-bundle readiness remains a separate production-adoption concern and does not change F3.1.2 architecture.
 
 ---
 
 ## 24. Answers to all 15 challenge scenarios
 
-1. **Legacy reserved yesterday, deploy today, retry:** Stored `LEGACY_PRE_F3` wins; legacy finalize path; no policy/Round.
-2. **LEDGER reserved, crash before provider:** Reservation (+ maybe changeId/pending index) survives; retry reuses snapshot; evaluates only if Round 1 absent; continues.
-3. **Provider create OK, crash before Round/index finalize:** Orphan log; retry idempotent provider create; platform txn creates Round 1 + finalize + complete; no second provider row.
-4. **Round 1 durable, client retries:** `findRound(1)` / finalized/completed short-circuit; no re-evaluation; pins frozen in ledger.
-5. **Emergency A/B same User:** Fail closed before Round insert; **nothing** authorization-durable; pending index may exist but is invisible; no requirements persisted.
-6. **Catalog unavailable mid-resolution:** No Round; no finalize; 503; pending invisible; retry later.
-7. **Active bundle changes between two separate requests:** Allowed (different logical submissions). **Between retries of same logical request before Round 1:** re-bind to current runtime possible. **After Round 1:** forbidden / skipped.
-8. **Two workers same key:** Idempotency table primary key arbitrates.
-9. **Rollback to pre-F3.1.2 with outstanding LEDGER pending:** Prevented by runbook drain + policy that binary rollback is forbidden until pending LEDGER count is 0; switch-off alone is insufficient for binary rollback.
-10. **Future external ITSM provider:** Platform txn does not include provider create; correctness via idempotent create + orphan retry; no 2PC claim.
-11. **Mismatching payload:** `CONFLICT` at reserve **before** policy/Catalog authorization work (Catalog target validation occurs only after successful reserve — implementers must keep authorization evaluation after the idempotency gate; payload CONFLICT returns immediately in `reserve`).
-12. **Successful F3.1.2 submission ≠ authorized:** Lifecycle `submitted`; `AuthorizationEvaluation` remains `PENDING` until mandatory pre-execution decisions (F3.1.3). Round 1 only materializes requirements.
-13. **Does Round 1 change lifecycle?** **No.** Stays `submitted`. ADR-009: `authorized` is not a lifecycle state.
-14. **Inactive historical policy on replay?** After Round 1, replay uses **ledger** artifacts, not registry. Runtime historical modules are unnecessary for submission replay (Model B).
-15. **Discoverability condition:** `change_index.is_finalized = true` (and for LEDGER, finalize only after Round 1 exists). List/detail both require finalized.
+1. **Legacy reserved yesterday, config is LEDGER today:** service finds/recover-reserves the existing row without re-requesting today's default; stored `LEGACY_PRE_F3` wins; no policy/Round.
+2. **LEDGER reserved, crash before provider:** reservation and possibly canonical pending snapshot survive; retry uses stored ledger mode and reuses snapshot.
+3. **External provider create succeeds, crash before platform commit:** provider orphan may exist; retry calls idempotent create with same `changeId`, then retries the complete platform transaction.
+4. **Platform transaction commits, client receives network error:** idempotency is already completed with Round/finalize; retry returns same logical result and does not re-evaluate policy.
+5. **Emergency A/B different selector keys resolve to same User:** fail before platform transaction; no Round/requirements/audit/finalize/complete from that attempt.
+6. **Catalog unavailable during resolution:** no platform final transaction starts; pending index remains invisible; retry later.
+7. **Active bundle changes between two separate requests:** allowed. Between retries before Round commit: current immutable runtime for the retry may bind. After commit: replay uses durable completed/ledger evidence, no re-resolution.
+8. **Two workers same key concurrently:** unique idempotency key selects the winner; loser recovers winner's stored mode when payload matches.
+9. **Rollback to pre-F3.1.2 with pending LEDGER reservation:** forbidden by mandatory zero-pending runbook correctness gate.
+10. **Future external ITSM provider:** provider create remains outside platform transaction; correctness is idempotent create + orphan/retry, not XA.
+11. **Mismatching payload with existing key:** repository returns `CONFLICT` before policy/Catalog authorization work.
+12. **Successful F3.1.2 submission means authorized?** No. Lifecycle remains `submitted`; Round 1 only materializes requirements. Decision authorization comes later.
+13. **Does Round 1 change lifecycle?** No.
+14. **Inactive historical policy on replay:** after successful commit, the durable Round contains policy/bundle/principal evidence; submission replay does not require executing historical policy code.
+15. **When is a new ledger Change discoverable?** Only after the platform transaction commits Round 1/requirements/audit and sets the index finalized while completing idempotency.
+
+### Additional revision-specific challenge answers
+
+- **Repository mode mismatch:** retained as explicit fail-closed `CONFLICT`; service orchestration prevents deployment-default changes from becoming explicit reinterpretation requests.
+- **Requirement identity:** exactly `requirementRole`; duplicate roles make the policy unusable before submission.
+- **Impossible partial platform commit:** Round/finalize/complete are one transaction; any plan/test assuming a normal split commit is invalid.
 
 ---
 
 ## 25. Implementation acceptance criteria
 
-A future implementation checkpoint may claim PASS only when:
+A future implementation checkpoint may claim PASS only when all relevant criteria are proven.
 
-- [ ] F3.1.2a merged/proven: single canonical snapshot on create/recovery; F2 suites green
-- [ ] F3.1.2b: `LEDGER_REQUIRED` path creates exactly Round 1 + mapped requirements + audit subset
-- [ ] Stored mode wins; legacy retries never enter policy path
-- [ ] Emergency same-person fail-closed with zero durable round
-- [ ] Crash matrix C1–C7 covered by tests (SQLite + disposable Postgres)
-- [ ] No migration; no decision APIs; no Delivery fields
-- [ ] Architecture guards updated and green
-- [ ] `tsc` baseline set-identical; lint/build green
-- [ ] Default config remains `LEGACY_PRE_F3` until explicit enablement
-- [ ] Rollback runbook documented in implementation evidence
+### F3.1.2a
+
+- [ ] one canonical Change snapshot per logical create;
+- [ ] no second `buildChange()` after pending snapshot exists;
+- [ ] provider/index equality and recovery stability proven;
+- [ ] F2 regressions green;
+- [ ] no authorization integration introduced.
+
+### F3.1.2b
+
+- [ ] repository explicit authorization-mode mismatch remains `CONFLICT`;
+- [ ] service applies config mode only to genuinely new reservations;
+- [ ] concurrent first-insert race converges on DB winner's stored mode;
+- [ ] legacy reservation retries never enter policy path;
+- [ ] `requirementId = requirementRole` only;
+- [ ] duplicate `requirementRole` fails policy registration/publication/startup;
+- [ ] same-person emergency SoD fails before any Round commit;
+- [ ] DevelopmentProvider path passes one caller-owned `trx` to provider + Round + every audit append + index.finalize + idempotency.complete;
+- [ ] transaction failure leaves no partial Round/finalize/complete state;
+- [ ] external-provider orphan/retry converges without 2PC;
+- [ ] no migration, decision API, Delivery field, Teams/CAB UI, or F3.1.3 behavior;
+- [ ] SQLite + disposable Postgres failure-injection matrix passes;
+- [ ] architecture guards and authorization regressions pass;
+- [ ] lint/build pass;
+- [ ] repository-wide TypeScript error set is set-identical to accepted baseline;
+- [ ] config default remains `LEGACY_PRE_F3` until explicit enablement;
+- [ ] implementation evidence contains the mandatory pre-F3.1.2 rollback query and zero-pending rule.
 
 ---
 
 ## 26. GO / NO-GO recommendation for a separate implementation checkpoint
 
 ```text
-F3.1.2 planning: READY_FOR_REVIEW
+F3.1.2 revised planning: READY_FOR_REREVIEW
 F3.1.2 implementation: NO-GO
+F3.1.2a implementation prompt authoring: NO-GO pending re-review ACCEPT
+F3.1.2a implementation: NO-GO
+F3.1.2b implementation: NO-GO
 ```
 
-**Next gate:** independent architecture review of **this plan**. Only after ACCEPT may a separate, constrained implementation prompt authorize F3.1.2a (then F3.1.2b).
+**Next gate:** fresh independent architecture re-review of this revised plan against the actual current ADO branch tip.
 
-This checkpoint does **not** create that implementation prompt.
+Only a re-review `ACCEPT` may authorize authoring the constrained F3.1.2a implementation prompt. This revision does not create that prompt.
 
 ---
 
@@ -765,22 +955,26 @@ STOP. Do not implement F3.1.2, fix `buildChange()` in ADO, add migrations/routes
 
 ---
 
-## Appendix A — Explicit decisions checklist (prompt §7)
+## Appendix A — Explicit decisions checklist
 
-| # | Decision | Resolution |
+| # | Decision | Revised resolution |
 |---|---|---|
-| 1 | Cutover mechanism | Config `newSubmissionAuthorizationMode`; default LEGACY; stored mode wins |
-| 2 | `buildChange` fix | F3.1.2a prerequisite micro-slice |
-| 3 | Transaction / recovery | §5 + §11 state machine; no distributed atomicity |
-| 4 | Earliest durable auth binding | Round 1 commit |
-| 5 | Round 1 + requirements + audit boundary | Same platform DB transaction as finalize+complete (Dev: includes provider) |
-| 6 | A/B distinctness | Resolved User refs distinct per `separationOfDutyKey` before commit |
-| 7 | Additive requirements | Deferred |
-| 8 | Migration | NO |
-| 9 | DI shape | Inject `AuthorizationRuntime` + ledger repo + mode enum into service |
-| 10 | Rollback rule | No pre-F3.1.2 binary while pending LEDGER reservations exist |
-| 11 | Error taxonomy | Existing codes + `details.reason=separation_of_duty` |
-| 12 | Slice decomposition | Two micro-slices: 2a canonical build, 2b ledger submit |
+| 1 | Cutover mechanism | `newSubmissionAuthorizationMode` applies only to first reservation creation; existing stored mode wins through service orchestration |
+| 2 | Repository mode mismatch | Preserve explicit requested-mode mismatch `CONFLICT`; no semantic weakening |
+| 3 | Race-safe first insert | DB unique key selects winner; loser recovers winner with mode omitted if same payload |
+| 4 | `buildChange` fix | F3.1.2a prerequisite micro-slice |
+| 5 | Transaction boundary | Caller-owned `trx` mandatory for ledger/audit/finalize/complete; Dev provider joins |
+| 6 | Visibility authority | Same platform transaction commit, not non-transactional `findRound` |
+| 7 | Earliest durable authorization binding | Round 1 platform transaction commit |
+| 8 | Requirement identity | Exactly `requirementId = requirementRole` |
+| 9 | Requirement-role uniqueness | Fail closed at policy registration/publication/startup |
+| 10 | A/B distinctness | Resolved User refs distinct per `separationOfDutyKey` before commit |
+| 11 | Additive requirements | Deferred |
+| 12 | Migration | NO |
+| 13 | DI shape | Inject immutable authorization runtime + ledger + new-submission mode into service |
+| 14 | Rollback | Mandatory RUNBOOK_CORRECTNESS_GATE: zero pending ledger reservations before pre-F3.1.2 binary rollback |
+| 15 | Error taxonomy | Existing codes; SoD uses `CONFLICT` + stable reason |
+| 16 | Slice decomposition | Exactly two: 2a canonical Change, 2b ledger submission |
 
 ## Appendix B — Planning gate coverage (P1–P20)
 

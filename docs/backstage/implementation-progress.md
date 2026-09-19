@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.1b — ADO `188d8e9` (full SHA `188d8e9cc43423f3644b3cacfb9849257838a583`), CLOSED / ACCEPTED IMPLEMENTED BASELINE on `feat/ado-repo-governance`  
-> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 planning READY_FOR_REVIEW, implementation NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 first plan review REJECT, revised plan READY_FOR_REREVIEW; implementation NO-GO
 
 ## How to use this log
 
@@ -1606,3 +1606,34 @@ GO / NO-GO
 ```
 
 For independent Backstage workstreams (for example Golden Paths / Software Templates), keep a focused workstream progress log under its own `docs/<workstream>/` folder and reference shared ADRs here only when the decision affects the overall platform.
+
+---
+
+## GMUD F3.1.2-R — Plan revision after architecture REJECT
+
+Documentation checkpoint: `backstage-docs@6284195a41bb428862c057ee9c0291014ccba61d`.
+
+### Outcome
+
+```text
+F3.1.2 revised planning: READY_FOR_REREVIEW
+F3.1.2 implementation: NO-GO
+F3.1.2a implementation prompt authoring: NO-GO pending re-review ACCEPT
+F3.1.2a implementation: NO-GO
+F3.1.2b implementation: NO-GO
+```
+
+The rejected first plan was revised without changing ADO implementation. The revised contract now:
+
+- preserves `KnexIdempotencyRepository.reserve` explicit authorization-mode mismatch as fail-closed `CONFLICT`;
+- makes stored-mode-wins a service orchestration rule for existing reservations, including a race-safe first-insert recovery path;
+- mandates one caller-owned Knex transaction for DevelopmentProvider + Round 1 + requirements + authorization audit + index finalization + idempotency completion;
+- removes non-transactional `findRound` as visibility authority;
+- fixes `requirementId = requirementRole` and requires fail-closed per-rule `requirementRole` uniqueness at policy registration/publication;
+- classifies rollback to pre-F3.1.2 with pending `LEDGER_REQUIRED` reservations as a mandatory runbook correctness gate;
+- corrects the crash matrix so Round/finalize/complete cannot appear as normal separately committed platform states;
+- keeps exactly two implementation slices: F3.1.2a canonical Change, then F3.1.2b ledger submission.
+
+ADO source was **not modified** by this revision. The immediately preceding architecture review independently verified ADO `188d8e9` and no F3.1.2-surface drift; the fresh re-review must verify the branch tip again before ACCEPT.
+
+Next gate: **fresh independent architecture re-review of the revised F3.1.2 plan**.

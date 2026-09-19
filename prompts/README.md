@@ -17,10 +17,10 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- [f3-1-2-concurrency-plan-revision.md](./f3-1-2-concurrency-plan-revision.md) — **current planning/docs-only checkpoint**. Revise only the remaining F3.1.2 concurrency ambiguity identified by the 18/20 re-review.
-- Required outcome: for two concurrent same-actor / same-Idempotency-Key / same-payload submissions, a healthy Round-1 loser must roll back, re-read the winner's coherent completed/finalized/Round-1 facts, and return the same logical success; only true committed inconsistency fails closed. Transient DB locking/serialization remains retryable.
-- Add authoritative PostgreSQL end-to-end concurrency proof plus different-payload and invariant-corruption negative cases.
-- **F3.1.2a / F3.1.2b implementation and implementation-prompt authoring remain NO-GO.** After this revision reaches READY_FOR_REREVIEW, the next activity is one focused independent architecture re-review.
+- Focused independent architecture re-review of the concurrency-corrected F3.1.2 plan in [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md).
+- Primary focus: G14/G19 concurrent Round-1 loser convergence plus regression of the four already-closed architecture blockers.
+- Historical REJECT evidence to preserve: [`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md) and [`docs/backstage/f3-1-2-revised-plan-architecture-rereview.md`](../docs/backstage/f3-1-2-revised-plan-architecture-rereview.md).
+- **F3.1.2a / F3.1.2b implementation and implementation-prompt authoring remain NO-GO until that re-review returns ACCEPT.**
 
 ## Production-rollout gate — deferred until a real target exists
 
@@ -28,7 +28,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
-- [`f3-1-2-plan-revision.md`](./f3-1-2-plan-revision.md) — completed by documentation revision. Revised plan is `READY_FOR_REREVIEW` at docs `6284195`; ADO implementation unchanged; all implementation remains NO-GO pending fresh independent ACCEPT.
+- [`f3-1-2-concurrency-plan-revision.md`](./f3-1-2-concurrency-plan-revision.md) — completed by documentation revision. Concurrency-corrected plan is `READY_FOR_REREVIEW`. Healthy Round-1 loser convergence is deterministic; C1–C4 concurrency proofs specified. ADO implementation unchanged; all F3.1.2 implementation remains NO-GO pending fresh independent ACCEPT.
+- [`f3-1-2-plan-revision.md`](./f3-1-2-plan-revision.md) — completed by documentation revision. Revised plan was `READY_FOR_REREVIEW` at docs `6284195`; subsequent focused re-review REJECTED on concurrency only (18/20). ADO implementation unchanged.
 - [`f3-1-2-plan-architecture-review.md`](./f3-1-2-plan-architecture-review.md) — completed with `REJECT`. Canonical review: [`docs/backstage/f3-1-2-plan-architecture-review.md`](../docs/backstage/f3-1-2-plan-architecture-review.md). ADO baseline verified `188d8e9`. Gates 12/20 PASS. Critical decisions resolved by review (not yet embodied in plan): keep repository mode-mismatch CONFLICT + service orchestration; mandate caller-owned `trx` (API already exists); Option A `requirementId = requirementRole` + uniqueness validation. Next: plan revision only.
 - [`f3-1-2-planning.md`](./f3-1-2-planning.md) — completed with `READY_FOR_REVIEW`. Produced [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) against ADO `188d8e9` (20/20 gates, 15/15 challenges). Subsequent architecture review rejected the plan as implementation contract; see review document.
 - [`f3-1-1b-architecture-implementation-acceptance.md`](./f3-1-1b-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.1b as the accepted implemented baseline at ADO `188d8e9`. Authorized F3.1.2 planning only; F3.1.2 implementation remains NO-GO.
@@ -50,7 +51,21 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 Use a short launcher instead of pasting the long prompt into an agent session.
 
-### Current launcher — F3.1.2 narrow concurrency plan revision
+### Current launcher — F3.1.2 concurrency-corrected plan re-review
+
+```text
+Fetch the latest main from diegofernandes-dev/backstage-docs.
+
+Independently re-review the concurrency-corrected F3.1.2 plan in docs/backstage/f3-1-2-implementation-plan.md.
+
+Focus on the healthy Round-1 loser convergence contract and its C1–C4 proof, and regress the four already-closed architecture blockers.
+
+Do not modify ADO code. Do not author an implementation prompt unless the review returns ACCEPT and a separate prompt is explicitly authorized.
+
+Preserve historical REJECT review documents. Return ACCEPT or REJECT. Keep F3.1.2 implementation NO-GO unless ACCEPT, then only authorize the next gated activity.
+```
+
+### Historical launcher — F3.1.2 narrow concurrency plan revision (completed)
 
 ```text
 Fetch the latest main from diegofernandes-dev/backstage-docs.
@@ -58,10 +73,6 @@ Fetch the latest main from diegofernandes-dev/backstage-docs.
 Read prompts/f3-1-2-concurrency-plan-revision.md and treat it as a strict planning/documentation-only contract.
 
 Revise docs/backstage/f3-1-2-implementation-plan.md only for the remaining concurrency ambiguity from docs/backstage/f3-1-2-revised-plan-architecture-rereview.md.
-
-For a healthy concurrent same actor + Idempotency-Key + payload race, define exactly one loser behavior: roll back the losing Round-1 transaction, re-read the winner's committed reservation/index/Round-1 facts, return the same logical success when coherent, classify only transient DB visibility/serialization as retryable, and fail closed only on genuine committed invariant mismatch. Never create Round 2.
-
-Add authoritative PostgreSQL end-to-end concurrency proof plus the concurrent different-payload conflict case and invariant-corruption negative case.
 
 Do not reopen the four already-closed architecture decisions. Do not modify ADO code and do not create an implementation prompt.
 
@@ -90,6 +101,6 @@ Use only after a real production target exists and the canonical prerequisite ev
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 Read `prompts/final-rollout-readiness-rereview.md` and treat it as a strict independent, review-only final gate.
 First execute its prerequisite gate. If any prerequisite is missing, return NOT_READY and STOP without implementing or repairing anything.
-If every prerequisite passes, inspect the actual target read-only, evaluate the mandatory final gates, and return exactly GO or NO_GO.
+If every prerequisite passes, inspect the actual target read-only, evaluate the mandatory final gates, and return exactly GO or NO-GO.
 Do not trigger the real production rollout from the review.
 ```

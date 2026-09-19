@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.1b — ADO `188d8e9` (full SHA `188d8e9cc43423f3644b3cacfb9849257838a583`), CLOSED / ACCEPTED IMPLEMENTED BASELINE on `feat/ado-repo-governance`  
-> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 revised-plan re-review REJECT (18/20), narrow concurrency revision required; implementation NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 concurrency plan revision READY_FOR_REREVIEW; prior revised-plan re-review REJECT preserved (18/20); implementation NO-GO
 
 ## How to use this log
 
@@ -1663,3 +1663,35 @@ One remaining implementation-contract ambiguity was found. When two workers conc
 Independent ADO source verification in this ChatGPT re-review was **PARTIAL**: it relied on the immediately preceding exact-source review of ADO `188d8e9`; the current ADO tip could not be re-fetched from this environment. This limitation is not the reason for REJECT.
 
 **Next checkpoint:** revise only the concurrency contract and proof, then perform a focused fresh re-review. No implementation prompt yet.
+
+---
+
+## GMUD F3.1.2-CR — Concurrency plan revision (READY_FOR_REREVIEW)
+
+Documentation-only checkpoint against `backstage-docs` main after the 18/20 concurrency REJECT.
+
+### Outcome
+
+```text
+F3.1.2 concurrency plan revision: READY_FOR_REREVIEW
+F3.1.2 implementation: NO-GO
+F3.1.2a implementation prompt authoring: NO-GO pending fresh ACCEPT
+F3.1.2a implementation: NO-GO
+F3.1.2b implementation: NO-GO
+```
+
+Canonical plan [`f3-1-2-implementation-plan.md`](./f3-1-2-implementation-plan.md) now defines a deterministic healthy Round-1 loser contract:
+
+- same actor + Idempotency-Key + payload + `LEDGER_REQUIRED`: loser rolls back, re-reads completed reservation / finalized index / Round 1, returns the same logical success when coherent;
+- never Round 2, never CONFLICT for same payload, never INTERNAL_ERROR merely for losing the race;
+- transient winner-not-yet-observable uses bounded immediate re-read then existing retryable storage semantics (no polling/locks/queues);
+- true committed inconsistency fails closed as INTERNAL_ERROR;
+- concurrent different payload remains CONFLICT before authorization with no Round-race recovery.
+
+Proof additions: authoritative PostgreSQL end-to-end cases C1/C2, concurrent different-payload C3, invariant-corruption negative C4. DB uniqueness (T6) retained but is not sufficient alone.
+
+Frozen decisions 1–13 from the concurrency revision prompt were **not** reopened. ADO implementation was **not** modified. Local `origin/feat/ado-repo-governance` tip verified as exact accepted SHA `188d8e9`; live Azure DevOps remote fetch was unavailable in this checkpoint (no material create/idempotency/ledger drift relative to that tip).
+
+Both historical REJECT review documents are preserved.
+
+**Next gate:** one focused independent architecture re-review of the concurrency-corrected F3.1.2 plan. No implementation prompt yet.

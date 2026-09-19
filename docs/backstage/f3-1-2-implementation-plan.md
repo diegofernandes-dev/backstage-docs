@@ -1,19 +1,21 @@
 # F3.1.2 — Fail-Closed Submission + First AuthorizationRound — Revised Implementation Plan
 
-- **Status:** REVISED PLANNING COMPLETE — READY FOR INDEPENDENT RE-REVIEW
+- **Status:** CONCURRENCY CONTRACT REVISED — READY FOR FOCUSED INDEPENDENT RE-REVIEW
 - **Date:** 2026-09-19
-- **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009, ADR-012; F3.1 / F3.1.1 plans; F3.1.1a/b accepted baselines; F3.1.2 architecture review decisions
-- **Revision prompt:** `prompts/f3-1-2-plan-revision.md`
+- **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009, ADR-012; F3.1 / F3.1.1 plans; F3.1.1a/b accepted baselines; F3.1.2 architecture review decisions; F3.1.2 revised-plan re-review concurrency correction
+- **Revision prompt (this checkpoint):** `prompts/f3-1-2-concurrency-plan-revision.md`
+- **Prior plan-revision prompt:** `prompts/f3-1-2-plan-revision.md` (historical)
 - **Rejected first-plan review:** `docs/backstage/f3-1-2-plan-architecture-review.md` at `backstage-docs@0daa8fc0719bafd4d8b1e2f95c1ad0abeaa03422`
-- **Docs revision baseline:** `diegofernandes-dev/backstage-docs@34d7257e0ed44d991ed9f7085d55125c47904ff7`
+- **Rejected revised-plan re-review (concurrency only):** `docs/backstage/f3-1-2-revised-plan-architecture-rereview.md` at `backstage-docs@eae70eefcca6ec774ea3ca5b6ea606932b267856`
+- **Docs revision baseline (pre-edit):** `diegofernandes-dev/backstage-docs@eae70eefcca6ec774ea3ca5b6ea606932b267856`
 - **ADO accepted implementation baseline:** `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583` (`feat/ado-repo-governance`)
-- **ADO source verification for this revision:** not independently repeated in this checkpoint; the immediately preceding architecture review independently verified exact SHA `188d8e9` and no F3.1.2-surface drift. A fresh re-review must re-verify the branch tip before ACCEPT.
+- **ADO source verification for this revision:** local `origin/feat/ado-repo-governance` tip independently verified as exact SHA `188d8e9`; live Azure DevOps remote fetch was unavailable in this checkpoint. No post-baseline drift on create/idempotency/ledger/concurrency surfaces relative to the accepted tip. A fresh re-review should still re-verify the live tip before ACCEPT.
 - **F3.1.2 implementation:** **NO-GO**
 
 ```text
-F3.1.2 revised planning: READY_FOR_REREVIEW
+F3.1.2 concurrency plan revision: READY_FOR_REREVIEW
 F3.1.2 implementation: NO-GO
-F3.1.2a implementation prompt authoring: NO-GO pending re-review ACCEPT
+F3.1.2a implementation prompt authoring: NO-GO pending fresh ACCEPT
 F3.1.2a implementation: NO-GO
 F3.1.2b implementation: NO-GO
 Migration required: NO
@@ -26,12 +28,14 @@ ADO implementation modified by this revision: NO
 
 ### Revision status
 
-The first F3.1.2 plan was independently reviewed and rejected because it left three persisted-semantics decisions wrong or ambiguous and one rollback control optional. This revision incorporates the review decisions as normative architecture:
+The first F3.1.2 plan was independently reviewed and rejected because it left three persisted-semantics decisions wrong or ambiguous and one rollback control optional. The subsequent plan revision closed those four blockers. A focused re-review then returned REJECT solely because concurrent same-key/same-payload Round-1 loser behavior was still expressed as an unresolved alternative. **This concurrency revision does not reopen any of the four closed architecture decisions:**
 
 1. repository explicit authorization-mode mismatch remains fail-closed `CONFLICT`; stored-mode-wins is implemented by service orchestration;
 2. the ledger finalize path must use one caller-owned Knex transaction for all platform writes (and the DevelopmentProvider write);
 3. `requirementId = requirementRole` with fail-closed per-rule role uniqueness at policy registration/publication;
 4. rollback to a pre-F3.1.2 binary while pending `LEDGER_REQUIRED` reservations exist is a mandatory operational correctness gate.
+
+**Only** the healthy concurrent Round-1 loser convergence rule and its proof are made exact below.
 
 ### What this revised plan is
 
@@ -41,7 +45,8 @@ A re-review candidate and implementation contract proposal for the first composi
 2. immutable idempotency `authorization_mode` (`LEGACY_PRE_F3` | `LEDGER_REQUIRED`);
 3. F3.1.1a published policy + evaluator;
 4. F3.1.1b active selector bundle + Catalog principal resolver;
-5. F3.1.0 append-only authorization ledger (`AuthorizationRound` + requirements + audit).
+5. F3.1.0 append-only authorization ledger (`AuthorizationRound` + requirements + audit);
+6. deterministic concurrent Round-1 loser convergence for same-key/same-payload submissions (§13).
 
 ### What this plan is not
 
@@ -201,8 +206,17 @@ canonicalChange = durable pending index snapshot
        index.finalize(..., trx)
        idempotency.complete(..., trx)
      COMMIT
+→ on healthy same-logical-submission uniqueness / serialization / locking loss
+  at the Round-1 finalization boundary (see §13):
+     ROLLBACK local trx
+     re-read committed reservation + finalized index + Round 1 outside that trx
+     if coherent → return the winner's same logical success {changeId, status: submitted}
+     if winner not yet observable under transient DB busy/serialization → retryable storage/provider-unavailable
+     if committed facts contradict → INTERNAL_ERROR / invariant (not CONFLICT)
 → return {changeId, status: submitted}
 ```
+
+Both workers may evaluate policy and resolve principals before commit. Losing the expected same-logical-submission race must never create Round 2, never mutate the winner's Round, never return `CONFLICT` for same payload, and never return `INTERNAL_ERROR` merely because this worker lost the healthy race.
 
 If a committed Round 1 is observed while the same reservation/index are still pending/unfinalized, that state is not a normal F3.1.2 crash window because Round/finalize/complete must commit together. F3.1.2 fails closed on that invariant breach; it does not create Round 2 and does not silently heal around an atomicity violation.
 
@@ -467,12 +481,16 @@ Calling `createRound(round1)` or `appendAuditEvent(event)` without the outer `tr
 | C3 | After pending index, before policy/provider | Reservation + canonical invisible snapshot | Reuse snapshot; evaluate/resolve because no Round is committed |
 | C4 | External provider create succeeds, before platform transaction | External provider orphan + pending invisible platform state | Log/recover orphan; retry idempotent provider create by same `changeId`, then attempt platform transaction |
 | C5 | Failure anywhere inside platform transaction before commit | No Round/requirement/audit/finalize/complete writes from that transaction are durable; DevelopmentProvider write also rolls back | Retry from pending snapshot (external provider may already exist and is idempotently reconciled) |
+| C5b | Concurrent same-key/same-payload worker loses at Round-1 uniqueness / serialization / locking boundary | Loser's local platform transaction has no durable writes; winner's committed platform facts are authoritative | Loser **must** roll back, re-read outside the rolled-back trx, and return the same logical success when coherent (§13). Not an arbitrary CONFLICT/INTERNAL_ERROR. |
+| C5c | Transient lock/serialization/busy; winner not yet observable | No durable writes from the local attempt | Bounded immediate coherence re-read when safe; if winner now coherent → success; else existing retryable storage/provider-unavailable semantics. No polling loops/sleeps/distributed locks. |
 | C6 | Platform transaction commits, response not yet delivered | Round 1 + requirements + audit + finalized index + completed idempotency are all durable together; Dev provider durable too | Retry observes completed reservation and returns same logical result |
 | C7 | Response lost after commit | Same fully durable state as C6 | Idempotent completed return |
 
 There is **no normal F3.1.2 state** where Round 1/finalized index are committed but idempotency completion from the same path is still pending.
 
 A committed Round 1 alongside pending/unfinalized platform state is an invariant breach, not a normal recovery milestone; fail closed rather than inventing Round 2 or silently normalizing the inconsistency.
+
+Healthy concurrent losers (§13) are distinct from C5 crash retries: the loser already performed policy/principal work for the same logical submission and must converge to the winner's committed success without a second Round.
 
 ### External-provider convergence
 
@@ -530,6 +548,7 @@ Legacy finalized Changes and legacy create semantics remain unchanged.
 | No principal/policy drift after commit | Completed reservation short-circuits; Round 1 is durable evidence |
 | Conflicting payload | Repository `CONFLICT` before policy/Catalog work |
 | Canonical Change stability | Pending index snapshot reused; no second `buildChange()` on recovery |
+| Healthy same-payload concurrent loser | Deterministic idempotent success after coherence re-read (§13 healthy-race); never CONFLICT / never INTERNAL_ERROR merely for losing the race |
 
 ### Reservation concurrency
 
@@ -546,17 +565,101 @@ Correctness sequence:
 
 The service never overwrites the winner's mode.
 
+### Concurrent Round 1 — healthy same-logical-submission race (normative)
+
+Applies when two workers process:
+
+- same actor
+- same Idempotency-Key
+- same payload
+- same logical `changeId`
+- stored authorization mode `LEDGER_REQUIRED`
+
+Both workers may evaluate policy and resolve principals before commit. There is **exactly one** allowed loser outcome for the healthy race; the implementation must not choose between success and fail-closed for that case.
+
+```text
+Worker A and B process the same logical submission.
+A commits the platform transaction first.
+B reaches the Round-1 finalization region and loses on the expected
+same-logical-submission concurrency boundary
+(Round 1 uniqueness on (change_id, round_number=1)
+ and/or equivalent transaction serialization / locking conflict).
+
+B MUST:
+  1. ROLLBACK its own platform transaction;
+  2. re-read committed state OUTSIDE the rolled-back transaction;
+  3. validate ALL of:
+       - idempotency reservation exists
+       - reservation.changeId equals the expected changeId
+       - reservation.authorizationMode is LEDGER_REQUIRED
+       - reservation.state is completed
+       - finalized index exists for the same changeId
+       - index authorization mode is LEDGER_REQUIRED
+       - Round 1 exists for the same changeId and roundNumber 1
+       - any already-available immutable routing/snapshot invariants
+         from accepted repository contracts remain coherent
+  4. if all committed facts are coherent:
+       return the same logical success as the winner
+       { changeId, status: submitted };
+  5. never create Round 2;
+  6. never mutate the winner's Round, requirements, or audit set;
+  7. never return CONFLICT for this healthy same-payload race;
+  8. never return INTERNAL_ERROR merely because this worker lost
+     the expected race.
+```
+
+Uniqueness alone is not sufficient proof of this contract; end-to-end callers must both observe the same successful logical result (§20 cases C1–C2).
+
+### Transient winner-not-yet-observable rule
+
+If the database exposes a transient locking / serialization / busy condition and the winner is not yet observable:
+
+1. roll back the local transaction;
+2. perform only a **bounded immediate** coherence re-read when safe;
+3. if the winner is now committed and coherent, return idempotent success;
+4. otherwise use the existing retryable storage / `PROVIDER_UNAVAILABLE` error semantics;
+5. client retry must converge through the normal idempotency flow.
+
+Do **not** add polling loops, sleeps, distributed locks, in-memory mutexes, worker queues, background reconcilers, or new durable state.
+
+PostgreSQL is the **authoritative** concurrency proof dialect. SQLite coverage is desirable where meaningful, but identical driver errors or scheduling semantics across dialects are **not** required.
+
+### True invariant mismatch rule (fail closed)
+
+Fail closed only when committed facts are genuinely contradictory, for example:
+
+- completed reservation points to a different `changeId`;
+- stored mode is not `LEDGER_REQUIRED`;
+- completed reservation exists but finalized index is missing;
+- finalized ledger index exists but Round 1 is missing;
+- index mode disagrees with reservation mode;
+- Round identity disagrees with the expected `changeId` / `roundNumber`;
+- another accepted immutable routing/snapshot invariant check fails.
+
+These are `INTERNAL_ERROR` / invariant failures, **not** idempotency `CONFLICT`, and **not** the healthy-race path.
+
+### Different-payload concurrent rule
+
+For same actor + same Idempotency-Key + **different** payload:
+
+- one logical reservation wins;
+- conflicting payload returns `CONFLICT`;
+- conflicting payload must **not** reach policy/Catalog authorization work;
+- no second Change, provider record, or AuthorizationRound is created;
+- no Round-race recovery path applies to a payload mismatch.
+
 ### Other concurrency
 
 | Scenario | Arbiter |
 |---|---|
 | Duplicate pending-index insert | `change_id` uniqueness; loser re-reads canonical snapshot |
 | Concurrent provider create | Provider idempotency by `changeId` |
-| Concurrent Round 1 platform transactions | DB uniqueness + one transaction wins; loser re-reads completed/finalized state or fails closed on invariant mismatch |
+| Concurrent Round 1 platform transactions (same key/payload) | DB uniqueness / serialization chooses one winner; **loser follows the healthy-race contract above** — deterministic idempotent success when coherent; fail closed only on true invariant mismatch; never CONFLICT for same payload |
+| Concurrent Round 1 (same key/different payload) | Reservation/payload conflict wins as `CONFLICT` before authorization; no Round-race recovery |
 | Two different idempotency keys | Two independent Changes |
 | Retry racing with commit | Before commit sees pending; after commit sees completed; no partial Round/finalize visibility |
 
-No in-memory mutex is correctness authority.
+No in-memory mutex is correctness authority. No wording of the form “loser may succeed or fail closed”, “either return success or error”, “implementation may choose”, “best effort”, or “retry as needed” remains for the healthy same-key/same-payload race.
 
 ---
 
@@ -621,10 +724,15 @@ Map to existing codes; add **at most one** narrow detail key, not a new public w
 | Storage failure | `INTERNAL_ERROR` / `PROVIDER_UNAVAILABLE` | 500/503 | Yes if 503 |
 | Provider failure / orphan | `PROVIDER_UNAVAILABLE` | 503 | Yes |
 | Index/reservation mode disagree | `INTERNAL_ERROR` | 500 | No (fail closed) |
+| Healthy Round-1 concurrent loser, winner coherent | same success as winner | 201 | N/A — not an error |
+| Transient lock/serialization; winner not yet observable | `PROVIDER_UNAVAILABLE` / existing storage retryable | 503 | Yes — client retry via idempotency |
+| True committed invariant mismatch after loser re-read | `INTERNAL_ERROR` | 500 | No (fail closed; not CONFLICT) |
 
 Do not leak provider payloads or policy rule ASTs in responses.
 
 **Minimal taxonomy addition:** none of the enum; only optional `details.reason` / `details.selectorKey` already patterned by resolver.
+
+Healthy same-payload concurrent losers must **not** be mapped to `CONFLICT` or to `INTERNAL_ERROR` merely for losing the race.
 
 ---
 
@@ -746,6 +854,17 @@ Completed ledger submissions remain durable facts and do not block rollback sole
 | T6 | Concurrent Round 1 create is constrained by DB uniqueness; no Round 2 from submission retry | ✓ | ✓ |
 | T7 | Immutability triggers remain green | ✓ | ✓ |
 
+Keep T6. Uniqueness alone is **not** sufficient proof of end-to-end idempotent convergence; cases C1–C4 below are mandatory.
+
+### Concurrent Round-1 convergence (authoritative PostgreSQL + SQLite where meaningful)
+
+| ID | Case | SQLite | Postgres |
+|---|---|---|---|
+| C1 | Identical concurrent requests: same actor + same Idempotency-Key + same payload; two `createChange` calls started concurrently. Both callers converge to the same successful logical result (`same changeId`, `status: submitted`); exactly one completed idempotency reservation; exactly one finalized index; exactly one Round 1; exactly one effective requirement set; exactly one canonical submission-audit set; exactly one DevelopmentProvider operational record; no Round 2; no duplicate requirements; no duplicate canonical audit events from the loser | desirable | **authoritative** |
+| C2 | Deterministic finalization race: barriers/hooks/failure injection so both workers reach the finalization region (do not rely only on timing sleeps). Prove the loser transaction rolls back before coherence re-read and cannot leave partial provider/Round/audit/index/idempotency state on the DevelopmentProvider shared-transaction path | desirable | **authoritative** |
+| C3 | Concurrent different payload: same actor + same key + different payload. One wins; the other returns `CONFLICT` before authorization evaluation. No second Change/Round/provider record | ✓ | ✓ |
+| C4 | Invariant corruption negative: controlled fixture where loser recovery would otherwise succeed, but committed facts are inconsistent (e.g. completed reservation with missing Round 1, or mismatching index authorization mode). Must fail closed under the existing invariant error contract; must not convert genuine inconsistency into success | ✓ | ✓ |
+
 ### External Model C provider
 
 | ID | Case |
@@ -864,6 +983,9 @@ F3.1.2b does not modify repository mismatch semantics; it may add the smallest r
 | Optional rollback hard guard | Correctness control cannot be optional; use mandatory runbook gate |
 | Put authorization into provider | Violates ADR-007/009 |
 | Put Delivery correlation/provider IDs into Round | Violates ADR-012 |
+| Allow healthy Round-1 loser to choose success vs fail-closed | Leaves public/idempotency semantics non-deterministic under concurrency |
+| Treat uniqueness proof alone as concurrent idempotency proof | Does not prove both callers converge to the same successful logical result |
+| Polling loops / sleeps / distributed locks for loser recovery | Forbidden; use bounded immediate re-read + existing retryable semantics |
 
 ### Residual risks accepted by this plan
 
@@ -882,10 +1004,10 @@ F3.1.2b does not modify repository mismatch semantics; it may add the smallest r
 5. **Emergency A/B different selector keys resolve to same User:** fail before platform transaction; no Round/requirements/audit/finalize/complete from that attempt.
 6. **Catalog unavailable during resolution:** no platform final transaction starts; pending index remains invisible; retry later.
 7. **Active bundle changes between two separate requests:** allowed. Between retries before Round commit: current immutable runtime for the retry may bind. After commit: replay uses durable completed/ledger evidence, no re-resolution.
-8. **Two workers same key concurrently:** unique idempotency key selects the winner; loser recovers winner's stored mode when payload matches.
+8. **Two workers same key concurrently (same payload, LEDGER_REQUIRED):** both may evaluate/resolve before commit. DB uniqueness / serialization selects one Round-1 platform-transaction winner. The loser **must** roll back, re-read the winner's completed reservation + finalized index + Round 1, and return the same logical success when coherent. The loser must never create Round 2, never return `CONFLICT` for same payload, and never return `INTERNAL_ERROR` merely for losing the healthy race. Transient winner-not-yet-observable cases use existing retryable storage semantics. True committed inconsistency fails closed as `INTERNAL_ERROR`.
 9. **Rollback to pre-F3.1.2 with pending LEDGER reservation:** forbidden by mandatory zero-pending runbook correctness gate.
 10. **Future external ITSM provider:** provider create remains outside platform transaction; correctness is idempotent create + orphan/retry, not XA.
-11. **Mismatching payload with existing key:** repository returns `CONFLICT` before policy/Catalog authorization work.
+11. **Mismatching payload with existing key:** repository returns `CONFLICT` before policy/Catalog authorization work. Concurrent different-payload races use the same rule; no Round-race recovery path applies.
 12. **Successful F3.1.2 submission means authorized?** No. Lifecycle remains `submitted`; Round 1 only materializes requirements. Decision authorization comes later.
 13. **Does Round 1 change lifecycle?** No.
 14. **Inactive historical policy on replay:** after successful commit, the durable Round contains policy/bundle/principal evidence; submission replay does not require executing historical policy code.
@@ -896,6 +1018,7 @@ F3.1.2b does not modify repository mismatch semantics; it may add the smallest r
 - **Repository mode mismatch:** retained as explicit fail-closed `CONFLICT`; service orchestration prevents deployment-default changes from becoming explicit reinterpretation requests.
 - **Requirement identity:** exactly `requirementRole`; duplicate roles make the policy unusable before submission.
 - **Impossible partial platform commit:** Round/finalize/complete are one transaction; any plan/test assuming a normal split commit is invalid.
+- **Healthy Round-1 loser vs invariant mismatch:** coherent winner facts → idempotent success; contradictory committed facts → `INTERNAL_ERROR`; never an implementation choice between those outcomes for the healthy same-payload race.
 
 ---
 
@@ -922,6 +1045,10 @@ A future implementation checkpoint may claim PASS only when all relevant criteri
 - [ ] same-person emergency SoD fails before any Round commit;
 - [ ] DevelopmentProvider path passes one caller-owned `trx` to provider + Round + every audit append + index.finalize + idempotency.complete;
 - [ ] transaction failure leaves no partial Round/finalize/complete state;
+- [ ] concurrent same-actor/same-key/same-payload createChange callers both converge to the same successful logical result with exactly one Round 1 / requirement set / canonical audit set / completed reservation / finalized index (authoritative PostgreSQL proof; C1/C2);
+- [ ] healthy Round-1 loser never returns CONFLICT or INTERNAL_ERROR merely for losing the race; never creates Round 2;
+- [ ] concurrent same-key/different-payload returns CONFLICT before authorization; no second Change/Round/provider (C3);
+- [ ] loser recovery fails closed on genuine committed invariant corruption (C4);
 - [ ] external-provider orphan/retry converges without 2PC;
 - [ ] no migration, decision API, Delivery field, Teams/CAB UI, or F3.1.3 behavior;
 - [ ] SQLite + disposable Postgres failure-injection matrix passes;
@@ -936,16 +1063,16 @@ A future implementation checkpoint may claim PASS only when all relevant criteri
 ## 26. GO / NO-GO recommendation for a separate implementation checkpoint
 
 ```text
-F3.1.2 revised planning: READY_FOR_REREVIEW
+F3.1.2 concurrency plan revision: READY_FOR_REREVIEW
 F3.1.2 implementation: NO-GO
-F3.1.2a implementation prompt authoring: NO-GO pending re-review ACCEPT
+F3.1.2a implementation prompt authoring: NO-GO pending fresh ACCEPT
 F3.1.2a implementation: NO-GO
 F3.1.2b implementation: NO-GO
 ```
 
-**Next gate:** fresh independent architecture re-review of this revised plan against the actual current ADO branch tip.
+**Next gate:** one focused independent architecture re-review of this concurrency-corrected plan (primarily G14/G19 plus regression of the four already-closed blockers) against the actual current ADO branch tip.
 
-Only a re-review `ACCEPT` may authorize authoring the constrained F3.1.2a implementation prompt. This revision does not create that prompt.
+Only a re-review `ACCEPT` may authorize authoring the constrained F3.1.2a implementation prompt. This revision does not create that prompt and does not declare the plan accepted.
 
 ---
 
@@ -975,6 +1102,10 @@ STOP. Do not implement F3.1.2, fix `buildChange()` in ADO, add migrations/routes
 | 14 | Rollback | Mandatory RUNBOOK_CORRECTNESS_GATE: zero pending ledger reservations before pre-F3.1.2 binary rollback |
 | 15 | Error taxonomy | Existing codes; SoD uses `CONFLICT` + stable reason |
 | 16 | Slice decomposition | Exactly two: 2a canonical Change, 2b ledger submission |
+| 17 | Healthy Round-1 concurrent loser | Roll back → coherence re-read → same logical success when coherent; never CONFLICT / never INTERNAL_ERROR merely for losing; never Round 2 |
+| 18 | Transient winner not observable | Bounded immediate re-read; else existing retryable storage semantics; no polling/locks/queues |
+| 19 | True invariant mismatch after loser re-read | Fail closed as INTERNAL_ERROR; distinct from healthy race |
+| 20 | Concurrent different payload | CONFLICT before authorization; no Round-race recovery |
 
 ## Appendix B — Planning gate coverage (P1–P20)
 

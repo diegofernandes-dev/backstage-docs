@@ -19,8 +19,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 - F3.1.2 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**.
 - F3.1.2a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843` ([`f3-1-2a-architecture-implementation-acceptance.md`](../docs/backstage/f3-1-2a-architecture-implementation-acceptance.md)).
-- [`f3-1-1c-cab-safe-policy-implementation.md`](./f3-1-1c-cab-safe-policy-implementation.md) — **next implementation checkpoint**, authored and ready, but must not execute without a separate explicit user launch.
-- F3.1.2b remains **NO-GO** until F3.1.1c is implemented and independently accepted.
+- [`f3-1-1c-cab-safe-policy-implementation.md`](./f3-1-1c-cab-safe-policy-implementation.md) — **executed**; implementation PASS and published to ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`. Canonical evidence: [`docs/backstage/f3-1-1c-implementation-evidence.md`](../docs/backstage/f3-1-1c-implementation-evidence.md). **Next gate:** independent F3.1.1c acceptance review.
+- F3.1.2b remains **NO-GO** until F3.1.1c is independently accepted.
 - F3.2 CAB autonomy remains **NO-GO**.
 ## Production-rollout gate — deferred until a real target exists
 
@@ -28,7 +28,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
-- [`f3-1-2a-architecture-implementation-acceptance.md`](./f3-1-2a-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.2a as the accepted implemented baseline at ADO `ccee1e1`. F3.1.1c still requires separate explicit launch; F3.1.2b remains NO-GO.
+- [`f3-1-1c-cab-safe-policy-implementation.md`](./f3-1-1c-cab-safe-policy-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`. Canonical evidence: `docs/backstage/f3-1-1c-implementation-evidence.md`. Acceptance pending separate review.
+- [`f3-1-2a-architecture-implementation-acceptance.md`](./f3-1-2a-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.2a as the accepted implemented baseline at ADO `ccee1e1`. F3.1.1c was subsequently implemented; F3.1.2b remains NO-GO until F3.1.1c acceptance.
 - F3.1.2a implementation evidence checkpoint — implementation PASS and published to ADO `ccee1e1`; independent acceptance completed separately (`ACCEPT`).
 - [`f3-1-2a-canonical-change-implementation.md`](./f3-1-2a-canonical-change-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@ccee1e1676a2763e68880e5383ce1e5e48742843`. Canonical evidence: `docs/backstage/f3-1-2a-implementation-evidence.md`. Acceptance completed separately (`ACCEPT`).
 - Prompt-authoring checkpoint — F3.1.2a canonical-Change implementation prompt and F3.1.1c CAB-safe policy implementation prompt authored after final F3.1.2 plan ACCEPT. F3.1.2a later executed and accepted; F3.1.1c still awaiting explicit launch.

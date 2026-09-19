@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.2a **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1` (full SHA `ccee1e1676a2763e68880e5383ce1e5e48742843`), parent F3.1.1b `188d8e9`.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.2a accepted; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.1c prompt ready / implementation NO-GO until explicit launch; F3.1.2b NO-GO until F3.1.1c independently accepted
+> **Current GMUD implementation baseline:** F3.1.1c **IMPLEMENTED / PUBLISHED** at ADO `3b302ab` (full SHA `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`), parent F3.1.2a `ccee1e1`; F3.1.2a remains **CLOSED / ACCEPTED** at `ccee1e1676a2763e68880e5383ce1e5e48742843`.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.2a accepted; F3.1.1c implemented/published pending independent acceptance; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2b NO-GO until F3.1.1c independently accepted
 
 ## How to use this log
 
@@ -1909,3 +1909,40 @@ Canonical review:
 Independent proofs re-run at exact SHA: focused A1/A2/A3 suites PASS; full Change Management module 287 tests PASS with disposable PostgreSQL 16; lint/build PASS; TypeScript error set set-identical to `188d8e9`.
 
 **Next authorized activity:** F3.1.1c CAB-safe policy implementation only after separate explicit user launch of its authored prompt. Do not start F3.1.2b.
+
+---
+
+## GMUD F3.1.1c — CAB-safe policy publication (IMPLEMENTED / PUBLISHED)
+
+Documentation baseline SHA (implementation start): `982bf0516dab64d9beeb0d3b4fc7dee663561a98`.
+
+Implementation published:
+`platform-devops-developer-portal@3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`
+(parent exact F3.1.2a tip `ccee1e1676a2763e68880e5383ce1e5e48742843`).
+
+### Outcome
+
+```text
+F3.1.1c implementation: PASS
+Historical policy modified: NO
+New policy: default-change-authorization@2026-09-19.1
+normal.low primary + CAB: PASS
+medium/high/emergency unchanged: PASS
+Publication manifest append-only: PASS
+Active policy pin updated: YES
+Active selector bundle changed: NO
+CAB autonomy implemented: NO
+Migrations added: NO
+Publication validation: PASS (non-genesis vs ccee1e1)
+Policy/selector regressions: PASS
+Change Management regressions: PASS (301 tests)
+Lint/Build: PASS
+TypeScript baseline: LINE_IDENTICAL to ccee1e1
+Remote ADO tip: 3b302ab5c9caab38f96491b389b7ea9fe0b66c2f
+```
+
+Canonical evidence:
+[`f3-1-1c-implementation-evidence.md`](./f3-1-1c-implementation-evidence.md).
+
+**Next authorized activity:** independent F3.1.1c architecture/implementation
+acceptance review. Do **not** start F3.1.2b until that acceptance ACCEPTs.

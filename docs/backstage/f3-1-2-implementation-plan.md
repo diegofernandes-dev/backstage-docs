@@ -1,8 +1,8 @@
 # F3.1.2 — Fail-Closed Submission + First AuthorizationRound — Revised Implementation Plan
 
-- **Status:** CONCURRENCY CONTRACT REVISED — READY FOR FOCUSED INDEPENDENT RE-REVIEW
+- **Status:** CONCURRENCY + CAB-GOVERNANCE DEPENDENCIES REVISED — READY FOR FOCUSED INDEPENDENT RE-REVIEW
 - **Date:** 2026-09-19
-- **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009, ADR-012; F3.1 / F3.1.1 plans; F3.1.1a/b accepted baselines; F3.1.2 architecture review decisions; F3.1.2 revised-plan re-review concurrency correction
+- **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009 as partially superseded by ADR-013, ADR-012, ADR-013; F3.1 / F3.1.1 plans; F3.1.1a/b accepted baselines; F3.1.2 architecture review decisions; F3.1.2 revised-plan re-review concurrency correction
 - **Revision prompt (this checkpoint):** `prompts/f3-1-2-concurrency-plan-revision.md`
 - **Prior plan-revision prompt:** `prompts/f3-1-2-plan-revision.md` (historical)
 - **Rejected first-plan review:** `docs/backstage/f3-1-2-plan-architecture-review.md` at `backstage-docs@0daa8fc0719bafd4d8b1e2f95c1ad0abeaa03422`
@@ -13,7 +13,7 @@
 - **F3.1.2 implementation:** **NO-GO**
 
 ```text
-F3.1.2 concurrency plan revision: READY_FOR_REREVIEW
+F3.1.2 concurrency + CAB-safe plan revision: READY_FOR_REREVIEW
 F3.1.2 implementation: NO-GO
 F3.1.2a implementation prompt authoring: NO-GO pending fresh ACCEPT
 F3.1.2a implementation: NO-GO
@@ -35,7 +35,7 @@ The first F3.1.2 plan was independently reviewed and rejected because it left th
 3. `requirementId = requirementRole` with fail-closed per-rule role uniqueness at policy registration/publication;
 4. rollback to a pre-F3.1.2 binary while pending `LEDGER_REQUIRED` reservations exist is a mandatory operational correctness gate.
 
-**Only** the healthy concurrent Round-1 loser convergence rule and its proof are made exact below.
+**The healthy concurrent Round-1 loser convergence rule is now exact.** After that correction, ADR-013 introduced one additional planning dependency: normal-low is CAB-required by default and a bounded autonomy mechanism is deferred to F3.2. This plan therefore also records the CAB-safe policy prerequisite without reopening the four previously closed F3.1.2 architecture decisions.
 
 ### What this revised plan is
 
@@ -46,7 +46,8 @@ A re-review candidate and implementation contract proposal for the first composi
 3. F3.1.1a published policy + evaluator;
 4. F3.1.1b active selector bundle + Catalog principal resolver;
 5. F3.1.0 append-only authorization ledger (`AuthorizationRound` + requirements + audit);
-6. deterministic concurrent Round-1 loser convergence for same-key/same-payload submissions (§13).
+6. deterministic concurrent Round-1 loser convergence for same-key/same-payload submissions (§13);
+7. ADR-013's CAB-safe default policy baseline: normal-low materializes primary + CAB until a later F3.2 autonomy grant capability exists.
 
 ### What this plan is not
 
@@ -54,7 +55,7 @@ A re-review candidate and implementation contract proposal for the first composi
 - Not an F3.1.2a/F3.1.2b implementation prompt.
 - Not F3.1.3 decisions, F3.1.4 RBAC, Teams, CAB UI, Delivery, or execution eligibility transport.
 - Not a claim of distributed atomicity across an external ITSM provider.
-- Not a change to ADR-009 or ADR-012.
+- Not a change to ADR-012. ADR-013 intentionally and narrowly supersedes ADR-009's normal-low baseline; this plan consumes that target but does not implement CAB autonomy.
 
 ### Primary architecture answer
 
@@ -90,6 +91,7 @@ The independent architecture review inspected the exact accepted SHA `188d8e9cc4
 2. **Authorization runtime unwired** — deliberate F3.1.1b STOP; F3.1.2b wires it.
 3. **Old-binary rollback hazard** — `188d8e9` accepts an existing `LEDGER_REQUIRED` reservation when mode is omitted and then follows the legacy finalize path with no Round.
 4. **Policy role uniqueness not enforced** — F3.1.2b must add fail-closed registration/publication validation before using `requirementRole` as the canonical requirement ID.
+5. **Accepted published policy is now behaviorally stale for the target** — `default-change-authorization@2026-09-02.1` was accepted under ADR-009's original `normal.low -> primary only` rule. ADR-013 now requires `normal.low -> primary + CAB` by default. Do not edit/reuse that immutable policy identity; publish a new immutable policy version in the narrow F3.1.1c prerequisite before F3.1.2b can enable ledger submissions.
 
 ### Drift rule for the next review
 
@@ -109,7 +111,7 @@ POST /changes
   -> LEGACY_PRE_F3: exact current F2 path (after single-build fix)
   -> LEDGER_REQUIRED (new only):
        one canonical Change
-       pin active published policy + active selector bundle (once)
+       pin active published CAB-safe policy + active selector bundle (once)
        evaluate → resolve principals → fail-closed SoD
        create AuthorizationRound 1 + requirements + submission audit
        finalize index + complete idempotency consistently
@@ -122,6 +124,7 @@ POST /changes
 - Additive user-supplied mandatory requirements (deferred — §10)
 - New governance RBAC roles (F3.1.4)
 - Teams, CAB Workbench, eligibility transport
+- CAB autonomy grant storage/commands/application (F3.2; no bypass in F3.1.2)
 - Delivery/Kargo/Argo/GitOps fields or bindings
 - Background migration of historical Changes to ledger governance
 - Distributed XA across external providers
@@ -138,6 +141,30 @@ POST /changes
 5. **Policy/selector publication integrity** remains F3.1.1a/b; F3.1.2 consumes runtime, does not invent a second one.
 6. **ADR-009 orthogonality** — Round 1 does **not** change `Change.lifecycle`; remains `submitted`. `AUTHORIZED` is derived later from decisions.
 7. **ADR-012** — no pipeline/Kargo/Argo/Git identity in Change authorization artifacts.
+8. **ADR-013 default deny** — normal-low requires primary + CAB until a future valid CAB autonomy grant capability is implemented; F3.1.2 itself has no autonomy/bypass path.
+
+
+### 4a. CAB-safe policy prerequisite (F3.1.1c)
+
+ADR-013 changes the target policy baseline without invalidating the already-accepted F3.1.1a implementation history.
+
+Before F3.1.2b may enable `LEDGER_REQUIRED` submissions:
+
+1. publish a **new immutable** `default-change-authorization` policy version;
+2. keep the existing published version untouched;
+3. new policy behavior must be:
+   - `normal.low -> primary + CAB`;
+   - `normal.medium -> primary + CAB` (unchanged);
+   - `normal.high -> primary + CAB` (unchanged);
+   - emergency rows unchanged;
+4. update the publication manifest/digest through the existing F3.1.1a integrity mechanism;
+5. pin the active policy to that new version only through the existing reviewed config mechanism;
+6. reuse the existing `cab-authority` selector from F3.1.1b;
+7. do **not** implement `CabAutonomyGrant`, a bypass flag, a waiver engine, or CAB Workbench in this prerequisite.
+
+This is tracked as **F3.1.1c — CAB-safe policy baseline publication**. It is a prerequisite dependency, not a third F3.1.2 slice.
+
+Until F3.2 exists, every ledger-governed normal-low Round materializes both primary and CAB pre-execution requirements.
 
 ---
 
@@ -184,6 +211,7 @@ Healthy pending state for a new F3.1.2 submission has no committed Round 1 yet.
 ```text
 canonicalChange = durable pending index snapshot
 → pin immutable AuthorizationRuntime references for this attempt
+→ assert active policy is the ADR-013 CAB-safe published version
 → evaluate active published policy exactly once
 → resolve required selector principals in deterministic order
 → validate principal types
@@ -686,7 +714,7 @@ Smallest DI change:
    - `authorizationLedger: AuthorizationLedgerRepository`
    - `newSubmissionAuthorizationMode: AuthorizationMode` (from config)
 2. Plugin: pass `bootstrapAuthorization(...)` result + `new KnexAuthorizationLedgerRepository(knex)` + config enum into the service (today runtime is intentionally discarded after logging).
-3. Service uses `runtime.activePolicy` / `runtime.selectorBundle` / `runtime.principalResolver` only on `LEDGER_REQUIRED` path when Round 1 is absent.
+3. Service uses `runtime.activePolicy` / `runtime.selectorBundle` / `runtime.principalResolver` only on `LEDGER_REQUIRED` path when Round 1 is absent. Enabling `LEDGER_REQUIRED` is gated on F3.1.1c having published/pinned the ADR-013 CAB-safe policy version.
 4. No global mutable singleton; no ad-hoc config re-read; no frontend authority; no direct Catalog calls in the service for principals (resolver abstraction already exists).
 
 Update `architecture.test.ts`: replace “service must not contain `createRound`” with “service may call ledger only when `authorizationMode === LEDGER_REQUIRED`” / forbid decision APIs / forbid Delivery identifiers — keep fail-closed intent.
@@ -831,6 +859,8 @@ Completed ledger submissions remain durable facts and do not block rollback sole
 | Q2 | Round materialization always sets `requirementId === requirementRole` |
 | Q3 | Retry-before-commit uses the same single identity scheme; no hash fallback |
 | Q4 | Active published policy/bundle used and exact identities persisted |
+| Q5 | Active CAB-safe policy maps `normal + low` to exactly primary + CAB pre-execution requirements |
+| Q6 | F3.1.2 has no autonomy/bypass path: low-risk CAB remains required until F3.2 |
 
 ### Principal resolution / SoD
 
@@ -951,16 +981,19 @@ Must not change: frontend, Delivery, decision APIs, migrations unless the fresh 
 
 ## 22. Slice decomposition / implementation order
 
-Exactly two ordered micro-slices remain sufficient:
+Exactly two F3.1.2 micro-slices remain sufficient. ADR-013 adds one separate policy-publication prerequisite between them:
 
-| Order | Slice | Content | Enables new LEDGER submissions? |
+| Order | Checkpoint | Content | Enables new LEDGER submissions? |
 |---|---|---|---|
 | 1 | **F3.1.2a** | Single canonical Change construction + recovery reuse; no authorization integration | No |
-| 2 | **F3.1.2b** | New-reservation mode orchestration, runtime DI, policy-role uniqueness validation, selector/SoD, Round 1 + requirements + audit, mandatory caller-owned transaction, rollback runbook evidence | Yes, only after config intentionally switches to `LEDGER_REQUIRED` |
+| 1.5 | **F3.1.1c — prerequisite** | Publish/pin a new immutable CAB-safe policy version: normal-low becomes primary + CAB; medium/high/emergency otherwise unchanged | No |
+| 2 | **F3.1.2b** | New-reservation mode orchestration, runtime DI, policy-role uniqueness validation, selector/SoD, Round 1 + requirements + audit, mandatory caller-owned transaction, rollback runbook evidence | Yes, only after F3.1.1c is accepted and config intentionally switches to `LEDGER_REQUIRED` |
 
-No third transaction-capability slice: the ledger APIs already accept caller-owned `trx`.
+F3.1.1c is **not** a third F3.1.2 slice. It changes only published policy data/integrity artifacts required by the new ADR-013 target.
 
-F3.1.2b does not modify repository mismatch semantics; it may add the smallest read-only reservation lookup required by service orchestration.
+No third transaction-capability slice is needed: the ledger APIs already accept caller-owned `trx`.
+
+F3.1.2b does not modify repository mismatch semantics; it may add the smallest read-only reservation lookup required by service orchestration. F3.1.2b must not implement CAB autonomy grants, waiver logic, grant persistence, autonomy RBAC, or CAB Workbench. Those belong to F3.2.
 
 ---
 
@@ -983,6 +1016,8 @@ F3.1.2b does not modify repository mismatch semantics; it may add the smallest r
 | Optional rollback hard guard | Correctness control cannot be optional; use mandatory runbook gate |
 | Put authorization into provider | Violates ADR-007/009 |
 | Put Delivery correlation/provider IDs into Round | Violates ADR-012 |
+| Enable F3.1.2b against the old `normal.low -> primary only` policy | Violates ADR-013's default-deny CAB baseline |
+| Implement CAB autonomy inside F3.1.2b | Expands the slice into a new governance/waiver subsystem; deferred to bounded F3.2 |
 | Allow healthy Round-1 loser to choose success vs fail-closed | Leaves public/idempotency semantics non-deterministic under concurrency |
 | Treat uniqueness proof alone as concurrent idempotency proof | Does not prove both callers converge to the same successful logical result |
 | Polling loops / sleeps / distributed locks for loser recovery | Forbidden; use bounded immediate re-read + existing retryable semantics |
@@ -1019,6 +1054,7 @@ F3.1.2b does not modify repository mismatch semantics; it may add the smallest r
 - **Requirement identity:** exactly `requirementRole`; duplicate roles make the policy unusable before submission.
 - **Impossible partial platform commit:** Round/finalize/complete are one transaction; any plan/test assuming a normal split commit is invalid.
 - **Healthy Round-1 loser vs invariant mismatch:** coherent winner facts → idempotent success; contradictory committed facts → `INTERNAL_ERROR`; never an implementation choice between those outcomes for the healthy same-payload race.
+- **ADR-013 low-risk default:** F3.1.2b must materialize primary + CAB for normal-low under the new F3.1.1c policy. There is no requester-selected or server-inferred autonomy bypass in F3.1.2.
 
 ---
 
@@ -1040,6 +1076,9 @@ A future implementation checkpoint may claim PASS only when all relevant criteri
 - [ ] service applies config mode only to genuinely new reservations;
 - [ ] concurrent first-insert race converges on DB winner's stored mode;
 - [ ] legacy reservation retries never enter policy path;
+- [ ] F3.1.1c CAB-safe immutable policy publication is accepted and active before `LEDGER_REQUIRED` is enabled;
+- [ ] normal-low Round materializes primary + CAB requirements by default;
+- [ ] no CAB autonomy/bypass/grant logic exists in F3.1.2b;
 - [ ] `requirementId = requirementRole` only;
 - [ ] duplicate `requirementRole` fails policy registration/publication/startup;
 - [ ] same-person emergency SoD fails before any Round commit;
@@ -1063,14 +1102,14 @@ A future implementation checkpoint may claim PASS only when all relevant criteri
 ## 26. GO / NO-GO recommendation for a separate implementation checkpoint
 
 ```text
-F3.1.2 concurrency plan revision: READY_FOR_REREVIEW
+F3.1.2 concurrency + CAB-safe plan revision: READY_FOR_REREVIEW
 F3.1.2 implementation: NO-GO
 F3.1.2a implementation prompt authoring: NO-GO pending fresh ACCEPT
 F3.1.2a implementation: NO-GO
 F3.1.2b implementation: NO-GO
 ```
 
-**Next gate:** one focused independent architecture re-review of this concurrency-corrected plan (primarily G14/G19 plus regression of the four already-closed blockers) against the actual current ADO branch tip.
+**Next gate:** one focused independent architecture re-review of this concurrency-corrected, ADR-013-aligned plan. The review must regress G14/G19 and the four already-closed blockers, and additionally verify that F3.1.1c is a narrow immutable-policy prerequisite while F3.1.2b remains autonomy-free.
 
 Only a re-review `ACCEPT` may authorize authoring the constrained F3.1.2a implementation prompt. This revision does not create that prompt and does not declare the plan accepted.
 
@@ -1106,6 +1145,8 @@ STOP. Do not implement F3.1.2, fix `buildChange()` in ADO, add migrations/routes
 | 18 | Transient winner not observable | Bounded immediate re-read; else existing retryable storage semantics; no polling/locks/queues |
 | 19 | True invariant mismatch after loser re-read | Fail closed as INTERNAL_ERROR; distinct from healthy race |
 | 20 | Concurrent different payload | CONFLICT before authorization; no Round-race recovery |
+| 21 | Normal-low CAB baseline | ADR-013 default: primary + CAB; old policy identity is never edited/reused |
+| 22 | CAB autonomy | Deferred to F3.2; no bypass/grant logic in F3.1.2b |
 
 ## Appendix B — Planning gate coverage (P1–P20)
 

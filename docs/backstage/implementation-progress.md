@@ -1985,3 +1985,27 @@ Canonical review:
 Independent proofs re-run at exact SHA: non-genesis publication validation PASS; focused policy/selector/architecture 120 tests PASS; full Change Management module 306 tests PASS with disposable PostgreSQL 16; lint/build PASS; TypeScript error locations identical to `ccee1e1`.
 
 **Next authorized activity:** author a constrained F3.1.2b implementation prompt from the already accepted F3.1.2 implementation contract. Do **not** implement F3.1.2b, F3.1.3, F3.1.4, or F3.2 inside this gate.
+
+---
+
+## Product convergence checkpoint — Deployments missing from active GMUD line
+
+User-observed product issue: the previously accepted Catalog Component **Deployments** tab is not present in the currently running product based on the active GMUD line.
+
+Canonical evidence shows the accepted Deployments UX lived on the separate ADO workstream `feat/delivery-mvp-slice` (`0163a49` UX implementation; `b08e7b2` responsive polish), while the current GMUD/F3 line is `feat/ado-repo-governance` (`3b302ab` accepted F3.1.1c baseline). This strongly suggests branch divergence, but the actual ADO source must verify the root cause before any code change.
+
+Prepared canonical convergence prompt:
+`prompts/product-convergence-deployments.md`
+
+Gate:
+```text
+Product convergence implementation: NOT STARTED
+Root cause: MUST BE VERIFIED FROM LIVE ADO SOURCE
+F3.1.2a: CLOSED / ACCEPTED
+F3.1.1c: CLOSED / ACCEPTED
+F3.1.2b prompt authoring: architecture GO, intentionally deferred until convergence result
+F3.1.2b implementation: NO-GO until separate explicit launch
+F3.2: NO-GO
+```
+
+The convergence prompt explicitly forbids a wholesale merge of `feat/delivery-mvp-slice`; it requires a path/symbol-level convergence manifest, preservation of the historical `api:catalog/delivery` collision fix, GMUD/Catalog regressions, and exclusion of unrelated sandbox/production hardening, secrets, credentials, and rollout artifacts.

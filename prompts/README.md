@@ -17,9 +17,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- [`f3-1-2-planning.md`](./f3-1-2-planning.md) — **current planning-only checkpoint** for F3.1.2 (fail-closed submission + first AuthorizationRound). It must inspect the accepted ADO baseline `188d8e9`, resolve the single-canonical-Change correction, authorization-regime cutover, policy/selector binding, emergency A/B effective-principal distinctness, transaction/crash recovery under Model C, visibility/idempotent replay, rollback compatibility, and a concrete test matrix. It writes a reviewable plan only.
-- **F3.1.2 implementation remains NO-GO.** No code, migration, route, `POST /changes` wiring, or Round 1 creation is authorized by this prompt.
-- If the planning result is `READY_FOR_REVIEW`, the next checkpoint is an **independent architecture review of the F3.1.2 plan**, not implementation.
+- **Independent architecture review of the F3.1.2 plan** — review [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) only. Planning checkpoint completed with `READY_FOR_REVIEW`. **F3.1.2 implementation remains NO-GO** until that review ACCEPTs the plan and a separate constrained implementation prompt is authorized.
+- Do **not** implement F3.1.2, fix `buildChange()`, add migrations/routes, wire `POST /changes`, create AuthorizationRounds, or start F3.1.3/F3.1.4 from this gate.
 
 ## Production-rollout gate — deferred until a real target exists
 
@@ -27,6 +26,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
+- [`f3-1-2-planning.md`](./f3-1-2-planning.md) — completed with `READY_FOR_REVIEW`. Produced [`docs/backstage/f3-1-2-implementation-plan.md`](../docs/backstage/f3-1-2-implementation-plan.md) against ADO `188d8e9` (20/20 gates, 15/15 challenges). F3.1.2 implementation remains NO-GO; next activity is independent plan review.
 - [`f3-1-1b-architecture-implementation-acceptance.md`](./f3-1-1b-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.1b as the accepted implemented baseline at ADO `188d8e9`. Authorized F3.1.2 planning only; F3.1.2 implementation remains NO-GO.
 - [`f3-1-1b-selector-resolution-implementation.md`](./f3-1-1b-selector-resolution-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@188d8e9cc43423f3644b3cacfb9849257838a583`. Canonical evidence is `docs/backstage/f3-1-1b-implementation-evidence.md`. Architecture acceptance completed separately (`ACCEPT`).
 - [`pre-rollout-condition-closure.md`](./pre-rollout-condition-closure.md) — completed with `CONDITIONAL_PASS`. C1 token-refresh durability subsequently closed through governed PR #82; C4 alerting was proven. C2/C5 remain target-dependent and are deferred until a real production rollout target exists. C3 is an operational/runbook readiness item and is not a blocker to unrelated platform implementation slices.
@@ -46,24 +46,21 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 Use a short launcher instead of pasting the long prompt into an agent session.
 
-### Current launcher — F3.1.2 planning
+### Current launcher — F3.1.2 plan architecture review
 
 ```text
 Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
 
-Read `prompts/f3-1-2-planning.md` and treat it as a strict planning-only contract.
+Independently review `docs/backstage/f3-1-2-implementation-plan.md` against ADR-009, ADR-012, the accepted ADO baseline `188d8e9`, and the F3.1.1a/b accepted baselines.
 
-Inspect the actual Azure DevOps `platform-devops-developer-portal/feat/ado-repo-governance` baseline at `188d8e9cc43423f3644b3cacfb9849257838a583` before proposing changes. If the branch has advanced, reconcile relevant drift first.
+Return ACCEPT or REJECT with concrete blockers. Do not implement F3.1.2, do not create an implementation prompt unless the review explicitly authorizes a follow-up, and keep F3.1.2 implementation NO-GO until ACCEPT plus a separate implementation authorization.
+```
 
-Produce `docs/backstage/f3-1-2-implementation-plan.md` only. Do not modify implementation code.
+### Historical launcher — F3.1.2 planning (completed)
 
-Resolve every P1-P20 planning gate and all 15 challenge scenarios, with special attention to: one canonical Change snapshot; immutable LEGACY_PRE_F3 vs LEDGER_REQUIRED idempotency regime; exact cutover mechanism; pinned policy + selector bundle; emergency A/B same-person fail-closed behavior; Round 1 + requirements + audit mapping; Model C provider transaction/crash-recovery boundaries; discoverability/finalization; replay/concurrency; rollback with outstanding LEDGER_REQUIRED reservations; and a concrete SQLite/Postgres/failure-injection test matrix.
-
-Do not claim distributed atomicity across an external provider. Preserve ADR-009 and ADR-012 provider-neutral authority boundaries.
-
-Do not implement F3.1.2, fix buildChange(), add migrations/routes, wire POST /changes, create AuthorizationRounds, create an implementation prompt, or start F3.1.3/F3.1.4.
-
-Update canonical planning docs, return READY_FOR_REVIEW or BLOCKED, keep F3.1.2 implementation NO-GO, commit documentation only, and STOP.
+```text
+Fetch the latest `main` from `diegofernandes-dev/backstage-docs`.
+Read `prompts/f3-1-2-planning.md` and produce `docs/backstage/f3-1-2-implementation-plan.md` only.
 ```
 
 ### Gated launcher — final rollout-readiness re-review

@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.1b — ADO `188d8e9` (full SHA `188d8e9cc43423f3644b3cacfb9849257838a583`), CLOSED / ACCEPTED IMPLEMENTED BASELINE on `feat/ado-repo-governance`  
-> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 planning GO, implementation NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted; F3.1.0 + F3.1.1a + F3.1.1b accepted; F3.1.2 planning READY_FOR_REVIEW, implementation NO-GO
 
 ## How to use this log
 
@@ -1430,6 +1430,76 @@ Carried forward unchanged: `buildChange()`-twice **MUST FIX BEFORE F3.1.2**;
 `LEGACY_PRE_F3` reservation semantics; emergency A/B resolved-person distinctness
 at submission; production selector-bundle publication as a production-rollout
 prerequisite; RBAC CSV / conditional policies as an F3.1.4 prerequisite.
+
+---
+
+## F3.1.2 — Fail-Closed Submission + First AuthorizationRound (planning checkpoint)
+
+Implementation repository/branch/SHA: ADO `platform-devops-developer-portal` /
+`feat/ado-repo-governance` / **`188d8e9cc43423f3644b3cacfb9849257838a583`**
+(HTTPS `git ls-remote` tip equal to accepted F3.1.1b baseline; SSH fetch
+unavailable in session; **no post-baseline drift** on the F3.1.2 surface).
+
+Documentation baseline SHA (start): `d65bf5e1446e682576557583b841ddde7e5a890c`.
+
+### Objective
+
+Produce a reviewable implementation plan for composing `POST /changes`,
+immutable idempotency regime selection, F3.1.1a/b policy/selector runtime, and
+F3.1.0 ledger Round 1 — planning only.
+
+### Architecture applied
+
+Full design in
+[`f3-1-2-implementation-plan.md`](./f3-1-2-implementation-plan.md). Key
+decisions:
+
+- Cutover via `changeManagement.authorization.newSubmissionAuthorizationMode`
+  (`LEGACY_PRE_F3` \| `LEDGER_REQUIRED`), default `LEGACY_PRE_F3`; **stored
+  reservation mode wins forever** (refine reserve semantics so mode re-request
+  is not CONFLICT).
+- Two micro-slices: **F3.1.2a** single canonical `buildChange`/snapshot reuse;
+  **F3.1.2b** ledger submission wiring.
+- Round 1 + requirements + submission audit in the same platform DB transaction
+  as index finalize + idempotency complete; DevelopmentProvider may join;
+  external provider create remains outside (Model C orphan/retry — no 2PC).
+- Emergency A/B same effective User fail-closed before Round commit.
+- Additive mandatory requirements deferred; **no migration**.
+- Binary rollback past F3.1.2 forbidden while pending `LEDGER_REQUIRED`
+  reservations exist.
+
+P1–P20 resolved; all 15 challenge scenarios answered. ADR-009 / ADR-012
+untouched.
+
+### ADO files changed
+
+**None.** Documentation-only checkpoint.
+
+### Tests / functional verification
+
+Not applicable — no code. Concrete SQLite/Postgres/failure-injection matrix is
+in the plan §20 for the future implementation checkpoint.
+
+### Deviations
+
+None new. Carried forward: production selector-bundle publication still a
+production-rollout prerequisite; RBAC CSV files still F3.1.4.
+
+### Gate
+
+```text
+F3.1.2 planning: READY_FOR_REVIEW
+F3.1.2 implementation: NO-GO
+Planning gates resolved: 20/20
+Challenge scenarios answered: 15/15
+Migration required: NO
+Planned implementation slices: 2
+ADO implementation modified: NO
+```
+
+**Next checkpoint:** independent architecture review of
+[`f3-1-2-implementation-plan.md`](./f3-1-2-implementation-plan.md) — not
+implementation.
 
 ---
 

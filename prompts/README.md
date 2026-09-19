@@ -18,15 +18,17 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Current authorized activity
 
 - F3.1.2 plan is an **ACCEPTED IMPLEMENTATION CONTRACT** ([`docs/backstage/f3-1-2-final-architecture-rereview.md`](../docs/backstage/f3-1-2-final-architecture-rereview.md)).
-- **Next documentation work (not yet authored):** constrained F3.1.2a implementation prompt and/or F3.1.1c CAB-safe policy publication planning/prompt.
-- F3.1.2a and F3.1.1c may be planned independently; F3.1.2b remains **NO-GO** until both are accepted.
-- **All F3.1.2a / F3.1.1c / F3.1.2b / F3.2 implementation remains NO-GO** until a separate explicit authorization launches an implementation prompt.
+- [`f3-1-2a-canonical-change-implementation.md`](./f3-1-2a-canonical-change-implementation.md) — implementation prompt authored and ready, but **must not execute without explicit user launch**.
+- [`f3-1-1c-cab-safe-policy-implementation.md`](./f3-1-1c-cab-safe-policy-implementation.md) — implementation prompt authored and ready, but **must not execute without explicit user launch**.
+- Recommended order: F3.1.2a first, then F3.1.1c. They are architecturally independent, but F3.1.2b remains **NO-GO** until both are independently implemented and accepted.
+- F3.2 CAB autonomy remains **NO-GO**.
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
+- Prompt-authoring checkpoint — F3.1.2a canonical-Change implementation prompt and F3.1.1c CAB-safe policy implementation prompt authored after final F3.1.2 plan ACCEPT. No ADO implementation executed by prompt authoring.
 - [`f3-1-2-final-architecture-rereview.md`](./f3-1-2-final-architecture-rereview.md) — completed with `ACCEPT`. Canonical review: [`docs/backstage/f3-1-2-final-architecture-rereview.md`](../docs/backstage/f3-1-2-final-architecture-rereview.md). ADO tip independently verified `188d8e9`. Prior blockers 4/4 closed; concurrency + ADR-013 + F3.1.1c/2a/2b gates PASS. Plan is ACCEPTED IMPLEMENTATION CONTRACT. No ADO code modified; no implementation prompt authored inside the review.
 - ADR-013 CAB-safe plan realignment — documentation completed in canonical ADR/plan. Normal-low is now primary + CAB by default; F3.1.1c is required before F3.1.2b; bounded autonomy is deferred to F3.2.
 - [`f3-1-2-concurrency-plan-revision.md`](./f3-1-2-concurrency-plan-revision.md) — completed by documentation revision. Concurrency-corrected plan is `READY_FOR_REREVIEW`. Healthy Round-1 loser convergence is deterministic; C1–C4 concurrency proofs specified. ADO implementation unchanged; all F3.1.2 implementation remains NO-GO pending fresh independent ACCEPT.

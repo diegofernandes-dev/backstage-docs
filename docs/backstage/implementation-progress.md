@@ -2340,3 +2340,27 @@ Blockers (F3.1.3b only; do not redesign accepted F3.1.2 or the passing 3a contra
 2. **G14** — allowing every user-editable create field, including `targetRef` / owner / System, can still represent a fundamentally different business Change under the same `changeId`. Model C current-projection vs immutable Round history remains coherent (G15 PASS); the identity boundary is not.
 
 **Next authorized activity:** narrow F3.1.3 plan correction of G13 and G14 only, then independent re-review. Do **not** author an implementation prompt, implement F3.1.3/F3.1.4/F3.2, fabricate decisions, or perform production cutover inside this gate.
+
+---
+
+## GMUD F3.1.3-REV — Narrow plan correction prepared after REJECT
+
+Independent F3.1.3 plan review returned `REJECT` with **18/20 gates PASS**. The accepted/source-accurate F3.1.3a decision-command contract is preserved. Only two F3.1.3b governance contracts require correction:
+
+1. explicit resubmission actor authority;
+2. same-changeId identity boundary preventing target/owner/System retargeting.
+
+Canonical correction prompt:
+`prompts/f3-1-3-plan-revision.md`
+
+Planned bounded decisions:
+```text
+resubmit permission + (original requester OR current member of immutable ownerRef)
+platform_admin alone: NO
+CAB alone: NO
+targetRef across same changeId: IMMUTABLE
+ownerRef/systemRef across same changeId: IMMUTABLE
+retargeting: new Change/new changeId
+```
+
+The correction prompt also requires ADR-014, Catalog-ownership-drift semantics, hidden execution-plan retarget protection, and a fresh independent re-review. No ADO implementation is authorized.

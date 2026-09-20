@@ -20,8 +20,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 - F3.1.2 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**.
 - F3.1.2a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843`.
 - F3.1.1c is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`.
-- [`product-convergence-deployments.md`](./product-convergence-deployments.md) — **current checkpoint prompt**, authored after the user observed the accepted Catalog Component Deployments tab missing from the active GMUD product line. It must verify the actual root cause and, only if branch divergence is confirmed and separable, restore the minimal accepted Deployments product surface onto `feat/ado-repo-governance` without merging the Delivery branch wholesale.
-- F3.1.2b implementation-prompt authoring remains architecture-authorized but is intentionally **deferred until product convergence is resolved**, to avoid increasing branch divergence.
+- [`product-convergence-deployments.md`](./product-convergence-deployments.md) — **COMPLETED / PASS**. Published to ADO `feat/ado-repo-governance@f48dc825ab5d1d16fafc3f70ef772d28613df1a0`. Evidence: [`docs/backstage/product-convergence-deployments-evidence.md`](../docs/backstage/product-convergence-deployments-evidence.md).
+- F3.1.2b implementation-prompt authoring: **GO** (architecture-authorized; deferred no longer required by product divergence).
 - F3.1.2b implementation remains separately gated.
 - F3.2 CAB autonomy remains **NO-GO**.
 ## Production-rollout gate — deferred until a real target exists
@@ -30,7 +30,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
-- Product-convergence prompt authoring — `product-convergence-deployments.md` prepared to reconcile the accepted Deployments tab/runtime from the Delivery workstream into the active GMUD branch without importing unrelated production/sandbox hardening. No ADO implementation executed by prompt authoring.
+- [`product-convergence-deployments.md`](./product-convergence-deployments.md) — completed with `PASS`, published to ADO `platform-devops-developer-portal@f48dc825ab5d1d16fafc3f70ef772d28613df1a0`. Root cause `BRANCH_DIVERGENCE`. Evidence: `docs/backstage/product-convergence-deployments-evidence.md`.
+- Product-convergence prompt authoring — `product-convergence-deployments.md` prepared to reconcile the accepted Deployments tab/runtime from the Delivery workstream into the active GMUD branch without importing unrelated production/sandbox hardening.
 - [`f3-1-1c-architecture-implementation-acceptance.md`](./f3-1-1c-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.1c as the accepted implemented baseline at ADO `3b302ab`. Authorized F3.1.2b implementation-prompt authoring only; F3.1.2b implementation remains separately gated. Canonical review: `docs/backstage/f3-1-1c-architecture-implementation-acceptance.md`.
 - [`f3-1-1c-cab-safe-policy-implementation.md`](./f3-1-1c-cab-safe-policy-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`. Canonical evidence: `docs/backstage/f3-1-1c-implementation-evidence.md`. Acceptance completed separately (`ACCEPT`).
 - [`f3-1-2a-architecture-implementation-acceptance.md`](./f3-1-2a-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.2a as the accepted implemented baseline at ADO `ccee1e1`. F3.1.1c was subsequently implemented and independently accepted; F3.1.2b implementation remains separately gated.

@@ -17,20 +17,19 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- F3.1.2 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**.
-- F3.1.2a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843`.
-- F3.1.1c is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`.
-- Product convergence (GMUD + Deployments) is **PASS** at ADO `f48dc825ab5d1d16fafc3f70ef772d28613df1a0`.
-- F3.1.2b is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`. F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE**.
-- Committed default remains `LEGACY_PRE_F3`. Operational `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
-- **Next authorized activity:** author a narrow LEDGER_REQUIRED activation/cutover checkpoint. F3.1.3 planning/prompt authoring is GO after that checkpoint; F3.1.3 implementation still requires a separate explicit prompt. F3.1.4 and F3.2 remain **NO-GO**.
-
+- F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
+- F3.1.2a and F3.1.1c remain **CLOSED / ACCEPTED**; product convergence (GMUD + Deployments) remains **PASS**.
+- Committed repository default remains `newSubmissionAuthorizationMode: LEGACY_PRE_F3`.
+- [`f3-1-2-ledger-required-nonprod-activation.md`](./f3-1-2-ledger-required-nonprod-activation.md) — **next operational checkpoint**, authored and ready but must not execute without explicit user launch. It must identify one real non-production Backstage target, activate `LEDGER_REQUIRED` through environment-specific override only, prove live Round-1 behavior + cross-cutover idempotency + same-binary backout, and preserve the committed safe default.
+- F3.1.3 planning/prompt authoring is architecture-GO, but F3.1.3 implementation should wait until this activation is independently accepted and a usable non-production ledger target exists.
+- F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
+- Non-production LEDGER_REQUIRED activation prompt authoring — `f3-1-2-ledger-required-nonprod-activation.md` prepared after F3.1.2b ACCEPT. No runtime activation or ADO implementation occurred by prompt authoring.
 - [`f3-1-2b-architecture-implementation-acceptance.md`](./f3-1-2b-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.2b as the accepted implemented baseline at ADO `2249522` and closed F3.1.2 as the accepted implemented submission baseline. Committed default remains `LEGACY_PRE_F3`. Canonical review: `docs/backstage/f3-1-2b-architecture-implementation-acceptance.md`. Next: author a narrow LEDGER_REQUIRED cutover checkpoint before F3.1.3 implementation.
 - F3.1.2b implementation evidence checkpoint — implementation PASS and published to ADO `2249522`; independent acceptance completed separately (`ACCEPT`). Committed default remains `LEGACY_PRE_F3`; no operational cutover occurred.
 - [`f3-1-2b-ledger-submission-implementation.md`](./f3-1-2b-ledger-submission-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa`. Canonical evidence: `docs/backstage/f3-1-2b-implementation-evidence.md`. Independent acceptance completed separately (`ACCEPT`).

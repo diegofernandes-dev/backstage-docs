@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.2b **IMPLEMENTED / PUBLISHED** at ADO `2249522` (full SHA `22495229502dabf2d99588599a156d862c5114fa`), parent product-convergence `f48dc82`; independent acceptance pending. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2b implemented pending independent acceptance; committed default `LEGACY_PRE_F3`; operational LEDGER_REQUIRED cutover NO-GO; F3.2 NO-GO
+> **Current GMUD implementation baseline:** F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522` (full SHA `22495229502dabf2d99588599a156d862c5114fa`), parent product-convergence `f48dc82`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **PASS / pending independent acceptance**.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation executed pending independent acceptance; F3.1.3 implementation NO-GO; F3.2 NO-GO
 
 ## How to use this log
 
@@ -2145,3 +2145,27 @@ F3.2: NO-GO
 ```
 
 The activation checkpoint is operational only: it must discover one real isolated non-production Backstage target, use an existing environment-specific override to activate `LEDGER_REQUIRED`, prove a real normal-low Round 1 (primary + CAB), idempotent replay, legacy-reservation continuity across the cutover, same-binary config backout, and preservation of GMUD/Catalog/Deployments. The committed repository default remains `LEGACY_PRE_F3`; production and source-code changes are forbidden.
+
+---
+
+## GMUD F3.1.2-CUTOVER — Non-production LEDGER_REQUIRED activation executed
+
+Documentation baseline at start: `backstage-docs@80a68153701582745eef784811831576808d8bbd`.
+
+Runtime: operator laptop `yarn start` at accepted ADO SHA `22495229502dabf2d99588599a156d862c5114fa` (independent `az repos ref list` match; source drift NONE). Isolated SQLite `packages/backend/data/change-management.sqlite`. Activation via gitignored `app-config.local.yaml` overlay only.
+
+```text
+Activation checkpoint: PASS
+Independent activation acceptance: PENDING
+Committed repository default: LEGACY_PRE_F3
+Final laptop overlay: LEDGER_REQUIRED
+Live proofs: CHG-2026-000002 LEGACY control; CHG-2026-000003 LEDGER Round 1 primary+CAB;
+  idempotent replay; HTTP 409 conflict; stored-mode-wins; CHG-2026-000004 same-binary backout
+Old-binary downgrade / source / migrations / production: NO
+F3.1.3 implementation: NO-GO
+```
+
+Canonical evidence:
+[`f3-1-2-ledger-required-nonprod-activation-evidence.md`](./f3-1-2-ledger-required-nonprod-activation-evidence.md).
+
+**Next authorized activity:** independent activation-acceptance review. Do **not** implement F3.1.3, F3.1.4, or F3.2, and do **not** flip the committed default, inside this gate.

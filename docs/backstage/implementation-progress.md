@@ -2169,3 +2169,26 @@ Canonical evidence:
 [`f3-1-2-ledger-required-nonprod-activation-evidence.md`](./f3-1-2-ledger-required-nonprod-activation-evidence.md).
 
 **Next authorized activity:** independent activation-acceptance review. Do **not** implement F3.1.3, F3.1.4, or F3.2, and do **not** flip the committed default, inside this gate.
+
+---
+
+## GMUD F3.1.2-CUTOVER-AR — Independent activation acceptance prompt prepared
+
+Operational non-production `LEDGER_REQUIRED` activation executed with PASS on the isolated operator-laptop Backstage runtime at accepted ADO `22495229502dabf2d99588599a156d862c5114fa`.
+
+Canonical review prompt:
+`prompts/f3-1-2-ledger-required-nonprod-activation-acceptance.md`
+
+Current gate:
+```text
+F3.1.2: CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE
+Activation execution: PASS
+Independent activation acceptance: PENDING
+Final laptop overlay: LEDGER_REQUIRED
+Committed repository default: LEGACY_PRE_F3
+Production cutover: NOT AUTHORIZED
+F3.1.3 implementation: NO-GO pending acceptance + demo-target readiness
+F3.1.4/F3.2: NO-GO
+```
+
+The independent review must verify the live/durable activation facts rather than accepting the evidence document at face value, and must separately classify whether the laptop SQLite runtime is adequate as the F3.1.3 product-validation target (`READY` or `NOT_READY`).

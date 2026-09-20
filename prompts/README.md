@@ -20,10 +20,10 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 - F3.1.2 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**.
 - F3.1.2a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843`.
 - F3.1.1c is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`.
-- [`product-convergence-deployments.md`](./product-convergence-deployments.md) — **COMPLETED / PASS**. Published to ADO `feat/ado-repo-governance@f48dc825ab5d1d16fafc3f70ef772d28613df1a0`. Evidence: [`docs/backstage/product-convergence-deployments-evidence.md`](../docs/backstage/product-convergence-deployments-evidence.md).
-- F3.1.2b implementation-prompt authoring: **GO** (architecture-authorized; deferred no longer required by product divergence).
-- F3.1.2b implementation remains separately gated.
-- F3.2 CAB autonomy remains **NO-GO**.
+- Product convergence (GMUD + Deployments) is **PASS** at ADO `f48dc825ab5d1d16fafc3f70ef772d28613df1a0`; accepted Deployments tab/runtime is now on the active GMUD branch.
+- [`f3-1-2b-ledger-submission-implementation.md`](./f3-1-2b-ledger-submission-implementation.md) — **next implementation checkpoint**, authored and ready, but must not execute without a separate explicit user launch.
+- The F3.1.2b-capable binary must land with committed `newSubmissionAuthorizationMode: LEGACY_PRE_F3`; operational cutover to `LEDGER_REQUIRED` is a later explicit activation step after independent acceptance.
+- F3.1.3/F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.

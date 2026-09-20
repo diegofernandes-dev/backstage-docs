@@ -19,18 +19,22 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 - F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
 - Non-production `LEDGER_REQUIRED` activation is **ACCEPT** and the operator-laptop F3.1.3 demo target is **READY**.
-- F3.1.3 plan architecture review completed with **REJECT**: 18/20 gates PASS. The decision-command (F3.1.3a) contract remains source-accurate; only two F3.1.3b contracts are blocked: resubmission actor authority and same-changeId identity/retargeting boundary.
-- [`f3-1-3-plan-revision.md`](./f3-1-3-plan-revision.md) — **current planning/documentation-only checkpoint**. It must create ADR-014 and revise only those two F3.1.3b contracts using the bounded authority/identity rules in the prompt. Do not redesign F3.1.3a.
+- F3.1.3 plan architecture review completed with **REJECT**: 18/20 gates PASS. Historical evidence: [`docs/backstage/f3-1-3-plan-architecture-review.md`](../docs/backstage/f3-1-3-plan-architecture-review.md).
+- [`f3-1-3-plan-revision.md`](./f3-1-3-plan-revision.md) — **completed** documentation-only revision. ADR-014 records dedicated `change.resubmit` + requester-or-immutable-owner proof, and frozen same-`changeId` identity. Revised plan is **READY_FOR_REREVIEW**.
+- **Current next activity:** a fresh independent F3.1.3 plan re-review of [`docs/backstage/f3-1-3-implementation-plan.md`](../docs/backstage/f3-1-3-implementation-plan.md) against ADR-014 and ADO `2249522`. Do not author that re-review prompt from inside the revision checkpoint.
 - All F3.1.3 implementation remains **NO-GO** until the revised plan receives a fresh independent ACCEPT.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
+
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
-- F3.1.3 plan architecture review — REJECT 18/20. F3.1.3a contracts passed; blockers are only F3.1.3b resubmission actor authority and same-changeId target/owner/System identity boundary. Next: narrow plan/ADR correction.
+- F3.1.3 narrow plan revision — READY_FOR_REREVIEW. Created ADR-014; revised only F3.1.3b resubmission authority and same-changeId identity. F3.1.3a unchanged. `Migration required: NO`. Next: independent plan re-review.
+- [`f3-1-3-plan-revision.md`](./f3-1-3-plan-revision.md) — completed documentation-only. Canonical ADR: [`docs/adr/ADR-014-change-resubmission-authority-and-identity-boundary.md`](../docs/adr/ADR-014-change-resubmission-authority-and-identity-boundary.md). Revised plan: [`docs/backstage/f3-1-3-implementation-plan.md`](../docs/backstage/f3-1-3-implementation-plan.md). ADO baseline verified `2249522`; source drift NONE. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
+- F3.1.3 plan architecture review — REJECT 18/20. F3.1.3a contracts passed; blockers are only F3.1.3b resubmission actor authority and same-changeId target/owner/System identity boundary. Historical REJECT preserved.
 - [`f3-1-3-plan-architecture-review.md`](./f3-1-3-plan-architecture-review.md) — completed with `REJECT`. Canonical review: [`docs/backstage/f3-1-3-plan-architecture-review.md`](../docs/backstage/f3-1-3-plan-architecture-review.md). ADO baseline verified `2249522`. Gates 18/20 PASS. Blockers: G13 resubmission actor authority; G14 same-changeId identity/`targetRef` boundary. Next: narrow 3b plan correction only. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
 - F3.1.3 planning source re-verification — canonical plan re-checked against ADO `2249522`; trx-aware ledger reads made explicit, no DDL added, planning remains `READY_FOR_REVIEW`.
 - [`f3-1-3-planning.md`](./f3-1-3-planning.md) — completed with `READY_FOR_REVIEW`. Produced [`docs/backstage/f3-1-3-implementation-plan.md`](../docs/backstage/f3-1-3-implementation-plan.md) against ADO `2249522` and the accepted laptop `LEDGER_REQUIRED` demo target, then independently re-verified at docs `7725217`. Recommended slices F3.1.3a + F3.1.3b; `Migration required: NO`. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
@@ -75,6 +79,18 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Launcher pattern
 
 Use a short launcher instead of pasting the long prompt into an agent session.
+
+### Historical launcher — F3.1.3 narrow plan revision (completed — READY_FOR_REREVIEW)
+
+```text
+Fetch the latest main from diegofernandes-dev/backstage-docs.
+
+Read prompts/f3-1-3-plan-revision.md and execute it as a strict planning/documentation-only revision.
+
+Preserve the already accepted/source-verified F3.1.3a decision-command contract unchanged.
+
+Fix only the two rejected F3.1.3b contracts, create ADR-014, update canonical docs, commit documentation only, and STOP.
+```
 
 ### Historical launcher — F3.1.3 plan architecture review (completed — REJECT)
 

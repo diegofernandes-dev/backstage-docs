@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522` (full SHA `22495229502dabf2d99588599a156d862c5114fa`), parent product-convergence `f48dc82`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT; F3.1.3 implementation NO-GO; F3.2 NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); ADR-014 Accepted for resubmission authority/identity; F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT preserved; F3.1.3 plan revision READY_FOR_REREVIEW; F3.1.3 implementation NO-GO; F3.2 NO-GO
 
 ## How to use this log
 
@@ -2364,3 +2364,37 @@ retargeting: new Change/new changeId
 ```
 
 The correction prompt also requires ADR-014, Catalog-ownership-drift semantics, hidden execution-plan retarget protection, and a fresh independent re-review. No ADO implementation is authorized.
+
+---
+
+## GMUD F3.1.3-REV — Narrow plan correction READY_FOR_REREVIEW
+
+Documentation-only checkpoint against `backstage-docs@a94c2e266b8aa6cff618bc82889abf2779b71cc4` and ADO `feat/ado-repo-governance@22495229502dabf2d99588599a156d862c5114fa` (`git fetch` confirmed no later drift).
+
+Canonical ADR:
+[`../adr/ADR-014-change-resubmission-authority-and-identity-boundary.md`](../adr/ADR-014-change-resubmission-authority-and-identity-boundary.md)
+
+Revised plan:
+[`f3-1-3-implementation-plan.md`](./f3-1-3-implementation-plan.md)
+
+Historical REJECT preserved:
+[`f3-1-3-plan-architecture-review.md`](./f3-1-3-plan-architecture-review.md)
+
+```text
+F3.1.3 plan revision: READY_FOR_REREVIEW
+F3.1.3 implementation: NO-GO
+F3.1.3a implementation-prompt authoring: NO-GO pending fresh ACCEPT
+F3.1.3a implementation: NO-GO
+F3.1.3b implementation: NO-GO
+Migration required: NO
+ADO implementation modified: NO
+```
+
+Closed in this revision (F3.1.3b only):
+
+1. **G13 / ADR-014** — dedicated server permission `change-management.change.resubmit` **and** (original `requestedBy` **or** current live Catalog member of the immutable `ownerRef`). `platform_admin` / CAB / `cab.record` / participant-read / `change.create` are not standalone resubmission authority. Owner proof is prefix-agnostic live `memberOf`, fail-closed on unavailable membership source.
+2. **G14 / ADR-014** — same-`changeId` identity freezes `targetRef`, original `ownerRef`, original `systemRef`, `requestedBy`, and identity `createdAt`. Retargeting requires a new Change. Catalog ownership drift does not transfer rights. Activity `targetRef` cannot cross the Change System identity (source schema can express that path).
+
+F3.1.3a contracts were not redesigned. Added proofs R4–R13. Source drift: **NONE**. Dedicated resubmit permission is wireable with existing `createPermission` / registry / CSV; `change.create` was not reused.
+
+**Next authorized activity:** independent F3.1.3 plan re-review. Do **not** author an implementation prompt, implement F3.1.3/F3.1.4/F3.2, fabricate decisions, or perform production cutover inside this gate.

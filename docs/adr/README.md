@@ -23,6 +23,7 @@ The former bridge `diegofernandes-dev/poc-teams-approval` is historical POC evid
 | ADR-011 | Software Template source of truth and production discovery | Accepted (Golden Paths template SoT checkpoint) |
 | ADR-012 | Delivery Management, GitOps promotion, and Change boundary | **Accepted** (2026-09-06; production rollout **NO-GO** — see [`../delivery/adr-012-adoption-rereview.md`](../delivery/adr-012-adoption-rereview.md)) |
 | ADR-013 | CAB governance and delegated low-risk autonomy | **Accepted** (2026-09-19; partially supersedes ADR-009 normal-low baseline) |
+| ADR-014 | Change resubmission authority and same-changeId identity boundary | **Accepted** (2026-09-20; fills ADR-009 resubmission actor/identity gap; does not reopen ADR-013) |
 
 Future workstreams such as Software Templates / Golden Paths, brownfield adoption, and Delivery Management share this ADR directory when a decision affects the overall Backstage platform. Workstream-specific analysis belongs in focused folders under `docs/`.
 
@@ -57,6 +58,8 @@ execution consumer presents governed target/context
 Teams remains a future individual-decision interaction channel. The preferred CAB decision interface is a future Backstage CAB Workbench. Neither is a system of record; the platform authorization ledger is authoritative.
 
 Per [ADR-013](./ADR-013-cab-governance-delegated-low-risk-autonomy.md), CAB also governs bounded low-risk autonomy. Normal-low changes require CAB by default until a valid CAB-issued autonomy grant exists; the requester never chooses a bypass. CAB Change decisions and CAB autonomy administration are separate backend capabilities and RBAC powers.
+
+Per [ADR-014](./ADR-014-change-resubmission-authority-and-identity-boundary.md), same-`changeId` resubmission after rejection is a correction of one business Change: dedicated `change-management.change.resubmit` plus original requester or current member of the immutable `ownerRef`. `platform_admin` / CAB / participant-read are not standalone resubmission authority. `targetRef`, original `ownerRef`, original `systemRef`, `requestedBy`, and identity `createdAt` are frozen; retargeting requires a new Change.
 
 ADR-001, ADR-004, and ADR-005 remain historical records of the ADO-centric POC. ADR-009 supersedes their approval-authority, Teams-to-ADO decision, and CAB-as-ADO-check directions. Technical execution safety controls may still be used without becoming business authorization authority.
 

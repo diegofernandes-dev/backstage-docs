@@ -1,28 +1,40 @@
 # F3.1.3 — Decision Command and New-Round Semantics Implementation Plan
 
-- **Status:** PLANNING COMPLETE — READY FOR INDEPENDENT REVIEW
+- **Status:** REVISION COMPLETE — READY FOR RE-REVIEW
 - **Date:** 2026-09-20
-- **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009 as partially superseded by ADR-013, ADR-013; F3.1 / F3.1.2 implementation plans; accepted F3.1.2b baseline; accepted non-production `LEDGER_REQUIRED` activation
-- **Planning prompt:** `prompts/f3-1-3-planning.md`
-- **Docs baseline reviewed:** `diegofernandes-dev/backstage-docs@7725217abb7648de237ecb653c31ec458c2e8754`
-- **Prior published draft at that SHA:** independently re-verified against live ADO source and the laptop LEDGER facts; trx-aware ledger **read** contract made explicit from source
-- **ADO branch tip verified:** `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa` (`feat/ado-repo-governance`)
+- **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009 as partially superseded by ADR-013, ADR-013, **ADR-014**; F3.1 / F3.1.2 implementation plans; accepted F3.1.2b baseline; accepted non-production `LEDGER_REQUIRED` activation
+- **Planning prompt:** `prompts/f3-1-3-planning.md` (historical)
+- **Rejected plan review:** `docs/backstage/f3-1-3-plan-architecture-review.md` (historical REJECT; 18/20; G13/G14)
+- **Revision prompt (this checkpoint):** `prompts/f3-1-3-plan-revision.md`
+- **Docs revision baseline (pre-edit):** `diegofernandes-dev/backstage-docs@a94c2e266b8aa6cff618bc82889abf2779b71cc4`
+- **ADO branch tip verified:** `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa` (`feat/ado-repo-governance`; local HEAD, `origin/feat/ado-repo-governance`, and `git fetch` — exact accepted F3.1.2b SHA, no later drift)
 - **Accepted live LEDGER demo target:** operator-laptop overlay `LEDGER_REQUIRED`; committed default `LEGACY_PRE_F3`
 - **F3.1.3 implementation:** **NO-GO**
 
 ```text
-F3.1.3 planning: READY_FOR_REVIEW
+F3.1.3 plan revision: READY_FOR_REREVIEW
 F3.1.3 implementation: NO-GO
+F3.1.3a implementation-prompt authoring: NO-GO pending fresh ACCEPT
+F3.1.3a implementation: NO-GO
+F3.1.3b implementation: NO-GO
 Migration required: NO
 Recommended slices: F3.1.3a + F3.1.3b
 ADO implementation modified by this checkpoint: NO
 ```
 
-This checkpoint does not authorize implementation, does not create `ApprovalDecision` facts, and does not author an implementation prompt.
+This checkpoint does not authorize implementation, does not create `ApprovalDecision` facts, and does not author an implementation prompt. F3.1.3a decision-command contracts are preserved unchanged.
 
 ---
 
 ## 1. Status / authority / baselines
+
+### Revision status
+
+Independent review REJECTED the published plan on two F3.1.3b contracts only (G13 resubmission actor authority; G14 same-changeId identity boundary). Gates 18/20 PASS. **This revision does not reopen the frozen F3.1.3a contracts** listed in `prompts/f3-1-3-plan-revision.md` §2 (nested decision POST, individual equality, live CAB membership + dedicated `cab.record`, no `platform_admin` CAB shortcut, actor-scoped decision idempotency, caller-owned `trx` + `change_index FOR UPDATE`, trx-aware ledger reads, exactly-once milestones, rejected lifecycle projection, no `authorized` lifecycle, post-execution fail-closed, PostgreSQL D1–D6, 3a contains no resubmission, `Migration required: NO`).
+
+G13/G14 are now recorded in [ADR-014](../adr/ADR-014-change-resubmission-authority-and-identity-boundary.md): dedicated `change-management.change.resubmit` plus original requester or current member of the **immutable** `ownerRef`; `targetRef` / `ownerRef` / `systemRef` / `requestedBy` / identity `createdAt` frozen across rounds; retargeting requires a new Change.
+
+Source drift after accepted F3.1.2: **NONE**. Dedicated resubmit permission wiring is possible with the existing `createPermission` + `permissionsRegistry.addPermissions` + Casbin CSV pattern; this revision does not reuse `change.create`.
 
 ### What this plan is
 
@@ -150,7 +162,7 @@ F3.1.3 is **two micro-slices**. Decision recording and same-`changeId` resubmiss
 
 **F3.1.3a — server-authoritative decision command.** One nested HTTP command records one requirement decision. Individual authority is exact principal equality. CAB/authority authority is live Catalog membership against the snapshotted Group ref, plus a dedicated RBAC permission that is **not** implied by `platform_admin` or `change.read`. Persistence uses the existing append-only decision/audit tables. Concurrency serializes on `change_index` `FOR UPDATE` (PostgreSQL authoritative). Derived `AuthorizationEvaluation` is never stored. Mandatory pre-execution rejection materializes `ChangeStatus='rejected'` as a rebuildable index projection in the same transaction. Approval never changes lifecycle.
 
-**F3.1.3b — rejection resubmission / new-round semantics.** Only after the current round is `REJECTED`. Same `changeId`, new monotonic round, new immutable snapshot on the round row, currently published policy/selectors, new requirements. Original `change.create` idempotency reservation is **not** reused. Index discovery columns become the rebuildable **current** projection; Round 1 keeps the birth snapshot. No DDL.
+**F3.1.3b — rejection resubmission / new-round semantics.** Only after the current round is `REJECTED`. Same `changeId`, new monotonic round, new immutable snapshot on the round row, currently published policy/selectors, new requirements. Identity fields (`targetRef`, original `ownerRef`, original `systemRef`, `requestedBy`, identity `createdAt`) stay frozen; only non-identity business/execution fields may be corrected. Original `change.create` idempotency reservation is **not** reused. Index discovery columns become the rebuildable **current** projection of those corrected non-identity fields; identity columns and Round 1 remain the birth snapshot. No DDL.
 
 `Migration required: NO` for both slices.
 
@@ -318,17 +330,19 @@ Live membership belongs in a **new** `authorization/decisionMembership.ts`. It m
 
 Literal minimum permissions (plugin prefix matches existing create/read):
 
-| Permission name | Action | Authorizes |
-|---|---|---|
-| `change-management.change.authorization.decide` | `update` | Individual requirement decision command |
-| `change-management.change.authorization.cab.record` | `update` | `cab` / `authority` collective decision command |
+| Permission name | Action | Authorizes | Slice |
+|---|---|---|---|
+| `change-management.change.authorization.decide` | `update` | Individual requirement decision command | F3.1.3a |
+| `change-management.change.authorization.cab.record` | `update` | `cab` / `authority` collective decision command | F3.1.3a |
+| `change-management.change.resubmit` | `update` | Same-`changeId` rejected-round correction command | F3.1.3b |
 
-Both endpoints also require the matching permission **and** the Q2/Q3 actor proof.
+F3.1.3a endpoints require the matching decide/CAB permission **and** the Q2/Q3 actor proof. F3.1.3b requires `change.resubmit` **and** the Q11 requester-or-immutable-owner proof. Existing `createPermission({ name, attributes: { action } })` plus `permissionsRegistry.addPermissions` already supports a third literal permission; do not reuse `change.create`.
 
 ### What is not granted
 
-- `change-management.change.read` / `.create` never imply decide/CAB record.
+- `change-management.change.read` / `.create` never imply decide/CAB record **or** resubmit.
 - `role:default/platform_admin` does **not** receive `cab.record`.
+- `platform_admin`, CAB membership / `cab.record`, participant read, `responsibleRef`, and `change.create` are **not** standalone resubmission business authority (ADR-014).
 - Participant read, `ownerRef`, `responsibleRef` remain read-only.
 
 ### RBAC CSV (minimum)
@@ -339,9 +353,14 @@ p, role:default/platform_admin, change-management.change.authorization.decide, u
 
 p, role:default/change_cab_recorder, change-management.change.authorization.cab.record, update, allow
 g, group:default/cloud_azure_devops_platform_devops, role:default/change_cab_recorder
+
+p, role:default/contributor, change-management.change.resubmit, update, allow
+p, role:default/platform_admin, change-management.change.resubmit, update, allow
 ```
 
 The CAB permission is bound to a **new role** assigned to the configured CAB group, not folded into `platform_admin`. On the laptop those happen to be the same Entra group; that is selector configuration, not an RBAC collapse.
+
+F3.1.3b RBAC may also grant the literal `change-management.change.resubmit` capability to `contributor` / `template_executor` / `platform_admin` (same technical breadth as `change.create`) **only because** Q11 still enforces requester-or-immutable-owner proof. Do not grant resubmit to `change_cab_recorder` as a CAB power.
 
 F3.1.4 may add audit-read / governance-read-all later. F3.1.3 decision endpoints are server-protected now.
 
@@ -516,7 +535,7 @@ Normal-low demo (`CHG-2026-000003`) has only pre-execution requirements, so this
 
 ## 15. Q11 — New round / resubmission semantics
 
-**Resolved, isolated as F3.1.3b.**
+**Resolved, isolated as F3.1.3b.** Authority and identity are governed by [ADR-014](../adr/ADR-014-change-resubmission-authority-and-identity-boundary.md).
 
 Current source can store Round N without DDL (`insertRound` already demands `expectedRoundNumber = max+1` under `FOR UPDATE`). Current source **cannot** store a second index row or a versioned index snapshot. `change.create` idempotency is 1:1 with the original submission and must not be reused. `IChangeManagementProvider` has no replace API. `ChangeIndexRepository` cannot rebuild activity participants after a corrected plan.
 
@@ -529,9 +548,37 @@ POST /api/change-management/changes/:changeId/resubmissions
 Idempotency-Key: <required, new key>
 ```
 
-Body: same user-editable `CreateChangeHttpRequest` shape as create.
+Body may reuse the user-editable `CreateChangeHttpRequest` shape for ergonomics. The server **rejects identity changes** rather than accepting or re-resolving them. Identity fields (`requestedBy`, `ownerRef`, `systemRef`, `createdAt`) are not client-writable; `targetRef` in the body must equal the original Change identity.
 
-Permission: `change-management.change.create` **and** actor is requester **or** current `ownerRef` member **or** `platform_admin`. No CAB-only resubmit. No invented extra role.
+### Resubmission authority (ADR-014)
+
+```text
+actor may resubmit iff
+
+  actor has server permission change-management.change.resubmit
+
+AND
+
+  (actorRef == original Change.requestedBy
+   OR actor is a current member of the Change's immutable ownerRef group)
+```
+
+Both layers are mandatory. Proof order, **before** Round/provider/index mutation:
+
+1. Authenticate.
+2. Authorize `change-management.change.resubmit`. Missing permission → `FORBIDDEN` even if the actor is the original requester (R4 negative).
+3. Catalog I/O for owner membership stays **outside** the write transaction (same pattern as Q3). Do not use `ownershipEntityRefs` / TP-prefix filtering. Reuse prefix-agnostic live Catalog `memberOf` (`relations.memberOf` and `spec.memberOf`, `stringifyEntityRef`/dedupe) against the **immutable** `ownerRef`. Live membership belongs in the same new `authorization/decisionMembership.ts` helper as CAB; it must not live under `authorization/selector/`.
+4. Domain actor proof: original `requestedBy` **or** current member of that frozen `ownerRef`. Otherwise `FORBIDDEN` `details.reason=not_resubmission_actor`.
+5. Catalog / credentials error → `PROVIDER_UNAVAILABLE` `membership_source_unavailable`; transaction never opens.
+6. User entity missing → `FORBIDDEN` `actor_not_in_catalog`.
+7. Immutable `ownerRef` Group missing/unresolvable → fail closed `FORBIDDEN` `owner_authority_unresolvable`.
+8. Original Change has no `ownerRef` → owner-membership path cannot succeed; only the original requester with permission may resubmit.
+
+Not resubmission authority: `platform_admin` alone, CAB membership / `cab.record` alone, participant read / `responsibleRef` alone, `change.create` alone. No generic governance override.
+
+RBAC may grant the literal permission to `contributor` / `template_executor` / `platform_admin`; the service still enforces requester-or-immutable-owner proof (R6–R8).
+
+Catalog ownership drift does not transfer rights. If Round 1 snapshotted `ownerRef = Team A` and Catalog later says the target is owned by Team B, Team B membership alone cannot resubmit the existing Change (R9). Team A remains the identity/authority snapshot. Ownership-transfer of an in-flight Change is a future administrative operation, not F3.1.3b.
 
 ### When allowed
 
@@ -545,42 +592,60 @@ A new round may be created only after the prior round is terminal. `PENDING` / `
 |---|---|
 | `changeId` | Unchanged |
 | `requestedBy` | Unchanged (original requester) |
-| `createdAt` | Unchanged (Change identity time) |
-| User-editable create fields | May be corrected |
-| `ownerRef` / `systemRef` | Re-resolved from new `targetRef` |
-| `activityId`s | Newly minted |
-| Round snapshot | New canonical JSON + sha256 on Round N |
+| identity `createdAt` | Unchanged (Change identity time) |
+| `targetRef` | **Immutable.** Body value must equal original (`parseEntityRef` / `stringifyEntityRef`). Mismatch → `VALIDATION_ERROR` `change_identity_mismatch` **before** Round/provider/index mutation (R10). Do not re-resolve owner/system from Catalog. |
+| `ownerRef` | **Immutable** original snapshot. Never re-resolved. Client-supplied mismatch → `VALIDATION_ERROR` `change_identity_mismatch` (R11). |
+| `systemRef` | **Immutable** original snapshot. Never re-resolved. Client-supplied mismatch → `VALIDATION_ERROR` `change_identity_mismatch` (R11). |
+| title, summary, classification, risk, requested window, rollback, evidence | May be corrected subject to existing create validation (R12) |
+| `executionPlan` content | May be corrected; new `activityId`s minted. Hidden System retarget fail-closed (below, R13) |
+| Round snapshot | New canonical JSON + sha256 on Round N, carrying frozen identity + corrected non-identity fields |
 | Policy / selectors | Currently published versions, new principal snapshots |
 | Requirements | New immutable rows; `requirementId = requirementRole` |
 | Prior rounds / decisions / audits | Untouched |
 
+Retargeting to a different governed target, owner, or System requires a **new Change / new `changeId`**.
+
+### Execution-plan System boundary
+
+Source `ExecutionActivity.targetRef` is optional kind `Component` and may differ from `Change.targetRef` (ADR-008). `executionPlanValidator.ts` currently checks kind + Catalog existence only — a hidden cross-System path exists.
+
+F3.1.3b fail-closed rule:
+
+- omitted activity `targetRef` remains allowed;
+- when present, resolve the activity Component's `systemRef` with the same `spec.system` rules as `targetContextResolver.ts`;
+- that value must equal the Change's immutable `systemRef` (including both absent);
+- mismatch → `VALIDATION_ERROR` `execution_plan_identity_mismatch` before Round/provider/index mutation;
+- activity `targetRef` must never rewrite `Change.targetRef` / `ownerRef` / `systemRef`.
+
+Do not invent activity System/owner fields that do not exist in source.
+
 ### Idempotency
 
-New operation `change.resubmit` (fits `change_idempotency.operation` varchar(64); no DDL). New key. `requested_by` is the **authenticated actor** (same actor-scoping as `change.create`), not a rewrite of `Change.requestedBy`. Payload hash covers `changeId` + corrected body. Original `change.create` reservation is never reused or mutated (`authorization_mode` remains immutable). Reserve/complete inside the locked transaction so two actors cannot leave dangling pending reservations in front of a lost Round race.
+New operation `change.resubmit` (fits `change_idempotency.operation` varchar(64); no DDL). New key. `requested_by` is the **authenticated actor** (same actor-scoping as `change.create`), not a rewrite of `Change.requestedBy`. Payload hash covers `changeId` + normalized corrected body. Original `change.create` reservation is never reused or mutated (`authorization_mode` remains immutable). Reserve/complete inside the locked transaction so two actors cannot leave dangling pending reservations in front of a lost Round race.
 
 ### Snapshot / discovery composition
 
 - History authority: each round's `change_snapshot_*`.
 - Current-round selection: max `round_number` (unchanged).
-- Index discovery columns (title, summary, window, plan, owner/system, **status**) become the rebuildable **current** projection for `LEDGER_REQUIRED` Changes, updated in the resubmission transaction. This is a documented narrowing of ADR-007's F2 "birth snapshot is the list row" for ledger-governed **resubmission only**: list remains discovery, not live provider workflow, but discovery follows the current business snapshot of the same `changeId`.
-- Round 1 snapshot remains the birth evidence.
+- Index discovery **non-identity** columns (title, summary, window, plan, **status**) become the rebuildable **current** projection for `LEDGER_REQUIRED` Changes, updated in the resubmission transaction. Index **identity** columns (`target_ref`, `owner_ref`, `system_ref`, `requested_by`, `created_at`) remain the original immutable values. This is a documented narrowing of ADR-007's F2 "birth snapshot is the list row" for ledger-governed **resubmission only**: list remains discovery, not live provider workflow, but discovery follows the current **non-identity** business snapshot of the same `changeId`.
+- Round 1 snapshot remains the birth evidence. Later rounds snapshot the same identity plus corrected non-identity fields.
 - `change_index_activity_participants` is rebuilt from the new plan (derived, non-authoritative).
-- `DevelopmentProvider`: add an explicit `replaceCurrent(change, trx)` used only by resubmission. **Do not call `create()` / `createWithTransaction()`.** Those methods already `UPDATE record_json` when the `change_id` exists — that is create-retry of the **same** logical snapshot, not a corrected Round N snapshot. Overloading them would look like a successful create retry of a different body. External/non-dev providers fail closed `PROVIDER_UNAVAILABLE` until a later provider slice.
-- `GET` detail after resubmission returns the replaced operational record (dev) with `status='submitted'`.
+- `DevelopmentProvider`: add an explicit `replaceCurrent(change, trx)` used only by resubmission. **Do not call `create()` / `createWithTransaction()`.** Those methods already `UPDATE record_json` when the `change_id` exists — that is create-retry of the **same** logical snapshot, not a corrected Round N snapshot. Overloading them would look like a successful create retry of a different body. `replaceCurrent` must copy frozen identity fields from the original Change; it must not alter `targetRef` / `ownerRef` / `systemRef` / `requestedBy` / `createdAt`. External/non-dev providers fail closed `PROVIDER_UNAVAILABLE` until a later provider slice.
+- `GET` detail after resubmission returns the replaced operational record (dev) with `status='submitted'` and the original identity fields.
 
-ADR-007 owner/system "GET does not re-resolve" remains true for historical rounds; the new round snapshots the newly resolved refs.
+ADR-007 owner/system "GET does not re-resolve" remains true for every round. Catalog drift does not rewrite identity.
 
 ### Transaction (F3.1.3b)
 
-One caller-owned transaction:
+Authorize permission + identity match + owner-membership Catalog I/O **before** opening the write transaction. Then one caller-owned transaction:
 
 1. lock `change_index`;
 2. prove current round `REJECTED`;
 3. reserve/complete `change.resubmit` idempotency;
 4. materialize Round N + requirements + submission-like audits (`round_created`, `policy_selected`, `selector_bundle_bound`, `requirement_materialized`) plus `change.authorization.resubmitted`;
-5. project index current snapshot + `status='submitted'`;
+5. project index **non-identity** current snapshot + `status='submitted'`; leave identity columns untouched;
 6. rebuild participants;
-7. `DevelopmentProvider.replaceCurrent`.
+7. `DevelopmentProvider.replaceCurrent` with frozen identity fields.
 
 `ledgerSubmission.ts` currently hardcodes `roundNumber: 1` in audit payloads. F3.1.3b must generalize to `round.roundNumber`. Do not create Round 2 from the F3.1.2b create path.
 
@@ -591,6 +656,11 @@ One caller-owned transaction:
 | Two concurrent resubmissions after rejection | One next `round_number` wins (`FOR UPDATE` + PK + expected number); loser `CONFLICT` `details.reason=resubmission_conflict` (R1) |
 | Resubmit while PENDING/AUTHORIZED | `CONFLICT` `round_not_terminal` (R2) |
 | Prior decisions after Round 2 exists | Immutable; append-only triggers (R3) |
+| Requester without `change.resubmit` | `FORBIDDEN`; zero Round (R4 inverse) |
+| Owner member without live membership | `FORBIDDEN`; zero Round |
+| `platform_admin` neither requester nor immutable-owner member | `FORBIDDEN` (R6) |
+| CAB member neither requester nor immutable-owner member | `FORBIDDEN` (R7) |
+| Changed `targetRef` / owner / System | `VALIDATION_ERROR` before mutation (R10/R11) |
 
 ---
 
@@ -613,7 +683,7 @@ If a future selector rebinding makes this user unable to act for CAB, stop and u
 
 ### Rejection / resubmission path — disposable new non-prod Change
 
-Create a fresh laptop `LEDGER_REQUIRED` Change (not 000003). Reject a mandatory pre requirement with a reason. Prove: one decision, `round_rejected`, `changeStatus=rejected`, eligibility `DENY/REJECTED`, list/detail overlay rejected, no `authorized` lifecycle. F3.1.3b then resubmits that disposable Change to Round 2 and proves history of Round 1 is intact.
+Create a fresh laptop `LEDGER_REQUIRED` Change (not 000003). Reject a mandatory pre requirement with a reason. Prove: one decision, `round_rejected`, `changeStatus=rejected`, eligibility `DENY/REJECTED`, list/detail overlay rejected, no `authorized` lifecycle. F3.1.3b then resubmits that disposable Change to Round 2 under ADR-014 (requester or immutable-owner member with `change.resubmit`; identity frozen) and proves history of Round 1 is intact.
 
 This planning checkpoint created neither demo decision.
 
@@ -634,6 +704,18 @@ SQLite may provide functional coverage. PostgreSQL is authoritative.
 | **R1** | Two concurrent resubmissions after rejection: at most one Round N+1 |
 | **R2** | Resubmission while current round non-terminal: zero new round |
 | **R3** | After Round 2, Round 1 decisions/requirements/audits unchanged (UPDATE/DELETE still blocked) |
+| **R4** | Original requester with `change.resubmit` succeeds after rejected Round. Same requester **without** the permission is `FORBIDDEN` with zero Round |
+| **R5** | Current immutable-`ownerRef` member with `change.resubmit` succeeds. Same actor after live membership is removed is `FORBIDDEN` with zero Round |
+| **R6** | `platform_admin` who is neither original requester nor current immutable-owner member fails `FORBIDDEN` (permission may be granted; domain proof fails) |
+| **R7** | CAB authority member / `cab.record` holder who is neither requester nor immutable-owner member fails `FORBIDDEN` |
+| **R8** | Actor with `change.resubmit` but no requester/owner proof fails `FORBIDDEN` `not_resubmission_actor` |
+| **R9** | Catalog owner changed from original owner: new owner alone cannot resubmit; original identity/authority unchanged |
+| **R10** | Changed `targetRef` under same `changeId` is `VALIDATION_ERROR` `change_identity_mismatch` before Round/provider/index mutation |
+| **R11** | Changed immutable `ownerRef` / `systemRef` identity fails closed `VALIDATION_ERROR` `change_identity_mismatch` before mutation |
+| **R12** | Correction of allowed non-identity fields creates Round N+1 and preserves immutable identity fields on index, provider, and new round snapshot |
+| **R13** | Execution-plan activity `targetRef` whose resolved `systemRef` differs from the Change identity fails `VALIDATION_ERROR` `execution_plan_identity_mismatch` before mutation |
+
+PostgreSQL remains authoritative for concurrent R1. Functional authority/identity negatives (R4–R13) may run on both SQLite and PostgreSQL.
 
 Reuse the existing disposable Postgres 16 harness (`CHANGE_MANAGEMENT_TEST_POSTGRES_URL` / `authorization/postgres.test.ts` pattern).
 
@@ -647,7 +729,7 @@ No new HTTP codes. Discriminate with `details.reason` / existing `details` keys 
 |---|---|---|---|
 | Malformed body / missing Idempotency-Key / rejection without reason / `cabMeetingRef` on individual | `VALIDATION_ERROR` | 400 | field / `rejection_reason_required` |
 | Unauthenticated | `UNAUTHORIZED` | 401 | (existing; unused if plugin keeps credential gate) |
-| Missing decide/CAB permission | `FORBIDDEN` | 403 | (NotAllowedError mapping) |
+| Missing decide/CAB/`change.resubmit` permission | `FORBIDDEN` | 403 | (NotAllowedError mapping) |
 | Individual actor ≠ snapshot | `FORBIDDEN` | 403 | `not_requirement_principal` |
 | CAB/authority not current member | `FORBIDDEN` | 403 | `not_authority_member` |
 | Actor user missing from Catalog | `FORBIDDEN` | 403 | `actor_not_in_catalog` |
@@ -655,6 +737,10 @@ No new HTTP codes. Discriminate with `details.reason` / existing `details` keys 
 | Round missing | `NOT_FOUND` | 404 | `round_not_found` |
 | Requirement missing | `NOT_FOUND` | 404 | `requirement_not_found` |
 | Catalog/membership source unavailable | `PROVIDER_UNAVAILABLE` | 503 | `membership_source_unavailable` |
+| Resubmit actor has permission but is neither requester nor current immutable-owner member | `FORBIDDEN` | 403 | `not_resubmission_actor` |
+| Immutable `ownerRef` Group missing/unresolvable | `FORBIDDEN` | 403 | `owner_authority_unresolvable` |
+| `targetRef` / `ownerRef` / `systemRef` / `requestedBy` / identity `createdAt` mismatch | `VALIDATION_ERROR` | 400 | `change_identity_mismatch` |
+| Corrected execution plan crosses Change System identity | `VALIDATION_ERROR` | 400 | `execution_plan_identity_mismatch` |
 | Exact replay | 200 + original body | — | — |
 | Conflicting second decision | `CONFLICT` | 409 | `conflicting_decision` |
 | Same key, different hash | `CONFLICT` | 409 | `idempotency_payload_mismatch` |
@@ -732,13 +818,16 @@ No migration "for future proofing". No CHECK expansion on `change_index.status` 
 
 | Area | Paths |
 |---|---|
-| Domain/types | `types.ts` already has `rejected` from 3a |
+| Domain/types | `types.ts` already has `rejected` from 3a; no new identity fields |
+| Permissions/RBAC | `permissions.ts` adds `change-management.change.resubmit`; `rbac-policy.csv`; `templateExecutorRoleSeed.ts` if that role receives the technical capability |
+| Membership | reuse `authorization/decisionMembership.ts` against immutable `ownerRef`; do **not** reuse TP-prefix `entraOwnership` |
 | Ledger / policy | `authorization/ledgerSubmission.ts` generalized to Round N; `ChangeManagementService` resubmit |
-| Router/plugin | `POST /changes/:changeId/resubmissions` |
-| Provider/index | `DevelopmentProvider.replaceCurrent`; participant rebuild; index current-projection update |
-| Idempotency | `change.resubmit` operation via existing `IdempotencyRepository` |
+| Router/plugin | `POST /changes/:changeId/resubmissions`; authorize resubmit permission before domain proof |
+| Provider/index | `DevelopmentProvider.replaceCurrent` **must not** alter `targetRef`/`ownerRef`/`systemRef`/`requestedBy`/`createdAt`; participant rebuild; index current **non-identity** projection only |
+| Execution plan | extend activity `targetRef` System-identity check on the resubmit path (`executionPlanValidator.ts` / equivalent) |
+| Idempotency | `change.resubmit` operation via existing `IdempotencyRepository`; payload hash includes `changeId` + normalized corrected body |
 | Frontend | none required beyond 3a labels |
-| Tests | R1–R3 PostgreSQL; history preservation; non-terminal fail-closed |
+| Tests | PostgreSQL R1; functional R2–R13 on SQLite and PostgreSQL; authority/identity negatives R4–R11; allowed-field Round N+1 (R12); hidden execution-plan retarget (R13) |
 | Migrations | **none** |
 
 Provider/ADO/Teams canonical fields remain forbidden.
@@ -752,15 +841,15 @@ Implementation of a slice is acceptable only when all of the following hold for 
 1. **Source lineage** — child of accepted `2249522` on `feat/ado-repo-governance`; committed default still `LEGACY_PRE_F3`.
 2. **Decision authorization** — individual equality only; no admin override.
 3. **CAB membership** — live Catalog memberOf against snapshotted Group; unavailable source fails closed with zero decision; no member expansion.
-4. **Server-side permissions** — decide vs cab.record vs read vs `platform_admin` separated as specified.
+4. **Server-side permissions** — decide vs cab.record vs read vs `platform_admin` separated as specified; F3.1.3b dedicated `change.resubmit` plus requester-or-immutable-owner proof (ADR-014).
 5. **Idempotency / conflict** — D1–D3.
 6. **Transaction atomicity** — decision + required audits + rejection projection commit together or not at all.
 7. **Immutable audit** — UPDATE/DELETE still blocked; replay does not duplicate events.
 8. **Evaluation transitions** — derived only; D4 single `authorization_reached`.
 9. **Rejection lifecycle** — D6; list/detail show `rejected`; no `authorized` lifecycle value.
-10. **New-round monotonicity / history** — F3.1.3b: R1–R3; same `changeId`; prior evidence intact.
+10. **New-round monotonicity / history / identity** — F3.1.3b: R1–R13; same `changeId`; frozen `targetRef`/`ownerRef`/`systemRef`/`requestedBy`/`createdAt`; prior evidence intact.
 11. **Post-execution timing** — fail closed without completion evidence.
-12. **PostgreSQL concurrency** — D1–D6 (3a) and R1–R3 (3b) pass on disposable Postgres 16.
+12. **PostgreSQL concurrency** — D1–D6 (3a) and R1 (3b concurrent) pass on disposable Postgres 16; R2–R13 may run on SQLite and PostgreSQL.
 13. **Live laptop product proof** — overlay remains `LEDGER_REQUIRED`; `CHG-2026-000003` happy path as in Q12; disposable rejection Change for D6; no fabricated CAB membership.
 14. **GMUD / Catalog / Deployments regressions** — create/list/detail, Catalog, Deployments tab, Delivery read remain intact.
 15. **Lint / build / TypeScript baseline** — no new repo-wide `tsc` debt beyond the accepted baseline set.
@@ -785,6 +874,13 @@ Implementation of a slice is acceptable only when all of the following hold for 
 | `ON CONFLICT UPDATE` for replay | Rejected — append-only |
 | Query ledger reads on `this.knex` inside the decision transaction | Rejected — Postgres pool cannot see uncommitted decision/audit; D4/Q7 would be racy |
 | Reuse `DevelopmentProvider.create()` to replace a corrected snapshot | Rejected — existing upsert is create-retry of the same logical record |
+| Reuse `change.create` as the literal resubmit permission | Rejected — ADR-014; create authorizes a new identity |
+| `platform_admin` or CAB/`cab.record` as standalone resubmit authority | Rejected — ADR-014; technical/CAB power is not Change-correction authority |
+| Re-resolve `ownerRef`/`systemRef` from Catalog on resubmit | Rejected — ADR-007 snapshot + ADR-014 identity freeze |
+| Allow `targetRef` / owner / System change under the same `changeId` | Rejected — ADR-009 Q19 / ADR-014; retargeting is a new Change |
+| Treat Catalog ownership drift as transferring resubmit rights | Rejected — ADR-014 |
+| Leave activity `targetRef` unconstrained on resubmit | Rejected — source schema can express a cross-System hidden retarget (R13) |
+| Generic governance override | Rejected — none exists |
 
 ---
 
@@ -795,36 +891,40 @@ Implementation of a slice is acceptable only when all of the following hold for 
 | 1 | Transport | Nested POST decisions route; required Idempotency-Key |
 | 2 | Individual authority | Exact `actorRef == resolvedPrincipalRef`; no override |
 | 3 | CAB authority | Live Catalog memberOf + dedicated permission |
-| 4 | Permissions | `...authorization.decide` and `...authorization.cab.record`; new `change_cab_recorder` role |
+| 4 | Permissions | `...authorization.decide` and `...authorization.cab.record`; new `change_cab_recorder` role. F3.1.3b: dedicated `change-management.change.resubmit` |
 | 5 | Idempotency | Existing uniques; select-then-insert on `trx`; unique-loser re-observe; Catalog I/O before lock |
 | 6 | Transactions | Caller-owned trx + `change_index` FOR UPDATE; **trx-aware ledger reads** |
 | 7 | Audit | `decision_recorded` / `authorization_reached` / `round_rejected`; no stored evaluation |
 | 8 | Rejection lifecycle | Index status projection + GET overlay in 3a |
 | 9 | AUTHORIZED lifecycle | Unchanged `submitted` |
 | 10 | Post-execution | Generic command; fail closed without completion evidence |
-| 11 | Resubmission | F3.1.3b; same changeId; new operation/key; no DDL |
+| 11 | Resubmission | F3.1.3b; ADR-014 authority + frozen identity; new operation/key; no DDL |
 | 12 | Migration | NO |
 | 13 | Slices | F3.1.3a + F3.1.3b |
 | 14 | UI | Labels only; no decision controls |
 | 15 | Demo | Laptop LEDGER_REQUIRED; `CHG-2026-000003` happy path; disposable rejection Change |
 | 16 | Concurrency authority | PostgreSQL |
+| 17 | Same-changeId identity | `targetRef` / `ownerRef` / `systemRef` / `requestedBy` / `createdAt` immutable; retarget = new Change |
+| 18 | Catalog ownership drift | Does not rewrite identity or transfer resubmit rights |
+| 19 | Execution-plan hidden retarget | Activity Component `systemRef` must equal Change identity `systemRef` |
 
 ---
 
 ## 26. GO / NO-GO
 
 ```text
-F3.1.3 planning: READY_FOR_REVIEW
+F3.1.3 plan revision: READY_FOR_REREVIEW
 F3.1.3 implementation: NO-GO
-F3.1.3a implementation prompt authoring: NO-GO pending independent ACCEPT
+F3.1.3a implementation-prompt authoring: NO-GO pending fresh ACCEPT
 F3.1.3a implementation: NO-GO
 F3.1.3b implementation: NO-GO
 F3.1.4 implementation: NO-GO
 F3.2 implementation: NO-GO
 Production cutover: NOT AUTHORIZED
+Migration required: NO
 ```
 
-**Next gate:** independent architecture review of this plan against ADR-009 / ADR-013 and ADO `2249522`. Only an `ACCEPT` may authorize authoring the constrained F3.1.3a implementation prompt.
+**Next gate:** independent architecture re-review of this corrected plan against ADR-009 / ADR-013 / ADR-014 and ADO `2249522`. This revision does **not** ACCEPT the plan. Only a fresh independent `ACCEPT` may authorize authoring the constrained F3.1.3a implementation prompt.
 
 ---
 

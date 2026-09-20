@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522` (full SHA `22495229502dabf2d99588599a156d862c5114fa`), parent product-convergence `f48dc82`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 planning READY_FOR_REVIEW; F3.1.3 implementation NO-GO; F3.2 NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT; F3.1.3 implementation NO-GO; F3.2 NO-GO
 
 ## How to use this log
 
@@ -2303,3 +2303,40 @@ Production cutover: NOT AUTHORIZED
 ```
 
 The review explicitly challenges the plan's most consequential choices: decision-time CAB membership + RBAC, global actor-scoped decision idempotency, PostgreSQL transaction visibility/trx-aware ledger reads, exactly-once authorization/rejection audit milestones without new DDL, rejected lifecycle projection under Model C, post-execution anchor fail-closed behavior, resubmission actor authority, same-changeId target/owner correction boundaries, and transactional `DevelopmentProvider.replaceCurrent`.
+
+---
+
+## GMUD F3.1.3-AR — Plan architecture review REJECT
+
+Independent review-only checkpoint of [`f3-1-3-implementation-plan.md`](./f3-1-3-implementation-plan.md) against live ADO `feat/ado-repo-governance` at accepted SHA `22495229502dabf2d99588599a156d862c5114fa`.
+
+Canonical review:
+[`f3-1-3-plan-architecture-review.md`](./f3-1-3-plan-architecture-review.md)
+
+Docs baseline reviewed: `diegofernandes-dev/backstage-docs@915bd93f96ad763b4ed54621f698eba41d3ec99c` (`origin/main` at review start). Planning document preserved.
+
+Independent ADO verification: **YES** — local HEAD + `az repos ref list` `objectId` `2249522`; no later drift. Laptop LEDGER facts re-read only; zero `ApprovalDecision` rows created.
+
+```text
+F3.1.3 plan architecture review: REJECT
+F3.1.3 plan: REVISION REQUIRED
+Migration required: NO
+Gates: 18/20 PASS
+Challenges answered: 12/12
+F3.1.3a implementation-prompt authoring: NO-GO
+F3.1.3a implementation: NO-GO
+F3.1.3b implementation: NO-GO
+F3.1.4 implementation: NO-GO
+F3.2 implementation: NO-GO
+Production cutover: NOT AUTHORIZED
+ADO implementation modified: NO
+```
+
+PASS gates include source inventory, slice split, decision transport, individual/CAB authority, RBAC, decision idempotency, caller-owned trx + trx-aware ledger reads, exactly-once milestones without DDL, rejection lifecycle projection, eligibility safety, post-execution fail-closed, provider `replaceCurrent`, resubmission idempotency/atomicity, round terminality, no-migration, PostgreSQL D1–D6/R1–R3, and live-product/scope.
+
+Blockers (F3.1.3b only; do not redesign accepted F3.1.2 or the passing 3a contracts):
+
+1. **G13** — requester / current `ownerRef` member / `platform_admin` plus `change.create` is not already granted by ADR-009. Cancellation actors and participant-read are different capabilities. Do not silently bless this set.
+2. **G14** — allowing every user-editable create field, including `targetRef` / owner / System, can still represent a fundamentally different business Change under the same `changeId`. Model C current-projection vs immutable Round history remains coherent (G15 PASS); the identity boundary is not.
+
+**Next authorized activity:** narrow F3.1.3 plan correction of G13 and G14 only, then independent re-review. Do **not** author an implementation prompt, implement F3.1.3/F3.1.4/F3.2, fabricate decisions, or perform production cutover inside this gate.

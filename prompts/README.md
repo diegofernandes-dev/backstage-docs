@@ -19,9 +19,9 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 - F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
 - Non-production `LEDGER_REQUIRED` activation is **ACCEPT** and the operator-laptop F3.1.3 demo target is **READY**.
-- F3.1.3 planning completed with `READY_FOR_REVIEW`; canonical plan: [`docs/backstage/f3-1-3-implementation-plan.md`](../docs/backstage/f3-1-3-implementation-plan.md). Recommended decomposition: F3.1.3a decision command + F3.1.3b rejected-change resubmission/new Round; `Migration required: NO`.
-- [`f3-1-3-plan-architecture-review.md`](./f3-1-3-plan-architecture-review.md) — **current review-only checkpoint**. Independently verify the plan against live ADO source, with high scrutiny on CAB membership/RBAC, trx-aware ledger reads, rejection lifecycle projection, resubmission authority, same-changeId corrected snapshot semantics, and provider replacement.
-- F3.1.3 implementation remains **NO-GO**. Only an independent `ACCEPT` may authorize F3.1.3a implementation-prompt authoring.
+- [`f3-1-3-plan-architecture-review.md`](./f3-1-3-plan-architecture-review.md) — **completed with `REJECT`**. Canonical review: [`docs/backstage/f3-1-3-plan-architecture-review.md`](../docs/backstage/f3-1-3-plan-architecture-review.md). ADO tip independently verified `2249522`. Gates 18/20 PASS. Blockers: G13 resubmission actor authority is not already granted by ADR-009; G14 unconstrained `targetRef`/owner/System under the same `changeId` is not an implementation-ready identity contract. F3.1.3a decision-command contracts were not redesigned.
+- **Next:** narrow F3.1.3 plan correction of those two 3b contracts, then independent re-review. Do not author the F3.1.3a implementation prompt from the REJECT.
+- F3.1.3 implementation remains **NO-GO**.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
 ## Production-rollout gate — deferred until a real target exists
@@ -30,6 +30,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
+- [`f3-1-3-plan-architecture-review.md`](./f3-1-3-plan-architecture-review.md) — completed with `REJECT`. Canonical review: [`docs/backstage/f3-1-3-plan-architecture-review.md`](../docs/backstage/f3-1-3-plan-architecture-review.md). ADO baseline verified `2249522`. Gates 18/20 PASS. Blockers: G13 resubmission actor authority; G14 same-changeId identity/`targetRef` boundary. Next: narrow 3b plan correction only. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
 - F3.1.3 planning source re-verification — canonical plan re-checked against ADO `2249522`; trx-aware ledger reads made explicit, no DDL added, planning remains `READY_FOR_REVIEW`.
 - [`f3-1-3-planning.md`](./f3-1-3-planning.md) — completed with `READY_FOR_REVIEW`. Produced [`docs/backstage/f3-1-3-implementation-plan.md`](../docs/backstage/f3-1-3-implementation-plan.md) against ADO `2249522` and the accepted laptop `LEDGER_REQUIRED` demo target, then independently re-verified at docs `7725217`. Recommended slices F3.1.3a + F3.1.3b; `Migration required: NO`. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
 - F3.1.3 planning prompt authoring — `f3-1-3-planning.md` prepared after accepted non-production LEDGER_REQUIRED activation and demo-target readiness `READY`. No ADO implementation or decision fact was created by prompt authoring.
@@ -73,6 +74,20 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Launcher pattern
 
 Use a short launcher instead of pasting the long prompt into an agent session.
+
+### Historical launcher — F3.1.3 plan architecture review (completed — REJECT)
+
+```text
+Fetch the latest main from diegofernandes-dev/backstage-docs.
+
+Read prompts/f3-1-3-plan-architecture-review.md and execute it as a strict independent review-only checkpoint.
+
+Independently verify docs/backstage/f3-1-3-implementation-plan.md against the actual platform-devops-developer-portal/feat/ado-repo-governance source.
+
+Return exactly ACCEPT or REJECT. Do not modify ADO code, create ApprovalDecision facts, author implementation prompts, or implement F3.1.3/F3.1.4/F3.2.
+
+Update canonical review/state/progress/docs, commit documentation only, and STOP.
+```
 
 ### Historical launcher — final F3.1.2 re-review after ADR-013 (completed — ACCEPT)
 

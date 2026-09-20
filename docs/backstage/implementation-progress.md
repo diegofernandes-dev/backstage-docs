@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.1c **CLOSED / ACCEPTED** at ADO `3b302ab` (full SHA `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`), parent F3.1.2a `ccee1e1`; F3.1.2a remains **CLOSED / ACCEPTED** at `ccee1e1676a2763e68880e5383ce1e5e48742843`.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a accepted; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2b implementation-prompt authoring GO; F3.1.2b implementation still requires separate explicit authorization; F3.2 NO-GO
+> **Current GMUD implementation baseline:** Product convergence **PASS** at ADO `f48dc82` (Deployments UX on `feat/ado-repo-governance`); F3.1.1c **CLOSED / ACCEPTED** at ADO `3b302ab` (full SHA `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`), parent F3.1.2a `ccee1e1`; F3.1.2a remains **CLOSED / ACCEPTED** at `ccee1e1676a2763e68880e5383ce1e5e48742843`.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2b implementation-prompt authoring GO; F3.1.2b implementation still requires separate explicit authorization; F3.2 NO-GO
 
 ## How to use this log
 
@@ -1992,20 +1992,27 @@ Independent proofs re-run at exact SHA: non-genesis publication validation PASS;
 
 User-observed product issue: the previously accepted Catalog Component **Deployments** tab is not present in the currently running product based on the active GMUD line.
 
-Canonical evidence shows the accepted Deployments UX lived on the separate ADO workstream `feat/delivery-mvp-slice` (`0163a49` UX implementation; `b08e7b2` responsive polish), while the current GMUD/F3 line is `feat/ado-repo-governance` (`3b302ab` accepted F3.1.1c baseline). This strongly suggests branch divergence, but the actual ADO source must verify the root cause before any code change.
+Canonical evidence shows the accepted Deployments UX lived on the separate ADO workstream `feat/delivery-mvp-slice` (`0163a49` UX implementation; `b08e7b2` responsive polish), while the current GMUD/F3 line is `feat/ado-repo-governance` (`3b302ab` accepted F3.1.1c baseline). Live ADO verification confirmed **BRANCH_DIVERGENCE** (merge-base `4bad41d`; Deployments paths absent on governance tip).
 
 Prepared canonical convergence prompt:
 `prompts/product-convergence-deployments.md`
 
+### Result — PASS (published)
+
+- Root cause: `BRANCH_DIVERGENCE`
+- Implementation: ADO `feat/ado-repo-governance@f48dc825ab5d1d16fafc3f70ef772d28613df1a0` (parent `3b302ab`)
+- Minimal accepted Deployments UX/runtime restored; Delivery branch not merged wholesale
+- `api:catalog/delivery` collision guard preserved; POST `/changes` remains `LEGACY_PRE_F3`
+- No production/sandbox hardening, secrets, or GitOps/Kargo infra imported
+- Evidence: [`product-convergence-deployments-evidence.md`](./product-convergence-deployments-evidence.md)
+
 Gate:
 ```text
-Product convergence implementation: NOT STARTED
-Root cause: MUST BE VERIFIED FROM LIVE ADO SOURCE
+Product convergence (GMUD + Deployments): PASS
+Active product branch: feat/ado-repo-governance @ f48dc82
 F3.1.2a: CLOSED / ACCEPTED
 F3.1.1c: CLOSED / ACCEPTED
-F3.1.2b prompt authoring: architecture GO, intentionally deferred until convergence result
-F3.1.2b implementation: NO-GO until separate explicit launch
+F3.1.2b implementation-prompt authoring: GO
+F3.1.2b implementation: still requires separate explicit authorization
 F3.2: NO-GO
 ```
-
-The convergence prompt explicitly forbids a wholesale merge of `feat/delivery-mvp-slice`; it requires a path/symbol-level convergence manifest, preservation of the historical `api:catalog/delivery` collision fix, GMUD/Catalog regressions, and exclusion of unrelated sandbox/production hardening, secrets, credentials, and rollout artifacts.

@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-20 (F3.1.2b **IMPLEMENTED / PUBLISHED** at ADO `2249522`, pending independent acceptance; committed default remains `LEGACY_PRE_F3`; product convergence **PASS** at ADO `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2 plan **ACCEPTED IMPLEMENTATION CONTRACT**; operational LEDGER_REQUIRED cutover remains separate; F3.2 **NO-GO**)
+> **Last updated:** 2026-09-20 (F3.1.2b **IMPLEMENTED / PUBLISHED** at ADO `2249522`; independent acceptance review prompt prepared and acceptance **PENDING**; committed default remains `LEGACY_PRE_F3`; operational `LEDGER_REQUIRED` cutover **NOT AUTHORIZED**; product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.3/F3.1.4/F3.2 remain **NO-GO**)
 
 ## Stack
 

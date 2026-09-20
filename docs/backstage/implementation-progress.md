@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** Product convergence **PASS** at ADO `f48dc82` (Deployments UX on `feat/ado-repo-governance`); F3.1.1c **CLOSED / ACCEPTED** at ADO `3b302ab` (full SHA `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`), parent F3.1.2a `ccee1e1`; F3.1.2a remains **CLOSED / ACCEPTED** at `ccee1e1676a2763e68880e5383ce1e5e48742843`.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2b implementation-prompt authoring GO; F3.1.2b implementation still requires separate explicit authorization; F3.2 NO-GO
+> **Current GMUD implementation baseline:** F3.1.2b **IMPLEMENTED / PUBLISHED** at ADO `2249522` (full SHA `22495229502dabf2d99588599a156d862c5114fa`), parent product-convergence `f48dc82`; independent acceptance pending. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.2b implemented pending independent acceptance; committed default `LEGACY_PRE_F3`; operational LEDGER_REQUIRED cutover NO-GO; F3.2 NO-GO
 
 ## How to use this log
 
@@ -2039,3 +2039,30 @@ F3.2: NO-GO
 ```
 
 The implementation contract explicitly reconciles the accepted Deployments convergence drift, preserves the execution-eligibility route and `api:catalog/delivery` collision fix, and requires the committed runtime default to remain `LEGACY_PRE_F3`. LEDGER behavior is proven through controlled tests; production/runtime cutover is a later explicit gate.
+
+---
+
+## GMUD F3.1.2b — Ledger-governed submission integration (IMPLEMENTED / PUBLISHED)
+
+Explicit launch of `prompts/f3-1-2b-ledger-submission-implementation.md` against docs `b3ea5ee` and ADO parent `f48dc82`.
+
+- Implementation: ADO `feat/ado-repo-governance@22495229502dabf2d99588599a156d862c5114fa` (parent `f48dc82`)
+- Stored-mode-wins orchestration; repository explicit mode mismatch remains CONFLICT
+- Committed default `newSubmissionAuthorizationMode: LEGACY_PRE_F3`; LEDGER_REQUIRED only in controlled tests
+- CAB-safe `normal.low` materializes primary + CAB; `requirementId = requirementRole`
+- Duplicate `requirementRole` fails at policy registration
+- Emergency SoD fail-closed; caller-owned DevelopmentProvider transaction; healthy Round-1 loser convergence
+- PostgreSQL C1/C2 authoritative concurrency PASS
+- Deployments/Catalog/GMUD regressions PASS
+- Evidence: [`f3-1-2b-implementation-evidence.md`](./f3-1-2b-implementation-evidence.md)
+
+Gate:
+
+```text
+F3.1.2b implementation: PASS / PUBLISHED
+Independent F3.1.2b architecture/implementation acceptance: PENDING
+Committed default newSubmissionAuthorizationMode: LEGACY_PRE_F3
+Operational LEDGER_REQUIRED cutover: NOT AUTHORIZED
+F3.1.3/F3.1.4: NO-GO
+F3.2: NO-GO
+```

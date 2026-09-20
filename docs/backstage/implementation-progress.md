@@ -2452,3 +2452,24 @@ ADO implementation modified: NO
 Previously passing gates regression: **PASS** (18/18). Prior blockers now PASS: G13 dedicated `change.resubmit` plus original requester or live immutable-`ownerRef` member; G14 frozen `targetRef` / `ownerRef` / `systemRef` / `requestedBy` / identity `createdAt`; retargeting requires a new Change; Catalog ownership drift cannot transfer authority; execution-plan activity targets cannot cross the immutable Change System; provider/index current projection updates non-identity fields only.
 
 **Next authorized activity:** author a constrained F3.1.3a implementation prompt from this accepted contract. Do **not** implement F3.1.3a from inside prompt authoring. Do **not** author the F3.1.3b prompt, implement F3.1.3/F3.1.4/F3.2, fabricate decisions, or perform production cutover inside this gate.
+
+---
+
+## GMUD F3.1.3a-NEXT — Decision-command implementation prompt authored
+
+Independent revised-plan re-review returned `ACCEPT`; the F3.1.3 plan is now an **ACCEPTED IMPLEMENTATION CONTRACT**. ADR-014 governs F3.1.3b only; F3.1.3a decision semantics remain the previously source-verified contract.
+
+Canonical implementation prompt:
+`prompts/f3-1-3a-decision-command-implementation.md`
+
+Gate:
+```text
+F3.1.3 plan: ACCEPTED IMPLEMENTATION CONTRACT
+F3.1.3a implementation prompt: READY_FOR_EXPLICIT_LAUNCH
+F3.1.3a implementation: NOT STARTED
+F3.1.3b prompt authoring/implementation: NO-GO pending 3a independent acceptance
+F3.1.4/F3.2: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+The prompt is constrained to the nested decision command, individual/CAB decision-time authority, two new update permissions (`...authorization.decide` and `...authorization.cab.record`), trx-aware ledger reads, caller-owned transaction, exact replay/conflict semantics, `decision_recorded` / `authorization_reached` / `round_rejected` audits, rejected lifecycle projection, eligibility fail-closed cleanup, PostgreSQL D1-D6, and live laptop product proof. It explicitly forbids resubmission/new Round behavior, `change.resubmit`, provider replacement, decision UI/Workbench, migrations, F3.1.4/F3.2, and production cutover.

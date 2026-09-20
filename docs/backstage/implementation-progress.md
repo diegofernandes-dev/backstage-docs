@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522` (full SHA `22495229502dabf2d99588599a156d862c5114fa`), parent product-convergence `f48dc82`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 planning/prompt authoring GO; F3.1.3 implementation NO-GO; F3.2 NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 planning READY_FOR_REVIEW; F3.1.3 implementation NO-GO; F3.2 NO-GO
 
 ## How to use this log
 
@@ -2248,3 +2248,35 @@ Production cutover: NOT AUTHORIZED
 ```
 
 The planning checkpoint must resolve decision-command transport and permissions, individual vs CAB/authority decision authorization, decision idempotency/concurrency, transaction/audit semantics, rejection lifecycle, post-execution requirement timing, and whether same-changeId resubmission/new-round semantics need a separate F3.1.3b micro-slice or migration. It may not modify ADO code.
+
+---
+
+## GMUD F3.1.3 — Decision command and new-round planning (READY_FOR_REVIEW)
+
+Documentation review baseline at planning start: `backstage-docs@733393fab5a55b358ee676ffc0b37a5646ec7939`.
+
+ADO source independently verified at `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa` (local HEAD, `origin/feat/ado-repo-governance`, and `az repos ref list`). Source drift after accepted F3.1.2: NONE. Laptop overlay remains `LEDGER_REQUIRED`; committed default remains `LEGACY_PRE_F3`. `CHG-2026-000003` re-read read-only: Round 1 primary + CAB, zero decisions, five canonical audits.
+
+Canonical plan:
+[`f3-1-3-implementation-plan.md`](./f3-1-3-implementation-plan.md)
+
+```text
+F3.1.3 planning: READY_FOR_REVIEW
+F3.1.3 implementation: NO-GO
+Migration required: NO
+Recommended slices: F3.1.3a + F3.1.3b
+Decision command transport: RESOLVED
+Individual authority contract: RESOLVED
+CAB/authority membership contract: RESOLVED
+Permission boundary: RESOLVED
+Decision idempotency/concurrency: RESOLVED
+Decision transaction/audit: RESOLVED
+Rejection lifecycle: RESOLVED
+Post-execution requirement behavior: RESOLVED
+Resubmission/new-round contract: RESOLVED
+ADO implementation modified: NO
+```
+
+F3.1.3a owns the server-authoritative decision command, live Catalog CAB membership, dedicated decide vs cab.record permissions, idempotency/concurrency, caller-owned transaction/audit, derived evaluation transitions, and rejection lifecycle projection without inventing `authorized`. F3.1.3b owns same-`changeId` resubmission / Round N after terminal rejection. No DDL. No ApprovalDecision fact was created by this checkpoint.
+
+**Next authorized activity:** independent architecture review of the F3.1.3 plan. Do **not** author an implementation prompt, implement F3.1.3/F3.1.4/F3.2, fabricate decisions, or perform production cutover inside this gate.

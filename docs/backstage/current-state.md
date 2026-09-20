@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-20 (F3.1.2b **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `2249522`; F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE**; committed default remains `LEGACY_PRE_F3`; operational `LEDGER_REQUIRED` cutover **NOT AUTHORIZED**; product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.3 planning/prompt authoring **GO** after a narrow cutover checkpoint; F3.1.3 implementation / F3.1.4 / F3.2 remain **NO-GO**)
+> **Last updated:** 2026-09-20 (F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522`; committed default remains `LEGACY_PRE_F3`; a constrained non-production `LEDGER_REQUIRED` activation/cutover prompt is authored and ready for explicit launch, but no activation has occurred yet; product convergence **PASS** at `f48dc82`; F3.1.3 planning/prompt authoring **GO**, while F3.1.3 implementation should wait for accepted live-ledger activation; F3.1.4/F3.2 remain **NO-GO**; production cutover remains unauthorized)
 
 ## Stack
 

@@ -1,28 +1,35 @@
 # F3.1.3 — Decision Command and New-Round Semantics Implementation Plan
 
-- **Status:** REVISION COMPLETE — READY FOR RE-REVIEW
+- **Status:** ACCEPTED IMPLEMENTATION CONTRACT
 - **Date:** 2026-09-20
 - **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009 as partially superseded by ADR-013, ADR-013, **ADR-014**; F3.1 / F3.1.2 implementation plans; accepted F3.1.2b baseline; accepted non-production `LEDGER_REQUIRED` activation
 - **Planning prompt:** `prompts/f3-1-3-planning.md` (historical)
-- **Rejected plan review:** `docs/backstage/f3-1-3-plan-architecture-review.md` (historical REJECT; 18/20; G13/G14)
-- **Revision prompt (this checkpoint):** `prompts/f3-1-3-plan-revision.md`
+- **Rejected plan review:** `docs/backstage/f3-1-3-plan-architecture-review.md` (historical REJECT; 18/20; G13/G14) — preserved
+- **Revision prompt:** `prompts/f3-1-3-plan-revision.md` (historical)
+- **Independent re-review:** `docs/backstage/f3-1-3-revised-plan-architecture-rereview.md` (**ACCEPT**)
 - **Docs revision baseline (pre-edit):** `diegofernandes-dev/backstage-docs@a94c2e266b8aa6cff618bc82889abf2779b71cc4`
 - **ADO branch tip verified:** `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa` (`feat/ado-repo-governance`; local HEAD, `origin/feat/ado-repo-governance`, and `git fetch` — exact accepted F3.1.2b SHA, no later drift)
 - **Accepted live LEDGER demo target:** operator-laptop overlay `LEDGER_REQUIRED`; committed default `LEGACY_PRE_F3`
-- **F3.1.3 implementation:** **NO-GO**
+- **F3.1.3a implementation-prompt authoring:** **GO**
+- **F3.1.3a implementation:** still requires separate explicit authorization
+- **F3.1.3b / F3.1.4 / F3.2 implementation:** **NO-GO**
 
 ```text
-F3.1.3 plan revision: READY_FOR_REREVIEW
-F3.1.3 implementation: NO-GO
-F3.1.3a implementation-prompt authoring: NO-GO pending fresh ACCEPT
-F3.1.3a implementation: NO-GO
-F3.1.3b implementation: NO-GO
+F3.1.3 revised plan architecture re-review: ACCEPT
+F3.1.3 plan: ACCEPTED IMPLEMENTATION CONTRACT
+ADR-014: ACCEPTED / governing F3.1.3b authority + identity
 Migration required: NO
+F3.1.3a implementation-prompt authoring: GO
+F3.1.3a implementation: still requires separate explicit authorization
+F3.1.3b implementation-prompt authoring: NO-GO until F3.1.3a independent acceptance
+F3.1.3b implementation: NO-GO
+F3.1.4 implementation: NO-GO
+F3.2 implementation: NO-GO
+Production cutover: NOT AUTHORIZED
 Recommended slices: F3.1.3a + F3.1.3b
-ADO implementation modified by this checkpoint: NO
 ```
 
-This checkpoint does not authorize implementation, does not create `ApprovalDecision` facts, and does not author an implementation prompt. F3.1.3a decision-command contracts are preserved unchanged.
+This accepted contract does not authorize F3.1.3a implementation by itself. Do not create `ApprovalDecision` facts from planning or review checkpoints. F3.1.3a decision-command contracts remain unchanged from the historical review PASS set.
 
 ---
 
@@ -30,7 +37,7 @@ This checkpoint does not authorize implementation, does not create `ApprovalDeci
 
 ### Revision status
 
-Independent review REJECTED the published plan on two F3.1.3b contracts only (G13 resubmission actor authority; G14 same-changeId identity boundary). Gates 18/20 PASS. **This revision does not reopen the frozen F3.1.3a contracts** listed in `prompts/f3-1-3-plan-revision.md` §2 (nested decision POST, individual equality, live CAB membership + dedicated `cab.record`, no `platform_admin` CAB shortcut, actor-scoped decision idempotency, caller-owned `trx` + `change_index FOR UPDATE`, trx-aware ledger reads, exactly-once milestones, rejected lifecycle projection, no `authorized` lifecycle, post-execution fail-closed, PostgreSQL D1–D6, 3a contains no resubmission, `Migration required: NO`).
+Independent review REJECTED the published plan on two F3.1.3b contracts only (G13 resubmission actor authority; G14 same-changeId identity boundary). Gates 18/20 PASS. The subsequent narrow revision recorded G13/G14 in ADR-014. Independent re-review **ACCEPTED** this corrected plan (`docs/backstage/f3-1-3-revised-plan-architecture-rereview.md`). **This contract does not reopen the frozen F3.1.3a contracts** listed in `prompts/f3-1-3-plan-revision.md` §2 (nested decision POST, individual equality, live CAB membership + dedicated `cab.record`, no `platform_admin` CAB shortcut, actor-scoped decision idempotency, caller-owned `trx` + `change_index FOR UPDATE`, trx-aware ledger reads, exactly-once milestones, rejected lifecycle projection, no `authorized` lifecycle, post-execution fail-closed, PostgreSQL D1–D6, 3a contains no resubmission, `Migration required: NO`).
 
 G13/G14 are now recorded in [ADR-014](../adr/ADR-014-change-resubmission-authority-and-identity-boundary.md): dedicated `change-management.change.resubmit` plus original requester or current member of the **immutable** `ownerRef`; `targetRef` / `ownerRef` / `systemRef` / `requestedBy` / identity `createdAt` frozen across rounds; retargeting requires a new Change.
 
@@ -38,7 +45,7 @@ Source drift after accepted F3.1.2: **NONE**. Dedicated resubmit permission wiri
 
 ### What this plan is
 
-An implementation contract proposal for server-authoritative approval/rejection commands on top of the accepted live-ledger F3.1.2 baseline, plus same-`changeId` resubmission after a terminal rejected round.
+An implementation contract for server-authoritative approval/rejection commands on top of the accepted live-ledger F3.1.2 baseline, plus same-`changeId` resubmission after a terminal rejected round.
 
 ### What this plan is not
 
@@ -913,21 +920,23 @@ Implementation of a slice is acceptable only when all of the following hold for 
 ## 26. GO / NO-GO
 
 ```text
-F3.1.3 plan revision: READY_FOR_REREVIEW
-F3.1.3 implementation: NO-GO
-F3.1.3a implementation-prompt authoring: NO-GO pending fresh ACCEPT
-F3.1.3a implementation: NO-GO
+F3.1.3 revised plan architecture re-review: ACCEPT
+F3.1.3 plan: ACCEPTED IMPLEMENTATION CONTRACT
+ADR-014: ACCEPTED / governing F3.1.3b authority + identity
+Migration required: NO
+F3.1.3a implementation-prompt authoring: GO
+F3.1.3a implementation: still requires separate explicit authorization
+F3.1.3b implementation-prompt authoring: NO-GO until F3.1.3a independent acceptance
 F3.1.3b implementation: NO-GO
 F3.1.4 implementation: NO-GO
 F3.2 implementation: NO-GO
 Production cutover: NOT AUTHORIZED
-Migration required: NO
 ```
 
-**Next gate:** independent architecture re-review of this corrected plan against ADR-009 / ADR-013 / ADR-014 and ADO `2249522`. This revision does **not** ACCEPT the plan. Only a fresh independent `ACCEPT` may authorize authoring the constrained F3.1.3a implementation prompt.
+**Next gate:** author a constrained F3.1.3a implementation prompt from this accepted contract. Do not implement F3.1.3a from inside prompt authoring. F3.1.3b remains gated on independent F3.1.3a acceptance.
 
 ---
 
 ## 27. STOP
 
-STOP. Do not modify ADO implementation, do not create `ApprovalDecision` facts, do not implement F3.1.3/F3.1.4/F3.2, and do not author an implementation prompt from this checkpoint.
+STOP. This document is the accepted F3.1.3 implementation contract. Do not modify ADO implementation, create `ApprovalDecision` facts, or implement F3.1.3/F3.1.4/F3.2 from this file. F3.1.3a implementation-prompt authoring is a separate subsequent docs activity.

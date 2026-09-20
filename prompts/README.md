@@ -19,19 +19,21 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 - F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
 - Non-production `LEDGER_REQUIRED` activation is **ACCEPT** and the operator-laptop F3.1.3 demo target is **READY**.
-- Historical F3.1.3 plan review is **REJECT 18/20**; only G13/G14 failed.
-- Narrow F3.1.3b revision is **READY_FOR_REREVIEW**. ADR-014 is Accepted and now governs resubmission authority + immutable same-change identity.
-- [`f3-1-3-revised-plan-architecture-rereview.md`](./f3-1-3-revised-plan-architecture-rereview.md) — **current review-only checkpoint**. Regress the 18 previously passing gates and independently re-review G13/G14 against ADR-014 and live ADO source.
-- All F3.1.3 implementation remains **NO-GO**. Only an independent `ACCEPT` may authorize F3.1.3a implementation-prompt authoring.
+- Historical F3.1.3 plan review **REJECT 18/20** is preserved. Revised-plan re-review is **ACCEPT**. The F3.1.3 plan is **ACCEPTED IMPLEMENTATION CONTRACT**. ADR-014 governs F3.1.3b authority + identity. `Migration required: NO`.
+- **Next:** author a constrained F3.1.3a implementation prompt. F3.1.3a implementation still requires separate explicit authorization.
+- F3.1.3b implementation-prompt authoring remains **NO-GO** until F3.1.3a independent acceptance. F3.1.3b implementation is **NO-GO**.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
+
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
-- F3.1.3 narrow plan revision — READY_FOR_REREVIEW. Created ADR-014; revised only F3.1.3b resubmission authority and same-changeId identity. F3.1.3a unchanged. `Migration required: NO`. Next: independent plan re-review.
+- F3.1.3 revised-plan architecture re-review — ACCEPT. Prior G13/G14 now PASS; 18 previously passing gates did not regress. Plan is ACCEPTED IMPLEMENTATION CONTRACT. Canonical review: [`docs/backstage/f3-1-3-revised-plan-architecture-rereview.md`](../docs/backstage/f3-1-3-revised-plan-architecture-rereview.md). ADO baseline verified `2249522`; source drift NONE. F3.1.3a implementation-prompt authoring GO; F3.1.3a implementation still separately gated. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
+- [`f3-1-3-revised-plan-architecture-rereview.md`](./f3-1-3-revised-plan-architecture-rereview.md) — completed with `ACCEPT`.
+- F3.1.3 narrow plan revision — READY_FOR_REREVIEW then independently ACCEPTed. Created ADR-014; revised only F3.1.3b resubmission authority and same-changeId identity. F3.1.3a unchanged. `Migration required: NO`.
 - [`f3-1-3-plan-revision.md`](./f3-1-3-plan-revision.md) — completed documentation-only. Canonical ADR: [`docs/adr/ADR-014-change-resubmission-authority-and-identity-boundary.md`](../docs/adr/ADR-014-change-resubmission-authority-and-identity-boundary.md). Revised plan: [`docs/backstage/f3-1-3-implementation-plan.md`](../docs/backstage/f3-1-3-implementation-plan.md). ADO baseline verified `2249522`; source drift NONE. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
 - F3.1.3 plan architecture review — REJECT 18/20. F3.1.3a contracts passed; blockers are only F3.1.3b resubmission actor authority and same-changeId target/owner/System identity boundary. Historical REJECT preserved.
 - [`f3-1-3-plan-architecture-review.md`](./f3-1-3-plan-architecture-review.md) — completed with `REJECT`. Canonical review: [`docs/backstage/f3-1-3-plan-architecture-review.md`](../docs/backstage/f3-1-3-plan-architecture-review.md). ADO baseline verified `2249522`. Gates 18/20 PASS. Blockers: G13 resubmission actor authority; G14 same-changeId identity/`targetRef` boundary. Next: narrow 3b plan correction only. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
@@ -78,6 +80,22 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Launcher pattern
 
 Use a short launcher instead of pasting the long prompt into an agent session.
+
+### Historical launcher — F3.1.3 revised-plan architecture re-review (completed — ACCEPT)
+
+```text
+Fetch the latest main from diegofernandes-dev/backstage-docs.
+
+Read prompts/f3-1-3-revised-plan-architecture-rereview.md and execute it as a strict independent review-only checkpoint.
+
+Independently verify the revised docs/backstage/f3-1-3-implementation-plan.md against ADR-014 and the actual platform-devops-developer-portal/feat/ado-repo-governance source.
+
+Regress the 18 gates that previously passed. Re-review G13/G14. Return exactly ACCEPT or REJECT.
+
+Do not modify ADO code, create ApprovalDecision facts, author implementation prompts, or implement F3.1.3/F3.1.4/F3.2.
+
+Update canonical review/state/progress/docs, commit documentation only, and STOP.
+```
 
 ### Historical launcher — F3.1.3 narrow plan revision (completed — READY_FOR_REREVIEW)
 

@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522` (full SHA `22495229502dabf2d99588599a156d862c5114fa`), parent product-convergence `f48dc82`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); ADR-014 Accepted for resubmission authority/identity; F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT preserved; F3.1.3 plan revision READY_FOR_REREVIEW; F3.1.3 implementation NO-GO; F3.2 NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); ADR-014 Accepted for resubmission authority/identity; F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT preserved; F3.1.3 revised-plan re-review ACCEPT; F3.1.3 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.3a implementation-prompt authoring GO; F3.1.3a implementation still separately gated; F3.1.3b/F3.2 NO-GO
 
 ## How to use this log
 
@@ -2420,3 +2420,35 @@ Production cutover: NOT AUTHORIZED
 ```
 
 The re-review must preserve the 18 previously passing gates, verify G13 resubmission authority as dedicated permission + original requester/current immutable-owner membership, and verify G14 same-change identity with frozen target/owner/System/requester/createdAt plus hidden execution-plan retarget protection.
+
+---
+
+## GMUD F3.1.3-RR — Revised-plan architecture re-review ACCEPT
+
+Independent review-only checkpoint of the narrowly revised [`f3-1-3-implementation-plan.md`](./f3-1-3-implementation-plan.md) against ADR-014 and live ADO `feat/ado-repo-governance` at accepted SHA `22495229502dabf2d99588599a156d862c5114fa`.
+
+Canonical review:
+[`f3-1-3-revised-plan-architecture-rereview.md`](./f3-1-3-revised-plan-architecture-rereview.md)
+
+Docs baseline reviewed: `diegofernandes-dev/backstage-docs@338a25197f612d7519fdece95d7bfd9fb5e6f308` (`origin/main` at review start). Historical REJECT, ADR-014, and revised-plan history preserved.
+
+Independent ADO verification: **YES** — local HEAD + `az repos ref list` `objectId` `2249522`; source drift **NONE**. Laptop LEDGER facts were not mutated; zero `ApprovalDecision` rows created.
+
+```text
+F3.1.3 revised plan architecture re-review: ACCEPT
+F3.1.3 plan: ACCEPTED IMPLEMENTATION CONTRACT
+ADR-014: ACCEPTED / governing F3.1.3b authority + identity
+Migration required: NO
+F3.1.3a implementation-prompt authoring: GO
+F3.1.3a implementation: still requires separate explicit authorization
+F3.1.3b implementation-prompt authoring: NO-GO until F3.1.3a independent acceptance
+F3.1.3b implementation: NO-GO
+F3.1.4 implementation: NO-GO
+F3.2 implementation: NO-GO
+Production cutover: NOT AUTHORIZED
+ADO implementation modified: NO
+```
+
+Previously passing gates regression: **PASS** (18/18). Prior blockers now PASS: G13 dedicated `change.resubmit` plus original requester or live immutable-`ownerRef` member; G14 frozen `targetRef` / `ownerRef` / `systemRef` / `requestedBy` / identity `createdAt`; retargeting requires a new Change; Catalog ownership drift cannot transfer authority; execution-plan activity targets cannot cross the immutable Change System; provider/index current projection updates non-identity fields only.
+
+**Next authorized activity:** author a constrained F3.1.3a implementation prompt from this accepted contract. Do **not** implement F3.1.3a from inside prompt authoring. Do **not** author the F3.1.3b prompt, implement F3.1.3/F3.1.4/F3.2, fabricate decisions, or perform production cutover inside this gate.

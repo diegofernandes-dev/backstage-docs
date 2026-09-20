@@ -2122,3 +2122,26 @@ Canonical review:
 Independent proofs re-run at exact SHA: focused ledgerSubmit 30 tests PASS including disposable PostgreSQL 15 C1/C2/C3; Change Management + Delivery 374 tests PASS; Deployments frontend 20 tests PASS; GMUD frontend 58 tests PASS; lint/build PASS; TypeScript remains the historical five dual-package Knex errors in `changeManagementPlugin.ts`.
 
 **Next authorized activity:** author a narrow LEDGER_REQUIRED activation/cutover checkpoint for the intended non-production product environment, then independently verify it, then plan/author F3.1.3 decision-command work. Do **not** implement F3.1.3, F3.1.4, or F3.2, and do **not** flip the committed default, inside this gate.
+
+---
+
+## GMUD F3.1.2-CUTOVER-NEXT — Non-production LEDGER_REQUIRED activation prompt authored
+
+F3.1.2b and the complete F3.1.2 submission baseline are CLOSED / ACCEPTED at ADO `22495229502dabf2d99588599a156d862c5114fa`. The accepted binary still commits `newSubmissionAuthorizationMode: LEGACY_PRE_F3` by default.
+
+Canonical operational prompt:
+`prompts/f3-1-2-ledger-required-nonprod-activation.md`
+
+Gate:
+```text
+F3.1.2: CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE
+Committed repository default: LEGACY_PRE_F3
+Non-production LEDGER_REQUIRED activation: NOT STARTED
+Operational production cutover: NOT AUTHORIZED
+F3.1.3 planning/prompt authoring: GO
+F3.1.3 implementation: NO-GO pending explicit prompt and preferably accepted live ledger target
+F3.1.4: NO-GO
+F3.2: NO-GO
+```
+
+The activation checkpoint is operational only: it must discover one real isolated non-production Backstage target, use an existing environment-specific override to activate `LEDGER_REQUIRED`, prove a real normal-low Round 1 (primary + CAB), idempotent replay, legacy-reservation continuity across the cutover, same-binary config backout, and preservation of GMUD/Catalog/Deployments. The committed repository default remains `LEGACY_PRE_F3`; production and source-code changes are forbidden.

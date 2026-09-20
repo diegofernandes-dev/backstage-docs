@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522` (full SHA `22495229502dabf2d99588599a156d862c5114fa`), parent product-convergence `f48dc82`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **PASS / pending independent acceptance**.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation executed pending independent acceptance; F3.1.3 implementation NO-GO; F3.2 NO-GO
+> **Current GMUD implementation baseline:** F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522` (full SHA `22495229502dabf2d99588599a156d862c5114fa`), parent product-convergence `f48dc82`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 planning/prompt authoring GO; F3.1.3 implementation NO-GO; F3.2 NO-GO
 
 ## How to use this log
 
@@ -2192,3 +2192,36 @@ F3.1.4/F3.2: NO-GO
 ```
 
 The independent review must verify the live/durable activation facts rather than accepting the evidence document at face value, and must separately classify whether the laptop SQLite runtime is adequate as the F3.1.3 product-validation target (`READY` or `NOT_READY`).
+
+---
+
+## GMUD F3.1.2-CUTOVER-ACCEPT — Non-production LEDGER_REQUIRED activation accepted
+
+Documentation review baseline: `backstage-docs@55735d1282b390ab968f16f5bb612282bfe46a2c`.
+
+Reviewed runtime: operator laptop at accepted ADO `22495229502dabf2d99588599a156d862c5114fa` (independent `az repos ref list` match; source drift NONE). Isolated SQLite inspected read-only; same binary independently restarted with the existing gitignored overlay.
+
+```text
+F3.1.2 non-production LEDGER_REQUIRED activation acceptance: ACCEPT
+Activation baseline: ACCEPTED
+Accepted runtime SHA: 22495229502dabf2d99588599a156d862c5114fa
+Committed repository default: LEGACY_PRE_F3
+Accepted non-production effective mode: LEDGER_REQUIRED
+Production cutover: NOT AUTHORIZED
+F3.1.3 demo target readiness: READY
+F3.1.3 planning/prompt authoring: GO
+F3.1.3 implementation: still requires separate explicit authorization
+F3.1.4 implementation: NO-GO
+F3.2 implementation: NO-GO
+Gates: G1–G15 PASS
+Independent runtime/database verification: YES
+ADO/source modified by review: NO
+Production modified by review: NO
+```
+
+Canonical review:
+[`f3-1-2-ledger-required-nonprod-activation-acceptance.md`](./f3-1-2-ledger-required-nonprod-activation-acceptance.md).
+
+Independent proofs: live startup `LEDGER_REQUIRED`; SQLite identities `CHG-2026-000002` LEGACY / `CHG-2026-000003` LEDGER Round 1 primary+CAB / `CHG-2026-000004` backout LEGACY; canonical five-event audit set; original 201 replay + 409 conflict logs with no duplicate artifacts; stored-mode-wins; pending-LEDGER drain `0`; UI GMUD/Catalog/Deployments preserved; live eligibility `DENY` / `PENDING_AUTHORIZATION` / `roundNumber=1` without fabricating decisions.
+
+**Next authorized activity:** F3.1.3 planning/prompt authoring. Do **not** implement F3.1.3, F3.1.4, or F3.2, and do **not** flip the committed default or perform production cutover, inside this gate.

@@ -18,9 +18,8 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Current authorized activity
 
 - F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
-- Non-production `LEDGER_REQUIRED` activation was executed with operational **PASS** on the isolated operator-laptop Backstage runtime; committed repository default remains `LEGACY_PRE_F3`; final laptop overlay is `LEDGER_REQUIRED`.
-- [`f3-1-2-ledger-required-nonprod-activation-acceptance.md`](./f3-1-2-ledger-required-nonprod-activation-acceptance.md) — **current review-only checkpoint**. Independently verify source/runtime/database facts and return ACCEPT or REJECT. Also classify the laptop as `F3.1.3 demo target readiness: READY | NOT_READY`.
-- F3.1.3 planning/prompt authoring remains architecture-GO, but F3.1.3 implementation remains **NO-GO** until activation is independently accepted and a suitable demo target is confirmed.
+- Non-production `LEDGER_REQUIRED` activation is **ACCEPT** on the isolated operator-laptop Backstage runtime; committed repository default remains `LEGACY_PRE_F3`; final laptop overlay is `LEDGER_REQUIRED`; F3.1.3 demo target readiness is **READY**.
+- Next authorized activity is **F3.1.3 planning/prompt authoring**. F3.1.3 implementation remains **NO-GO** until a separate explicit prompt/authorization.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
 ## Production-rollout gate — deferred until a real target exists
@@ -29,8 +28,9 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
-- Non-production LEDGER_REQUIRED activation execution — operational PASS on the isolated operator-laptop runtime at accepted ADO `2249522`; final laptop overlay `LEDGER_REQUIRED`, committed default `LEGACY_PRE_F3`; independent acceptance pending.
-- [`f3-1-2-ledger-required-nonprod-activation.md`](./f3-1-2-ledger-required-nonprod-activation.md) — executed with operational **PASS** on the isolated laptop product runtime at ADO `2249522`. Committed default remains `LEGACY_PRE_F3`. Independent acceptance pending. Canonical evidence: `docs/backstage/f3-1-2-ledger-required-nonprod-activation-evidence.md`.
+- [`f3-1-2-ledger-required-nonprod-activation-acceptance.md`](./f3-1-2-ledger-required-nonprod-activation-acceptance.md) — completed with `ACCEPT`. Closed the non-production LEDGER_REQUIRED activation as the accepted live F3.1.3 demonstration baseline at ADO `2249522`. F3.1.3 demo target readiness `READY`. Canonical review: `docs/backstage/f3-1-2-ledger-required-nonprod-activation-acceptance.md`. Next: F3.1.3 planning/prompt authoring; F3.1.3 implementation remains separately gated.
+- Non-production LEDGER_REQUIRED activation execution — operational PASS on the isolated operator-laptop runtime at accepted ADO `2249522`; final laptop overlay `LEDGER_REQUIRED`, committed default `LEGACY_PRE_F3`; independent acceptance completed separately (`ACCEPT`).
+- [`f3-1-2-ledger-required-nonprod-activation.md`](./f3-1-2-ledger-required-nonprod-activation.md) — executed with operational **PASS** on the isolated laptop product runtime at ADO `2249522`. Committed default remains `LEGACY_PRE_F3`. Independent acceptance completed separately (`ACCEPT`). Canonical evidence: `docs/backstage/f3-1-2-ledger-required-nonprod-activation-evidence.md`.
 - Non-production LEDGER_REQUIRED activation prompt authoring — `f3-1-2-ledger-required-nonprod-activation.md` prepared after F3.1.2b ACCEPT. Runtime activation later executed under explicit launch (see previous bullet).
 - [`f3-1-2b-architecture-implementation-acceptance.md`](./f3-1-2b-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.2b as the accepted implemented baseline at ADO `2249522` and closed F3.1.2 as the accepted implemented submission baseline. Committed default remains `LEGACY_PRE_F3`. Canonical review: `docs/backstage/f3-1-2b-architecture-implementation-acceptance.md`. Next: author a narrow LEDGER_REQUIRED cutover checkpoint before F3.1.3 implementation.
 - F3.1.2b implementation evidence checkpoint — implementation PASS and published to ADO `2249522`; independent acceptance completed separately (`ACCEPT`). Committed default remains `LEGACY_PRE_F3`; no operational cutover occurred.

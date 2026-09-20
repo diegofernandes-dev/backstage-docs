@@ -2280,3 +2280,26 @@ ADO implementation modified: NO
 F3.1.3a owns the server-authoritative decision command, live Catalog CAB membership, dedicated decide vs cab.record permissions, idempotency/concurrency, caller-owned transaction/audit with **trx-aware ledger reads**, derived evaluation transitions, and rejection lifecycle projection without inventing `authorized`. F3.1.3b owns same-`changeId` resubmission / Round N after terminal rejection. No DDL. No ApprovalDecision fact was created by this checkpoint.
 
 **Next authorized activity:** independent architecture review of the F3.1.3 plan. Do **not** author an implementation prompt, implement F3.1.3/F3.1.4/F3.2, fabricate decisions, or perform production cutover inside this gate.
+
+---
+
+## GMUD F3.1.3-AR — Independent plan architecture review prepared
+
+F3.1.3 planning is complete and source-reverified against ADO `22495229502dabf2d99588599a156d862c5114fa` with `Migration required: NO` and recommended slices `F3.1.3a + F3.1.3b`.
+
+Canonical review prompt:
+`prompts/f3-1-3-plan-architecture-review.md`
+
+Current gate:
+```text
+F3.1.3 planning: READY_FOR_REVIEW
+F3.1.3 plan architecture review: PENDING
+F3.1.3 implementation: NO-GO
+F3.1.3a implementation-prompt authoring: NO-GO pending ACCEPT
+F3.1.3b: NO-GO
+F3.1.4: NO-GO
+F3.2: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+The review explicitly challenges the plan's most consequential choices: decision-time CAB membership + RBAC, global actor-scoped decision idempotency, PostgreSQL transaction visibility/trx-aware ledger reads, exactly-once authorization/rejection audit milestones without new DDL, rejected lifecycle projection under Model C, post-execution anchor fail-closed behavior, resubmission actor authority, same-changeId target/owner correction boundaries, and transactional `DevelopmentProvider.replaceCurrent`.

@@ -2016,3 +2016,26 @@ F3.1.2b implementation-prompt authoring: GO
 F3.1.2b implementation: still requires separate explicit authorization
 F3.2: NO-GO
 ```
+
+---
+
+## GMUD F3.1.2b-NEXT — Ledger submission implementation prompt authored
+
+After product convergence PASS at ADO `f48dc825ab5d1d16fafc3f70ef772d28613df1a0`, the constrained F3.1.2b implementation prompt is now authored.
+
+Canonical prompt:
+`prompts/f3-1-2b-ledger-submission-implementation.md`
+
+Gate:
+```text
+F3.1.2a: CLOSED / ACCEPTED
+F3.1.1c: CLOSED / ACCEPTED
+Product convergence (GMUD + Deployments): PASS
+F3.1.2b implementation prompt: READY_FOR_EXPLICIT_LAUNCH
+F3.1.2b implementation: NOT STARTED
+Operational LEDGER_REQUIRED cutover: NOT AUTHORIZED
+F3.1.3/F3.1.4: NO-GO
+F3.2: NO-GO
+```
+
+The implementation contract explicitly reconciles the accepted Deployments convergence drift, preserves the execution-eligibility route and `api:catalog/delivery` collision fix, and requires the committed runtime default to remain `LEGACY_PRE_F3`. LEDGER behavior is proven through controlled tests; production/runtime cutover is a later explicit gate.

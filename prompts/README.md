@@ -21,15 +21,17 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 - F3.1.2a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843`.
 - F3.1.1c is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`.
 - Product convergence (GMUD + Deployments) is **PASS** at ADO `f48dc825ab5d1d16fafc3f70ef772d28613df1a0`.
-- [`f3-1-2b-ledger-submission-implementation.md`](./f3-1-2b-ledger-submission-implementation.md) — **implementation PASS / PUBLISHED** at ADO `22495229502dabf2d99588599a156d862c5114fa`. Next gate is independent F3.1.2b architecture/implementation acceptance. Do not mark CLOSED solely because tests passed.
-- The F3.1.2b-capable binary landed with committed `newSubmissionAuthorizationMode: LEGACY_PRE_F3`; operational cutover to `LEDGER_REQUIRED` remains a later explicit activation step.
-- F3.1.3/F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
+- F3.1.2b implementation is **PASS / PUBLISHED** at ADO `22495229502dabf2d99588599a156d862c5114fa`, with committed default still `LEGACY_PRE_F3`.
+- [`f3-1-2b-architecture-implementation-acceptance.md`](./f3-1-2b-architecture-implementation-acceptance.md) — **current review-only checkpoint**. Independently inspect the exact ADO diff and return ACCEPT or REJECT. Do not repair code or perform operational cutover in the review.
+- Operational `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
+- F3.1.3/F3.1.4 and F3.2 CAB autonomy remain **NO-GO** until this acceptance gate closes.
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
+- F3.1.2b implementation evidence checkpoint — implementation PASS and published to ADO `2249522`; independent acceptance pending. Committed default remains `LEGACY_PRE_F3`; no operational cutover occurred.
 - [`f3-1-2b-ledger-submission-implementation.md`](./f3-1-2b-ledger-submission-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa`. Canonical evidence: `docs/backstage/f3-1-2b-implementation-evidence.md`. Independent acceptance remains the next gate; operational LEDGER_REQUIRED cutover was not performed.
 
 - [`product-convergence-deployments.md`](./product-convergence-deployments.md) — completed with `PASS`, published to ADO `platform-devops-developer-portal@f48dc825ab5d1d16fafc3f70ef772d28613df1a0`. Root cause `BRANCH_DIVERGENCE`. Evidence: `docs/backstage/product-convergence-deployments-evidence.md`.

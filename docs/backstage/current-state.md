@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-20 (F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522`; non-production `LEDGER_REQUIRED` activation **ACCEPT**; operator-laptop demo target **READY**; final local overlay `LEDGER_REQUIRED`, committed default `LEGACY_PRE_F3`; F3.1.3 plan architecture review **REJECT** preserved; F3.1.3 revised-plan re-review **ACCEPT** — plan is **ACCEPTED IMPLEMENTATION CONTRACT** via [ADR-014](../adr/ADR-014-change-resubmission-authority-and-identity-boundary.md); F3.1.3a implementation-prompt authoring **GO**; F3.1.3a implementation still separately gated; F3.1.3b/F3.1.4/F3.2 **NO-GO**; production cutover unauthorized)
+> **Last updated:** 2026-09-20 (F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522`; non-production `LEDGER_REQUIRED` activation **ACCEPT**; operator-laptop demo target **READY**; committed default `LEGACY_PRE_F3`; F3.1.3 revised-plan re-review **ACCEPT** and plan **ACCEPTED IMPLEMENTATION CONTRACT**; constrained F3.1.3a decision-command implementation prompt authored and ready for explicit launch; F3.1.3a implementation not started; F3.1.3b prompt/implementation **NO-GO** until 3a independent acceptance; F3.1.4/F3.2 **NO-GO**; production cutover unauthorized)
 
 ## Stack
 

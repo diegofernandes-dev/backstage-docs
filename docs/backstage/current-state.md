@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-20 (F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522`; committed default remains `LEGACY_PRE_F3`; non-production `LEDGER_REQUIRED` activation executed on the operator laptop runtime and is **PASS / pending independent acceptance**; product convergence **PASS** at `f48dc82`; F3.1.3 planning/prompt authoring **GO**, while F3.1.3 implementation remains **NO-GO** until activation is independently accepted; F3.1.4/F3.2 remain **NO-GO**; production cutover remains unauthorized)
+> **Last updated:** 2026-09-20 (F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522`; non-production `LEDGER_REQUIRED` activation execution **PASS** on the isolated operator-laptop runtime; independent activation acceptance prompt prepared and acceptance **PENDING**; final laptop overlay `LEDGER_REQUIRED`, committed repository default `LEGACY_PRE_F3`; F3.1.3 implementation **NO-GO** pending activation acceptance + demo-target readiness; F3.1.4/F3.2 **NO-GO**; production cutover unauthorized)
 
 ## Stack
 

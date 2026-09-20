@@ -21,18 +21,19 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 - F3.1.2a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `ccee1e1676a2763e68880e5383ce1e5e48742843`.
 - F3.1.1c is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `3b302ab5c9caab38f96491b389b7ea9fe0b66c2f`.
 - Product convergence (GMUD + Deployments) is **PASS** at ADO `f48dc825ab5d1d16fafc3f70ef772d28613df1a0`.
-- F3.1.2b implementation is **PASS / PUBLISHED** at ADO `22495229502dabf2d99588599a156d862c5114fa`, with committed default still `LEGACY_PRE_F3`.
-- [`f3-1-2b-architecture-implementation-acceptance.md`](./f3-1-2b-architecture-implementation-acceptance.md) — **current review-only checkpoint**. Independently inspect the exact ADO diff and return ACCEPT or REJECT. Do not repair code or perform operational cutover in the review.
-- Operational `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
-- F3.1.3/F3.1.4 and F3.2 CAB autonomy remain **NO-GO** until this acceptance gate closes.
+- F3.1.2b is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`. F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE**.
+- Committed default remains `LEGACY_PRE_F3`. Operational `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
+- **Next authorized activity:** author a narrow LEDGER_REQUIRED activation/cutover checkpoint. F3.1.3 planning/prompt authoring is GO after that checkpoint; F3.1.3 implementation still requires a separate explicit prompt. F3.1.4 and F3.2 remain **NO-GO**.
+
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.
 
 ## Completed / historical prompts
 
-- F3.1.2b implementation evidence checkpoint — implementation PASS and published to ADO `2249522`; independent acceptance pending. Committed default remains `LEGACY_PRE_F3`; no operational cutover occurred.
-- [`f3-1-2b-ledger-submission-implementation.md`](./f3-1-2b-ledger-submission-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa`. Canonical evidence: `docs/backstage/f3-1-2b-implementation-evidence.md`. Independent acceptance remains the next gate; operational LEDGER_REQUIRED cutover was not performed.
+- [`f3-1-2b-architecture-implementation-acceptance.md`](./f3-1-2b-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.2b as the accepted implemented baseline at ADO `2249522` and closed F3.1.2 as the accepted implemented submission baseline. Committed default remains `LEGACY_PRE_F3`. Canonical review: `docs/backstage/f3-1-2b-architecture-implementation-acceptance.md`. Next: author a narrow LEDGER_REQUIRED cutover checkpoint before F3.1.3 implementation.
+- F3.1.2b implementation evidence checkpoint — implementation PASS and published to ADO `2249522`; independent acceptance completed separately (`ACCEPT`). Committed default remains `LEGACY_PRE_F3`; no operational cutover occurred.
+- [`f3-1-2b-ledger-submission-implementation.md`](./f3-1-2b-ledger-submission-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa`. Canonical evidence: `docs/backstage/f3-1-2b-implementation-evidence.md`. Independent acceptance completed separately (`ACCEPT`).
 
 - [`product-convergence-deployments.md`](./product-convergence-deployments.md) — completed with `PASS`, published to ADO `platform-devops-developer-portal@f48dc825ab5d1d16fafc3f70ef772d28613df1a0`. Root cause `BRANCH_DIVERGENCE`. Evidence: `docs/backstage/product-convergence-deployments-evidence.md`.
 - Product-convergence prompt authoring — `product-convergence-deployments.md` prepared to reconcile the accepted Deployments tab/runtime from the Delivery workstream into the active GMUD branch without importing unrelated production/sandbox hardening.

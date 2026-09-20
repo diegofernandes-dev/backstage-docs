@@ -2089,3 +2089,36 @@ F3.1.3/F3.1.4/F3.2: NO-GO
 ```
 
 The review must independently inspect `f48dc82..2249522`, re-prove the PostgreSQL concurrency contract, transaction atomicity, CAB-safe requirement materialization, stored-mode-wins behavior, product-convergence preservation, and the mandatory rollback gate. It may only ACCEPT or REJECT and must not modify ADO code or activate LEDGER_REQUIRED.
+
+---
+
+## GMUD F3.1.2b — Architecture / implementation acceptance (ACCEPT)
+
+Documentation review baseline: `backstage-docs@06c337aa7598a3de178ef84cbfcf061258a538ce`.
+
+Reviewed ADO commit: `22495229502dabf2d99588599a156d862c5114fa`
+Parent verified: exact `f48dc825ab5d1d16fafc3f70ef772d28613df1a0`.
+
+### Outcome
+
+```text
+F3.1.2b architecture/implementation acceptance: ACCEPT
+F3.1.2b: CLOSED / ACCEPTED IMPLEMENTED BASELINE
+Accepted ADO SHA: 22495229502dabf2d99588599a156d862c5114fa
+F3.1.2: CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE
+Committed default newSubmissionAuthorizationMode: LEGACY_PRE_F3
+Operational LEDGER_REQUIRED cutover: NOT YET AUTHORIZED
+F3.1.3 planning/prompt authoring: GO
+F3.1.4 implementation: NO-GO
+F3.2 implementation: NO-GO
+Gates: G1–G19 PASS
+ADO implementation modified by this review: NO
+Operational LEDGER_REQUIRED cutover performed: NO
+```
+
+Canonical review:
+[`f3-1-2b-architecture-implementation-acceptance.md`](./f3-1-2b-architecture-implementation-acceptance.md).
+
+Independent proofs re-run at exact SHA: focused ledgerSubmit 30 tests PASS including disposable PostgreSQL 15 C1/C2/C3; Change Management + Delivery 374 tests PASS; Deployments frontend 20 tests PASS; GMUD frontend 58 tests PASS; lint/build PASS; TypeScript remains the historical five dual-package Knex errors in `changeManagementPlugin.ts`.
+
+**Next authorized activity:** author a narrow LEDGER_REQUIRED activation/cutover checkpoint for the intended non-production product environment, then independently verify it, then plan/author F3.1.3 decision-command work. Do **not** implement F3.1.3, F3.1.4, or F3.2, and do **not** flip the committed default, inside this gate.

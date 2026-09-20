@@ -1,6 +1,6 @@
 # F3.1.2b — Ledger-Governed Submission Integration (implementation evidence)
 
-- **Status:** IMPLEMENTED / PUBLISHED — architecture/implementation acceptance **pending separate review**
+- **Status:** CLOSED / ACCEPTED IMPLEMENTED BASELINE — architecture/implementation acceptance **ACCEPT** ([`f3-1-2b-architecture-implementation-acceptance.md`](./f3-1-2b-architecture-implementation-acceptance.md))
 - **Date:** 2026-09-20
 - **Canonical docs baseline (start):** `backstage-docs@b3ea5eee58a68758d15233f311090555ac1f758c`
 - **Authority:** F3.1.2 ACCEPTED IMPLEMENTATION CONTRACT + `prompts/f3-1-2b-ledger-submission-implementation.md` (explicit launch)
@@ -164,7 +164,9 @@ No production database was used.
 
 ## 8. Next gate
 
-Independent F3.1.2b architecture/implementation acceptance review.
+Independent F3.1.2b architecture/implementation acceptance review completed with **ACCEPT**.
 
-Do not mark F3.1.2b CLOSED solely because implementation tests passed.
-Operational LEDGER_REQUIRED cutover remains a later explicit activation step.
+F3.1.2b is CLOSED / ACCEPTED IMPLEMENTED BASELINE at ADO `2249522`.
+F3.1.2 is CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE.
+
+Operational LEDGER_REQUIRED cutover remains a later explicit activation step. Recommended next gate: author a narrow LEDGER_REQUIRED activation/cutover checkpoint before F3.1.3 implementation.

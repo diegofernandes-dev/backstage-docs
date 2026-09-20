@@ -2225,3 +2225,26 @@ Canonical review:
 Independent proofs: live startup `LEDGER_REQUIRED`; SQLite identities `CHG-2026-000002` LEGACY / `CHG-2026-000003` LEDGER Round 1 primary+CAB / `CHG-2026-000004` backout LEGACY; canonical five-event audit set; original 201 replay + 409 conflict logs with no duplicate artifacts; stored-mode-wins; pending-LEDGER drain `0`; UI GMUD/Catalog/Deployments preserved; live eligibility `DENY` / `PENDING_AUTHORIZATION` / `roundNumber=1` without fabricating decisions.
 
 **Next authorized activity:** F3.1.3 planning/prompt authoring. Do **not** implement F3.1.3, F3.1.4, or F3.2, and do **not** flip the committed default or perform production cutover, inside this gate.
+
+---
+
+## GMUD F3.1.3-NEXT — Decision/new-round planning prompt authored
+
+After independent ACCEPT of the non-production `LEDGER_REQUIRED` activation, the operator-laptop runtime is the accepted F3.1.3 demonstration target (`READY`).
+
+Canonical planning prompt:
+`prompts/f3-1-3-planning.md`
+
+Gate:
+```text
+F3.1.2: CLOSED / ACCEPTED
+Non-prod LEDGER_REQUIRED activation: ACCEPT
+F3.1.3 demo target readiness: READY
+F3.1.3 planning prompt: READY_FOR_EXPLICIT_LAUNCH
+F3.1.3 implementation: NO-GO
+F3.1.4: NO-GO
+F3.2: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+The planning checkpoint must resolve decision-command transport and permissions, individual vs CAB/authority decision authorization, decision idempotency/concurrency, transaction/audit semantics, rejection lifecycle, post-execution requirement timing, and whether same-changeId resubmission/new-round semantics need a separate F3.1.3b micro-slice or migration. It may not modify ADO code.

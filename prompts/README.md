@@ -19,13 +19,12 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 - F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
 - Non-production `LEDGER_REQUIRED` activation is **ACCEPT** and the operator-laptop F3.1.3 demo target is **READY**.
-- F3.1.3 plan architecture review completed with **REJECT**: 18/20 gates PASS. Historical evidence: [`docs/backstage/f3-1-3-plan-architecture-review.md`](../docs/backstage/f3-1-3-plan-architecture-review.md).
-- [`f3-1-3-plan-revision.md`](./f3-1-3-plan-revision.md) — **completed** documentation-only revision. ADR-014 records dedicated `change.resubmit` + requester-or-immutable-owner proof, and frozen same-`changeId` identity. Revised plan is **READY_FOR_REREVIEW**.
-- **Current next activity:** a fresh independent F3.1.3 plan re-review of [`docs/backstage/f3-1-3-implementation-plan.md`](../docs/backstage/f3-1-3-implementation-plan.md) against ADR-014 and ADO `2249522`. Do not author that re-review prompt from inside the revision checkpoint.
-- All F3.1.3 implementation remains **NO-GO** until the revised plan receives a fresh independent ACCEPT.
+- Historical F3.1.3 plan review is **REJECT 18/20**; only G13/G14 failed.
+- Narrow F3.1.3b revision is **READY_FOR_REREVIEW**. ADR-014 is Accepted and now governs resubmission authority + immutable same-change identity.
+- [`f3-1-3-revised-plan-architecture-rereview.md`](./f3-1-3-revised-plan-architecture-rereview.md) — **current review-only checkpoint**. Regress the 18 previously passing gates and independently re-review G13/G14 against ADR-014 and live ADO source.
+- All F3.1.3 implementation remains **NO-GO**. Only an independent `ACCEPT` may authorize F3.1.3a implementation-prompt authoring.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
-
 ## Production-rollout gate — deferred until a real target exists
 
 - [`final-rollout-readiness-rereview.md`](./final-rollout-readiness-rereview.md) — prepared review-only final production gate. The most recent execution returned `NOT_READY` because no real first-rollout Delivery runtime / production cluster / namespace / GitOps repository was designated and the runbook review/escalation evidence was incomplete. This status **does not block continued Backstage/GMUD platform construction**. Re-run only after a real production target exists and the prerequisite evidence is intentionally closed. Do not manufacture production infrastructure merely to make this gate green.

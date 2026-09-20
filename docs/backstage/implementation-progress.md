@@ -2066,3 +2066,26 @@ Operational LEDGER_REQUIRED cutover: NOT AUTHORIZED
 F3.1.3/F3.1.4: NO-GO
 F3.2: NO-GO
 ```
+
+---
+
+## GMUD F3.1.2b-AR — Independent acceptance review prompt prepared
+
+F3.1.2b is implemented/published at ADO `22495229502dabf2d99588599a156d862c5114fa` (parent `f48dc82`) and remains pending independent architecture/implementation acceptance.
+
+Canonical review prompt:
+`prompts/f3-1-2b-architecture-implementation-acceptance.md`
+
+Current gate:
+```text
+F3.1.2a: CLOSED / ACCEPTED
+F3.1.1c: CLOSED / ACCEPTED
+Product convergence: PASS
+F3.1.2b implementation: PASS / PUBLISHED
+F3.1.2b architecture/implementation acceptance: PENDING
+Committed default: LEGACY_PRE_F3
+Operational LEDGER_REQUIRED cutover: NOT AUTHORIZED
+F3.1.3/F3.1.4/F3.2: NO-GO
+```
+
+The review must independently inspect `f48dc82..2249522`, re-prove the PostgreSQL concurrency contract, transaction atomicity, CAB-safe requirement materialization, stored-mode-wins behavior, product-convergence preservation, and the mandatory rollback gate. It may only ACCEPT or REJECT and must not modify ADO code or activate LEDGER_REQUIRED.

@@ -2398,3 +2398,25 @@ Closed in this revision (F3.1.3b only):
 F3.1.3a contracts were not redesigned. Added proofs R4–R13. Source drift: **NONE**. Dedicated resubmit permission is wireable with existing `createPermission` / registry / CSV; `change.create` was not reused.
 
 **Next authorized activity:** independent F3.1.3 plan re-review. Do **not** author an implementation prompt, implement F3.1.3/F3.1.4/F3.2, fabricate decisions, or perform production cutover inside this gate.
+
+---
+
+## GMUD F3.1.3-RR — Revised-plan independent re-review prepared
+
+The narrow plan revision is complete and `READY_FOR_REREVIEW`. ADR-014 is Accepted and closes the two governance/identity gaps that caused the prior 18/20 REJECT.
+
+Canonical review prompt:
+`prompts/f3-1-3-revised-plan-architecture-rereview.md`
+
+Current gate:
+```text
+F3.1.3 plan revision: READY_FOR_REREVIEW
+ADR-014: ACCEPTED
+F3.1.3 revised-plan architecture re-review: PENDING
+F3.1.3a implementation-prompt authoring: NO-GO pending ACCEPT
+F3.1.3 implementation: NO-GO
+F3.1.4/F3.2: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+The re-review must preserve the 18 previously passing gates, verify G13 resubmission authority as dedicated permission + original requester/current immutable-owner membership, and verify G14 same-change identity with frozen target/owner/System/requester/createdAt plus hidden execution-plan retarget protection.

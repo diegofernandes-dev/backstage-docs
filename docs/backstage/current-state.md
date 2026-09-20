@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-20 (F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522`; non-production `LEDGER_REQUIRED` activation **ACCEPT** on the isolated operator-laptop runtime; F3.1.3 demo target readiness **READY**; final laptop overlay `LEDGER_REQUIRED`, committed repository default `LEGACY_PRE_F3`; F3.1.3 planning/prompt authoring **GO**, F3.1.3 implementation still separately gated **NO-GO**; F3.1.4/F3.2 **NO-GO**; production cutover unauthorized)
+> **Last updated:** 2026-09-20 (F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `2249522`; non-production `LEDGER_REQUIRED` activation **ACCEPT**; operator-laptop demo target **READY**; final local overlay `LEDGER_REQUIRED`, committed default `LEGACY_PRE_F3`; canonical F3.1.3 planning prompt authored and ready for explicit launch; F3.1.3 implementation remains **NO-GO** pending plan + independent review; F3.1.4/F3.2 **NO-GO**; production cutover unauthorized)
 
 ## Stack
 

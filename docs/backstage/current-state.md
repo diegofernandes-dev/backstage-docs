@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-19 (Product convergence **PASS** at ADO `f48dc82` — Catalog Component Deployments UX restored onto `feat/ado-repo-governance`; F3.1.1c **CLOSED / ACCEPTED** at ADO `3b302ab`, parent F3.1.2a `ccee1e1`; F3.1.2a remains CLOSED / ACCEPTED at `ccee1e1`; F3.1.1b CLOSED at `188d8e9`; ADR-013 accepted; F3.1.2 plan **ACCEPTED IMPLEMENTATION CONTRACT**; F3.1.2b implementation-prompt authoring **GO**, F3.1.2b implementation still requires separate explicit authorization; F3.2 **NO-GO**)
+> **Last updated:** 2026-09-20 (Product convergence **PASS** at ADO `f48dc82` — Catalog Component Deployments UX restored onto `feat/ado-repo-governance`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2 plan **ACCEPTED IMPLEMENTATION CONTRACT**; constrained F3.1.2b implementation prompt authored and ready for explicit launch; F3.1.2b implementation not started; committed default must remain `LEGACY_PRE_F3`; operational LEDGER_REQUIRED cutover remains separate; F3.2 **NO-GO**)
 
 ## Stack
 

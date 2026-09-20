@@ -18,8 +18,9 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Current authorized activity
 
 - F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
-- Non-production `LEDGER_REQUIRED` activation is **ACCEPT** on the isolated operator-laptop Backstage runtime; committed repository default remains `LEGACY_PRE_F3`; final laptop overlay is `LEDGER_REQUIRED`; F3.1.3 demo target readiness is **READY**.
-- Next authorized activity is **F3.1.3 planning/prompt authoring**. F3.1.3 implementation remains **NO-GO** until a separate explicit prompt/authorization.
+- Non-production `LEDGER_REQUIRED` activation is **ACCEPT**; the operator-laptop runtime is the accepted F3.1.3 demonstration target (`READY`), with final local overlay `LEDGER_REQUIRED` and committed repository default still `LEGACY_PRE_F3`.
+- [`f3-1-3-planning.md`](./f3-1-3-planning.md) — **current planning-only checkpoint**. It must inspect the actual ADO source and produce an implementation-ready F3.1.3 plan covering decision command authority/idempotency/transaction/audit, rejection lifecycle, post-execution decision timing, and same-changeId resubmission/new-round semantics.
+- F3.1.3 implementation remains **NO-GO** until the planning output is independently reviewed and a separate implementation prompt is explicitly authorized.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
 ## Production-rollout gate — deferred until a real target exists
@@ -28,6 +29,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
+- F3.1.3 planning prompt authoring — `f3-1-3-planning.md` prepared after accepted non-production LEDGER_REQUIRED activation and demo-target readiness `READY`. No ADO implementation or decision fact was created by prompt authoring.
 - [`f3-1-2-ledger-required-nonprod-activation-acceptance.md`](./f3-1-2-ledger-required-nonprod-activation-acceptance.md) — completed with `ACCEPT`. Closed the non-production LEDGER_REQUIRED activation as the accepted live F3.1.3 demonstration baseline at ADO `2249522`. F3.1.3 demo target readiness `READY`. Canonical review: `docs/backstage/f3-1-2-ledger-required-nonprod-activation-acceptance.md`. Next: F3.1.3 planning/prompt authoring; F3.1.3 implementation remains separately gated.
 - Non-production LEDGER_REQUIRED activation execution — operational PASS on the isolated operator-laptop runtime at accepted ADO `2249522`; final laptop overlay `LEDGER_REQUIRED`, committed default `LEGACY_PRE_F3`; independent acceptance completed separately (`ACCEPT`).
 - [`f3-1-2-ledger-required-nonprod-activation.md`](./f3-1-2-ledger-required-nonprod-activation.md) — executed with operational **PASS** on the isolated laptop product runtime at ADO `2249522`. Committed default remains `LEGACY_PRE_F3`. Independent acceptance completed separately (`ACCEPT`). Canonical evidence: `docs/backstage/f3-1-2-ledger-required-nonprod-activation-evidence.md`.

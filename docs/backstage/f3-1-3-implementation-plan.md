@@ -4,7 +4,8 @@
 - **Date:** 2026-09-20
 - **Authority:** ADR-006, ADR-007 (Model C), ADR-008, ADR-009 as partially superseded by ADR-013, ADR-013; F3.1 / F3.1.2 implementation plans; accepted F3.1.2b baseline; accepted non-production `LEDGER_REQUIRED` activation
 - **Planning prompt:** `prompts/f3-1-3-planning.md`
-- **Docs baseline reviewed:** `diegofernandes-dev/backstage-docs@733393fab5a55b358ee676ffc0b37a5646ec7939`
+- **Docs baseline reviewed:** `diegofernandes-dev/backstage-docs@7725217abb7648de237ecb653c31ec458c2e8754`
+- **Prior published draft at that SHA:** independently re-verified against live ADO source and the laptop LEDGER facts; trx-aware ledger **read** contract made explicit from source
 - **ADO branch tip verified:** `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa` (`feat/ado-repo-governance`)
 - **Accepted live LEDGER demo target:** operator-laptop overlay `LEDGER_REQUIRED`; committed default `LEGACY_PRE_F3`
 - **F3.1.3 implementation:** **NO-GO**
@@ -39,14 +40,15 @@ An implementation contract proposal for server-authoritative approval/rejection 
 
 | Surface | SHA / fact | Result |
 |---|---|---|
-| Docs `origin/main` | `733393fab5a55b358ee676ffc0b37a5646ec7939` | Planning prompt present; F3.1.2 closed |
+| Docs `origin/main` at this execution | `7725217abb7648de237ecb653c31ec458c2e8754` | Planning prompt + published draft present; F3.1.2 closed |
 | Local ADO HEAD | `22495229502dabf2d99588599a156d862c5114fa` | Exact accepted F3.1.2b commit |
 | Local `origin/feat/ado-repo-governance` | same SHA | No later accepted drift |
-| Independent `az repos ref list` | `objectId` same SHA | Remote tip matches |
+| Independent `az repos ref list` | `objectId` `22495229502dabf2d99588599a156d862c5114fa` | Remote tip matches (`diegolab` / `platform-devops`) |
 | Working tree (ADO) | untracked `.vscode/` only | Overlay and SQLite gitignored |
 | Committed `app-config.yaml` | `newSubmissionAuthorizationMode: LEGACY_PRE_F3` | Unchanged |
-| Laptop overlay | gitignored `app-config.local.yaml` `LEDGER_REQUIRED` | Accepted demo target |
+| Laptop overlay | gitignored `app-config.local.yaml` `LEDGER_REQUIRED` only | Accepted demo target |
 | Laptop `CHG-2026-000003` | Round 1, primary + CAB, **zero decisions**, five canonical audits | Intact |
+| Catalog `relations.memberOf` | `user:default/diego.fernandes_outlook.com` → `group:default/cloud_azure_devops_platform_devops` | Live CAB membership, not fabricated |
 
 Source drift after accepted F3.1.2: **NONE**.
 
@@ -63,8 +65,8 @@ Source drift after accepted F3.1.2: **NONE**.
 | Status | `ChangeStatus` | Literal `'submitted'` only (backend + frontend) |
 | Index | `KnexChangeIndexRepository` | PK `change_id` — one row per Change. `finalize()` updates `is_finalized` / `external_*` only. **No status-update method.** `authorization_mode` is immutable by trigger; `status` is not |
 | Provider | `DevelopmentProvider` | One `development_change_records` row per `changeId`; `create()` upserts `record_json`. `IChangeManagementProvider` has `create`/`get` only |
-| Ledger repo | `KnexAuthorizationLedgerRepository` | Insert/read only. `createRound(trx?)`, `appendDecision(trx?)`, `appendAuditEvent(trx?)`, `findCurrentRound` = `MAX(round_number)`. Postgres `FOR UPDATE` on `change_index` before inserting a round |
-| Decision storage | `change_authorization_decisions` | Unique `(change_id, round_number, requirement_id)`; unique `(actor_ref, idempotency_key)`; rejection CHECK requires non-empty `reason`; append-only triggers |
+| Ledger repo | `KnexAuthorizationLedgerRepository` | Insert/read only. `createRound(trx?)`, `appendDecision(trx?)`, `appendAuditEvent(trx?)` accept optional `trx`. **Reads do not:** `findRound` / `findCurrentRound` / `listRequirements` / `listAuditEvents` always use `this.knex`. Postgres `FOR UPDATE` on `change_index` exists only inside `insertRound`. `appendDecision` does not lock. Current round = `ORDER BY round_number DESC LIMIT 1` (no `isCurrent`) |
+| Decision storage | `change_authorization_decisions` | Unique `(change_id, round_number, requirement_id)`; unique `(actor_ref, idempotency_key)`; rejection CHECK requires non-empty `reason`; append-only triggers. **No** unique on audit `(change_id, round_number, event_type)` |
 | Domain decision | `ApprovalDecision` | `actorRef`, optional `actingAuthorityRef` (**not** `authorityRef`), `authorizationEvidence`, required `idempotencyKey` + `commandHash` |
 | Evaluators | `evaluateAuthorization` / `evaluateGovernance` | Pure. Not persisted |
 | Eligibility | `EligibilityService` | Derives `PENDING_AUTHORIZATION` / `REJECTED` / `AUTHORIZED` + window. Still has leftover `ensureRound` sandbox fabrication if no round exists |
@@ -306,6 +308,8 @@ Laptop proof does **not** fabricate membership: Catalog already has
 
 That user may record the CAB decision only because they are a current member of the snapshotted authority **and** they hold the CAB-record permission below — not because they are `platform_admin`.
 
+Live membership belongs in a **new** `authorization/decisionMembership.ts`. It must not live under `authorization/selector/` and must not be imported by selector publication/resolver sources: `architecture.test.ts` forbids `memberOf` / `getEntities` / `.relations` in selector sources so authority resolution never expands groups.
+
 ---
 
 ## 8. Q4 — Permission boundary
@@ -358,15 +362,28 @@ Database uniqueness is the authority. No polling, no distributed lock framework.
 
 ### Service algorithm (one caller-owned transaction)
 
-1. `SELECT change_index WHERE change_id=? FOR UPDATE` (PostgreSQL; SQLite uses the same transaction without `FOR UPDATE`).
-2. Load current round = max `round_number`. Fail if missing / not `LEDGER_REQUIRED` / round param ≠ current / requirement missing / round already terminal (except exact replay).
-3. Authorize permission + Q2/Q3 **before** insert.
-4. `SELECT` existing decision by requirement identity **and** by `(actorRef, idempotencyKey)`.
+1. Pre-lock read of the immutable requirement principal snapshot (needed for Q2/Q3). Authorize permission + Q2/Q3. Catalog membership I/O stays **outside** the SQL transaction; do not hold `FOR UPDATE` across Catalog HTTP. If membership/permission fails, never open the write transaction.
+2. `BEGIN` then `SELECT change_index WHERE change_id=? FOR UPDATE` (PostgreSQL; SQLite uses the same transaction without `FOR UPDATE`). `appendDecision` itself does **not** lock; the service owns the parent lock, matching `insertRound`.
+3. Load current round = max `round_number` **via the same `trx`**. Fail if missing / not `LEDGER_REQUIRED` / round param ≠ current / requirement missing / round already terminal (except exact replay). The locked re-load is authoritative for current-round / terminal / existing-decision checks.
+4. `SELECT` existing decision by requirement identity **and** by `(actorRef, idempotencyKey)` **via the same `trx`**.
 5. If either exists → compare `commandHash` + requirement identity + outcome; match → replay (200); else `CONFLICT`.
-6. If neither exists → `appendDecision` + decision audit + derived milestone audit + optional lifecycle projection.
+6. If neither exists → `appendDecision` + decision audit + derived milestone audit + optional lifecycle projection, all on `trx`.
 7. Commit.
 
-Concurrent first-writers that both passed step 4: unique violation (`23505` / SQLite unique). The loser **rolls back**, re-reads the committed winner under a new transaction, and follows the replay/conflict rule. Do not `ON CONFLICT UPDATE`. Do not continue after a failed INSERT inside the aborted Postgres transaction.
+**Source gap F3.1.3a must close without DDL:** `findRound` / `findCurrentRound` / `listRequirements` / `listAuditEvents` currently ignore `trx` and query `this.knex`. On PostgreSQL `READ COMMITTED`, a pooled second connection cannot see the uncommitted decision or milestone audit. Implementation must add optional `trx` to those reads plus `findDecisionByRequirement` / `findDecisionByIdempotency`. Re-evaluation after insert (Q7) and unique-loser re-observe after rollback both depend on this.
+
+Recommended lock ordering so Catalog latency does not hold the row lock:
+
+```text
+authorize permission + Q2/Q3 (Catalog I/O)
+  -> BEGIN
+  -> SELECT change_index FOR UPDATE
+  -> trx-aware load current round / requirement / existing decision
+  -> insert decision + audits + optional status projection
+  -> COMMIT
+```
+
+Concurrent first-writers that both passed the pre-insert SELECT: unique violation (`23505` / SQLite unique). The loser **rolls back**, re-reads the committed winner under a new transaction, and follows the replay/conflict rule. Do not `ON CONFLICT UPDATE`. Do not continue after a failed INSERT inside the aborted Postgres transaction.
 
 ### Matrix
 
@@ -391,12 +408,15 @@ Callers mint a fresh `Idempotency-Key` per requirement command.
 One caller-owned Knex transaction owns:
 
 1. parent `change_index` lock;
-2. `ApprovalDecision` insert;
-3. `change.authorization.decision_recorded` audit;
-4. at most one milestone audit (`authorization_reached` **or** `round_rejected`);
-5. lifecycle projection `change_index.status='rejected'` when Q8 applies.
+2. trx-aware current-round / requirement / existing-decision / existing-milestone-audit reads;
+3. `ApprovalDecision` insert;
+4. `change.authorization.decision_recorded` audit;
+5. at most one milestone audit (`authorization_reached` **or** `round_rejected`);
+6. lifecycle projection `change_index.status='rejected'` when Q8 applies.
 
-`appendDecision` / `appendAuditEvent` already accept `trx` and must be passed the outer transaction. They must not open a nested transaction.
+`appendDecision` / `appendAuditEvent` already accept `trx` and must be passed the outer transaction. They must not open a nested transaction. Round/requirement/decision/audit **reads used inside this unit must also accept `trx`**; today's implementations do not.
+
+There is **no** unique constraint on `(change_id, round_number, event_type)`. Exactly-once `authorization_reached` / `round_rejected` is therefore `FOR UPDATE` + in-transaction `listAuditEvents(trx)` (or an equivalent trx-aware exists check), not a second uniqueness index. Do not add DDL “for future proofing.”
 
 Partial commit is forbidden. Unique-violation losers roll back the whole unit and re-observe.
 
@@ -416,7 +436,7 @@ Event types follow the F3.1.2b namespace (`change.authorization.*`), not the pre
 | `change.authorization.authorization_reached` | First time mandatory pre-execution requirements of **this round** are all approved | `systemRef=system:change-management` |
 | `change.authorization.round_rejected` | First time any mandatory pre-execution requirement of **this round** is rejected | `systemRef=system:change-management` |
 
-After the decision insert, still holding `FOR UPDATE`, re-read requirements (which already join decisions) and `evaluateAuthorization`.
+After the decision insert, still holding `FOR UPDATE`, re-read requirements **through the same `trx`** (today `listRequirements` joins decisions on `this.knex` and would miss the uncommitted row on PostgreSQL) and `evaluateAuthorization`.
 
 - `AUTHORIZED` and no existing `authorization_reached` for this round → append exactly one.
 - `REJECTED` and no existing `round_rejected` for this round → append exactly one + Q8 projection.
@@ -429,7 +449,9 @@ Do not persist mutable evaluation state. Eligibility continues to derive on read
 
 ### Eligibility safety (in F3.1.3a)
 
-`EligibilityService.ensureRound` must **not** fabricate a sandbox Round 1 for a `LEDGER_REQUIRED` Change that lacks a round. Missing round → `NO_LEDGER_ROUND`. Decision commands never call `ensureRound`; they only load the existing current round.
+`EligibilityService.ensureRound` currently fabricates a sandbox Round 1 from `config/authorization/sandbox-policy-v1.json` when a `LEDGER_REQUIRED` Change has no round. That path is leftover F3.1.0 demo behavior (`CHG-2026-000001`). F3.1.3a must **not** fabricate a sandbox Round 1 for `LEDGER_REQUIRED`. Missing round → `NO_LEDGER_ROUND`. Decision commands never call `ensureRound`; they only load the existing current round.
+
+Once a current round exists, the window check uses `round.changeSnapshot.requestedWindow`, not the index birth snapshot. For Round 1 at `2249522` those values are identical; after F3.1.3b the round snapshot is the authorization-adjacent window authority and the index is only a rebuildable current projection.
 
 ---
 
@@ -534,7 +556,7 @@ A new round may be created only after the prior round is terminal. `PENDING` / `
 
 ### Idempotency
 
-New operation `change.resubmit`. New key. Payload hash covers `changeId` + corrected body. Original `change.create` reservation is never reused or mutated (`authorization_mode` remains immutable).
+New operation `change.resubmit` (fits `change_idempotency.operation` varchar(64); no DDL). New key. `requested_by` is the **authenticated actor** (same actor-scoping as `change.create`), not a rewrite of `Change.requestedBy`. Payload hash covers `changeId` + corrected body. Original `change.create` reservation is never reused or mutated (`authorization_mode` remains immutable). Reserve/complete inside the locked transaction so two actors cannot leave dangling pending reservations in front of a lost Round race.
 
 ### Snapshot / discovery composition
 
@@ -543,7 +565,7 @@ New operation `change.resubmit`. New key. Payload hash covers `changeId` + corre
 - Index discovery columns (title, summary, window, plan, owner/system, **status**) become the rebuildable **current** projection for `LEDGER_REQUIRED` Changes, updated in the resubmission transaction. This is a documented narrowing of ADR-007's F2 "birth snapshot is the list row" for ledger-governed **resubmission only**: list remains discovery, not live provider workflow, but discovery follows the current business snapshot of the same `changeId`.
 - Round 1 snapshot remains the birth evidence.
 - `change_index_activity_participants` is rebuilt from the new plan (derived, non-authoritative).
-- `DevelopmentProvider`: add an explicit `replaceCurrent(change, trx)` used only by resubmission. Do not overload `create()` semantics. External/non-dev providers fail closed `PROVIDER_UNAVAILABLE` until a later provider slice.
+- `DevelopmentProvider`: add an explicit `replaceCurrent(change, trx)` used only by resubmission. **Do not call `create()` / `createWithTransaction()`.** Those methods already `UPDATE record_json` when the `change_id` exists — that is create-retry of the **same** logical snapshot, not a corrected Round N snapshot. Overloading them would look like a successful create retry of a different body. External/non-dev providers fail closed `PROVIDER_UNAVAILABLE` until a later provider slice.
 - `GET` detail after resubmission returns the replaced operational record (dev) with `status='submitted'`.
 
 ADR-007 owner/system "GET does not re-resolve" remains true for historical rounds; the new round snapshots the newly resolved refs.
@@ -695,13 +717,13 @@ No migration "for future proofing". No CHECK expansion on `change_index.status` 
 | Area | Paths |
 |---|---|
 | Domain/types | `packages/backend/src/modules/changeManagement/types.ts`; `authorization/types.ts` (command DTO only if needed) |
-| Ledger repository | `AuthorizationLedgerRepository.ts`; `KnexAuthorizationLedgerRepository.ts` — add read helpers `findDecisionByRequirement` / `findDecisionByIdempotency`; no insert-API change |
+| Ledger repository | `AuthorizationLedgerRepository.ts`; `KnexAuthorizationLedgerRepository.ts` — add optional `trx` to `findRound` / `findCurrentRound` / `listRequirements` / `listAuditEvents`; add `findDecisionByRequirement` / `findDecisionByIdempotency` (`trx?`). No insert-API change; no DDL |
 | Service | `ChangeManagementService.ts` (or a dedicated `DecisionCommandService` constructed by the plugin and used by the service). Architecture guard must allow `appendDecision` **only** on the decision path |
 | Index projection | `ChangeIndexRepository.ts`; `KnexChangeIndexRepository.ts`; `changeIndexMapper.ts` — `projectLifecycleStatus` |
 | Membership | new `authorization/decisionMembership.ts` (Catalog live memberOf); do **not** reuse TP-prefix `entraOwnership` as the CAB proof |
 | Router/plugin | `packages/backend/src/plugins/changeManagementPlugin.ts` |
 | Permissions/RBAC | `permissions.ts`; `packages/backend/config/rbac/rbac-policy.csv` |
-| Eligibility safety | `authorization/EligibilityService.ts` — no sandbox round fabrication for `LEDGER_REQUIRED` |
+| Eligibility safety | `authorization/EligibilityService.ts` — no sandbox round fabrication for `LEDGER_REQUIRED`; window from current round snapshot |
 | Frontend | `plugins/change-management/src/model/types.ts`; optional API client method |
 | Tests | new decision command tests; extend `KnexAuthorizationLedgerRepository.test.ts`; **PostgreSQL** D1–D6 in `authorization/postgres.test.ts` or sibling; RBAC/membership fail-closed tests; architecture guard update |
 | Migrations | **none** |
@@ -761,6 +783,8 @@ Implementation of a slice is acceptable only when all of the following hold for 
 | Approve/reject UI / CAB inbox in F3.1.3 | Rejected — F3.1.4 / Workbench |
 | Weaken CAB check so the laptop user can demo | Rejected — Catalog already proves membership |
 | `ON CONFLICT UPDATE` for replay | Rejected — append-only |
+| Query ledger reads on `this.knex` inside the decision transaction | Rejected — Postgres pool cannot see uncommitted decision/audit; D4/Q7 would be racy |
+| Reuse `DevelopmentProvider.create()` to replace a corrected snapshot | Rejected — existing upsert is create-retry of the same logical record |
 
 ---
 
@@ -772,8 +796,8 @@ Implementation of a slice is acceptable only when all of the following hold for 
 | 2 | Individual authority | Exact `actorRef == resolvedPrincipalRef`; no override |
 | 3 | CAB authority | Live Catalog memberOf + dedicated permission |
 | 4 | Permissions | `...authorization.decide` and `...authorization.cab.record`; new `change_cab_recorder` role |
-| 5 | Idempotency | Existing uniques; select-then-insert; unique-loser re-observe |
-| 6 | Transactions | Caller-owned trx + `change_index` FOR UPDATE |
+| 5 | Idempotency | Existing uniques; select-then-insert on `trx`; unique-loser re-observe; Catalog I/O before lock |
+| 6 | Transactions | Caller-owned trx + `change_index` FOR UPDATE; **trx-aware ledger reads** |
 | 7 | Audit | `decision_recorded` / `authorization_reached` / `round_rejected`; no stored evaluation |
 | 8 | Rejection lifecycle | Index status projection + GET overlay in 3a |
 | 9 | AUTHORIZED lifecycle | Unchanged `submitted` |

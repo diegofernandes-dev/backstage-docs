@@ -2253,9 +2253,9 @@ The planning checkpoint must resolve decision-command transport and permissions,
 
 ## GMUD F3.1.3 — Decision command and new-round planning (READY_FOR_REVIEW)
 
-Documentation review baseline at planning start: `backstage-docs@733393fab5a55b358ee676ffc0b37a5646ec7939`.
+Documentation review baseline at this execution: `backstage-docs@7725217abb7648de237ecb653c31ec458c2e8754` (published planning contract + prior draft). Independent source re-verification confirmed the draft against live ADO `2249522` and the laptop LEDGER facts, and made the trx-aware ledger-read contract explicit.
 
-ADO source independently verified at `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa` (local HEAD, `origin/feat/ado-repo-governance`, and `az repos ref list`). Source drift after accepted F3.1.2: NONE. Laptop overlay remains `LEDGER_REQUIRED`; committed default remains `LEGACY_PRE_F3`. `CHG-2026-000003` re-read read-only: Round 1 primary + CAB, zero decisions, five canonical audits.
+ADO source independently verified at `platform-devops-developer-portal@22495229502dabf2d99588599a156d862c5114fa` (local HEAD, `origin/feat/ado-repo-governance`, and `az repos ref list` `objectId`). Source drift after accepted F3.1.2: NONE. Laptop overlay remains `LEDGER_REQUIRED`; committed default remains `LEGACY_PRE_F3`. `CHG-2026-000003` re-read read-only: Round 1 primary + CAB, zero decisions, five canonical audits. Catalog `relations.memberOf` proves `user:default/diego.fernandes_outlook.com` is a member of `group:default/cloud_azure_devops_platform_devops`. This checkpoint created zero decisions.
 
 Canonical plan:
 [`f3-1-3-implementation-plan.md`](./f3-1-3-implementation-plan.md)
@@ -2277,6 +2277,6 @@ Resubmission/new-round contract: RESOLVED
 ADO implementation modified: NO
 ```
 
-F3.1.3a owns the server-authoritative decision command, live Catalog CAB membership, dedicated decide vs cab.record permissions, idempotency/concurrency, caller-owned transaction/audit, derived evaluation transitions, and rejection lifecycle projection without inventing `authorized`. F3.1.3b owns same-`changeId` resubmission / Round N after terminal rejection. No DDL. No ApprovalDecision fact was created by this checkpoint.
+F3.1.3a owns the server-authoritative decision command, live Catalog CAB membership, dedicated decide vs cab.record permissions, idempotency/concurrency, caller-owned transaction/audit with **trx-aware ledger reads**, derived evaluation transitions, and rejection lifecycle projection without inventing `authorized`. F3.1.3b owns same-`changeId` resubmission / Round N after terminal rejection. No DDL. No ApprovalDecision fact was created by this checkpoint.
 
 **Next authorized activity:** independent architecture review of the F3.1.3 plan. Do **not** author an implementation prompt, implement F3.1.3/F3.1.4/F3.2, fabricate decisions, or perform production cutover inside this gate.

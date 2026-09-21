@@ -17,9 +17,10 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- F3.1.3a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `6bad066d945d49feaf642313ec37467e2658dc3f`.
+- F3.1.3b implementation is **PASS / PUBLISHED** at ADO `5e70d8818f55072d8568b5eb15bae754abb943d1` (direct child of accepted F3.1.3a `6bad066d945d49feaf642313ec37467e2658dc3f`). Independent architecture/implementation acceptance is the next gate; F3.1.3b is **not CLOSED**.
+- F3.1.3a remains **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `6bad066d945d49feaf642313ec37467e2658dc3f`.
 - F3.1.2 remains **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at parent `22495229502dabf2d99588599a156d862c5114fa`.
-- [`f3-1-3b-resubmission-new-round-implementation.md`](./f3-1-3b-resubmission-new-round-implementation.md) — **next implementation checkpoint**, authored and ready but must not execute without explicit user launch. It implements only rejected-Change same-`changeId` correction/resubmission, dedicated `change.resubmit` authority, immutable Change identity, Round N+1, current non-identity projection, participant rebuild, and `DevelopmentProvider.replaceCurrent`.
+- Canonical evidence: [`docs/backstage/f3-1-3b-implementation-evidence.md`](../docs/backstage/f3-1-3b-implementation-evidence.md).
 - `Migration required: NO`. Committed repository default remains `LEGACY_PRE_F3`.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
@@ -29,6 +30,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
+- [`f3-1-3b-resubmission-new-round-implementation.md`](./f3-1-3b-resubmission-new-round-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@5e70d8818f55072d8568b5eb15bae754abb943d1`. Canonical evidence: [`docs/backstage/f3-1-3b-implementation-evidence.md`](../docs/backstage/f3-1-3b-implementation-evidence.md). Independent acceptance remains the next gate; F3.1.3b is not CLOSED.
 - [`f3-1-3a-architecture-implementation-acceptance.md`](./f3-1-3a-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.3a as the accepted implemented baseline at ADO `6bad066`. Canonical review: `docs/backstage/f3-1-3a-architecture-implementation-acceptance.md`. F3.1.3b implementation-prompt authoring GO; F3.1.3b implementation remains separately gated. No ADO code modified; no decision facts created or repaired; no F3.1.3b prompt authored.
 - F3.1.3a acceptance-review prompt authoring — `f3-1-3a-architecture-implementation-acceptance.md` prepared after implementation PASS + PostgreSQL 16 re-verification. Independent acceptance later completed separately (`ACCEPT`).
 - F3.1.3a decision-command implementation — implementation PASS, published to ADO `6bad066`; independent acceptance completed separately (`ACCEPT`). Canonical evidence: [`docs/backstage/f3-1-3a-implementation-evidence.md`](../docs/backstage/f3-1-3a-implementation-evidence.md). Committed default remains `LEGACY_PRE_F3`.

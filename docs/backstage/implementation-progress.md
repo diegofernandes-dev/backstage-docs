@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.3a **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `6bad066` (full SHA `6bad066d945d49feaf642313ec37467e2658dc3f`), parent F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** `2249522`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); ADR-014 Accepted for resubmission authority/identity; F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b + F3.1.3a accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT preserved; F3.1.3 revised-plan re-review ACCEPT; F3.1.3 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.3b implementation-prompt authoring GO; F3.1.3b implementation / F3.2 NO-GO
+> **Current GMUD implementation baseline:** F3.1.3b implementation **PASS / PUBLISHED** at ADO `5e70d88` (full SHA `5e70d8818f55072d8568b5eb15bae754abb943d1`), pending independent acceptance. Parent F3.1.3a **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at `6bad066` (full SHA `6bad066d945d49feaf642313ec37467e2658dc3f`). F3.1.2 remains **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at `2249522`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); ADR-014 Accepted for resubmission authority/identity; F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b + F3.1.3a accepted; F3.1.3b implementation PASS not independently accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT preserved; F3.1.3 revised-plan re-review ACCEPT; F3.1.3 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.4 / F3.2 NO-GO
 
 ## How to use this log
 
@@ -2572,3 +2572,27 @@ Production cutover: NOT AUTHORIZED
 ```
 
 The implementation contract is constrained to same-changeId correction after a REJECTED current Round: dedicated `change-management.change.resubmit` permission plus original-requester/current-immutable-owner domain proof; frozen `targetRef`/`ownerRef`/`systemRef`/`requestedBy`/`createdAt`; hidden cross-System execution-plan retarget guard; `change.resubmit` idempotency; Round N+1 with current policy/selectors/new requirements; atomic current non-identity index projection + participant rebuild + `DevelopmentProvider.replaceCurrent`; and PostgreSQL R1 plus R2-R13 authority/identity/history proofs. F3.1.3a semantics are regression-only and must not be redesigned.
+
+---
+
+## GMUD F3.1.3b — Rejected-change resubmission implementation PASS
+
+F3.1.3b was explicitly launched from `prompts/f3-1-3b-resubmission-new-round-implementation.md` against accepted F3.1.3a `6bad066`. Source drift: **NONE**.
+
+Canonical evidence:
+[`f3-1-3b-implementation-evidence.md`](./f3-1-3b-implementation-evidence.md)
+
+Published ADO `5e70d8818f55072d8568b5eb15bae754abb943d1` is a direct child of `6bad066d945d49feaf642313ec37467e2658dc3f` (`6bad066..5e70d88`, 26 files, `+2447 / −27`). Plain fast-forward. No migrations. Committed default remains `LEGACY_PRE_F3`.
+
+```text
+F3.1.3b implementation: PASS / PUBLISHED
+F3.1.3b CLOSED: NO
+Accepted parent: 6bad066d945d49feaf642313ec37467e2658dc3f
+Implementation SHA: 5e70d8818f55072d8568b5eb15bae754abb943d1
+Live Round-2 proof: CHG-2026-000005
+F3.1.4/F3.2: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+Next authorized activity: independent **F3.1.3b architecture/implementation acceptance review**. Do **not** implement F3.1.4, F3.2, or production cutover from this checkpoint.
+

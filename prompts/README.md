@@ -17,12 +17,10 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
-- F3.1.3a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `6bad066d945d49feaf642313ec37467e2658dc3f`. Canonical review: [`docs/backstage/f3-1-3a-architecture-implementation-acceptance.md`](../docs/backstage/f3-1-3a-architecture-implementation-acceptance.md).
-- **Next authorized activity:** author a constrained F3.1.3b implementation prompt. F3.1.3b implementation remains separately gated.
-- Non-production `LEDGER_REQUIRED` activation remains **ACCEPT**; the operator-laptop demo target remains **READY**. Committed repository default remains `LEGACY_PRE_F3`.
-- Historical F3.1.3 plan review **REJECT 18/20** is preserved. Revised-plan re-review is **ACCEPT**. The F3.1.3 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**. ADR-014 governs only F3.1.3b authority + identity. `Migration required: NO`.
-- F3.1.3b implementation-prompt authoring is **GO**. F3.1.3b implementation is **NO-GO** until a later explicit launch.
+- F3.1.3a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `6bad066d945d49feaf642313ec37467e2658dc3f`.
+- F3.1.2 remains **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at parent `22495229502dabf2d99588599a156d862c5114fa`.
+- [`f3-1-3b-resubmission-new-round-implementation.md`](./f3-1-3b-resubmission-new-round-implementation.md) — **next implementation checkpoint**, authored and ready but must not execute without explicit user launch. It implements only rejected-Change same-`changeId` correction/resubmission, dedicated `change.resubmit` authority, immutable Change identity, Round N+1, current non-identity projection, participant rebuild, and `DevelopmentProvider.replaceCurrent`.
+- `Migration required: NO`. Committed repository default remains `LEGACY_PRE_F3`.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
 ## Production-rollout gate — deferred until a real target exists

@@ -2502,3 +2502,27 @@ A later explicit re-launch of the same prompt independently re-verified publishe
 
 Next authorized activity: independent **F3.1.3a architecture/implementation acceptance review**. Do **not** author or implement F3.1.3b, F3.1.4, or F3.2 from this checkpoint. Production cutover remains **NOT AUTHORIZED**.
 
+
+---
+
+## GMUD F3.1.3a-AR — Independent architecture/implementation acceptance prepared
+
+F3.1.3a implementation is published at ADO `6bad066d945d49feaf642313ec37467e2658dc3f` (direct child of accepted `2249522`) and remains open pending independent acceptance.
+
+Canonical review prompt:
+`prompts/f3-1-3a-architecture-implementation-acceptance.md`
+
+Current gate:
+```text
+F3.1.3a implementation: PASS / PUBLISHED
+F3.1.3a independent acceptance: PENDING
+F3.1.3a CLOSED: NO
+F3.1.3b implementation-prompt authoring: NO-GO
+F3.1.3b implementation: NO-GO
+F3.1.4/F3.2: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+The review must inspect `2249522..6bad066` directly and independently re-check the accepted decision route, individual/CAB authority, `decide` vs `cab.record` RBAC separation, trx-aware ledger reads, caller-owned transaction, immutable idempotent decision semantics, exactly-once milestone audits, rejected lifecycle projection, post-execution fail-closed behavior, eligibility sandbox-fabrication removal, PostgreSQL 16 D1-D6, live happy/rejection facts, and preservation of GMUD/Catalog/Deployments.
+
+The review also explicitly checks whether the eligibility cleanup unintentionally changed `LEGACY_PRE_F3` semantics beyond the accepted contract.

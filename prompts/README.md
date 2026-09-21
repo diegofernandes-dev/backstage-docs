@@ -18,9 +18,11 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Current authorized activity
 
 - F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
-- Non-production `LEDGER_REQUIRED` activation is **ACCEPT** and the operator-laptop F3.1.3 demo target is **READY**.
+- F3.1.3a implementation is **PASS** at ADO `6bad066d945d49feaf642313ec37467e2658dc3f`. It is **not CLOSED**. Canonical evidence: [`docs/backstage/f3-1-3a-implementation-evidence.md`](../docs/backstage/f3-1-3a-implementation-evidence.md).
+- **Next gate:** independent F3.1.3a architecture/implementation acceptance review.
+- Non-production `LEDGER_REQUIRED` activation remains **ACCEPT** and the operator-laptop F3.1.3 demo target remains **READY**. Committed default remains `LEGACY_PRE_F3`.
 - Historical F3.1.3 plan review **REJECT 18/20** is preserved. Revised-plan re-review is **ACCEPT**. The F3.1.3 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**. ADR-014 governs only F3.1.3b authority + identity. `Migration required: NO`.
-- [`f3-1-3a-decision-command-implementation.md`](./f3-1-3a-decision-command-implementation.md) — **next implementation checkpoint**, authored and ready but must not execute without explicit user launch. It implements only server-authoritative decision commands, decision-time individual/CAB authority, append-only decision/audit, rejection lifecycle projection, eligibility safety, and PostgreSQL D1-D6.
+- [`f3-1-3a-decision-command-implementation.md`](./f3-1-3a-decision-command-implementation.md) — executed with implementation `PASS` after explicit launch. Do not re-execute as a new implementation unless a later review requires it.
 - F3.1.3b implementation-prompt authoring remains **NO-GO** until F3.1.3a is independently accepted. F3.1.3b implementation is **NO-GO**.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
@@ -30,6 +32,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
+- F3.1.3a decision-command implementation — implementation PASS, published to ADO `6bad066`; independent acceptance is the next gate and has not run. Canonical evidence: [`docs/backstage/f3-1-3a-implementation-evidence.md`](../docs/backstage/f3-1-3a-implementation-evidence.md). Committed default remains `LEGACY_PRE_F3`.
 - F3.1.3 revised-plan architecture re-review — ACCEPT. Prior G13/G14 now PASS; 18 previously passing gates did not regress. Plan is ACCEPTED IMPLEMENTATION CONTRACT. Canonical review: [`docs/backstage/f3-1-3-revised-plan-architecture-rereview.md`](../docs/backstage/f3-1-3-revised-plan-architecture-rereview.md). ADO baseline verified `2249522`; source drift NONE. F3.1.3a implementation-prompt authoring GO; F3.1.3a implementation still separately gated. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
 - [`f3-1-3-revised-plan-architecture-rereview.md`](./f3-1-3-revised-plan-architecture-rereview.md) — completed with `ACCEPT`.
 - F3.1.3 narrow plan revision — READY_FOR_REREVIEW then independently ACCEPTed. Created ADR-014; revised only F3.1.3b resubmission authority and same-changeId identity. F3.1.3a unchanged. `Migration required: NO`.

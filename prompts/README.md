@@ -18,10 +18,11 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Current authorized activity
 
 - F3.1.2 is **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at ADO `22495229502dabf2d99588599a156d862c5114fa`.
-- F3.1.3a implementation is **PASS** at ADO `6bad066d945d49feaf642313ec37467e2658dc3f`, direct child of `2249522`, and has been independently re-verified including PostgreSQL 16 D1-D6 and live replay. It is **not CLOSED**.
-- [`f3-1-3a-architecture-implementation-acceptance.md`](./f3-1-3a-architecture-implementation-acceptance.md) — **current review-only checkpoint**. Independently inspect the exact ADO diff, re-prove authority/idempotency/transaction/milestones/rejection/eligibility and return ACCEPT or REJECT. Do not repair code.
+- F3.1.3a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `6bad066d945d49feaf642313ec37467e2658dc3f`. Canonical review: [`docs/backstage/f3-1-3a-architecture-implementation-acceptance.md`](../docs/backstage/f3-1-3a-architecture-implementation-acceptance.md).
+- **Next authorized activity:** author a constrained F3.1.3b implementation prompt. F3.1.3b implementation remains separately gated.
 - Non-production `LEDGER_REQUIRED` activation remains **ACCEPT**; the operator-laptop demo target remains **READY**. Committed repository default remains `LEGACY_PRE_F3`.
-- F3.1.3b implementation-prompt authoring remains **NO-GO** until F3.1.3a independent acceptance.
+- Historical F3.1.3 plan review **REJECT 18/20** is preserved. Revised-plan re-review is **ACCEPT**. The F3.1.3 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**. ADR-014 governs only F3.1.3b authority + identity. `Migration required: NO`.
+- F3.1.3b implementation-prompt authoring is **GO**. F3.1.3b implementation is **NO-GO** until a later explicit launch.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
 ## Production-rollout gate — deferred until a real target exists
@@ -30,8 +31,9 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
-- F3.1.3a acceptance-review prompt authoring — `f3-1-3a-architecture-implementation-acceptance.md` prepared after implementation PASS + PostgreSQL 16 re-verification. No ADO source or decision facts modified by prompt authoring.
-- F3.1.3a decision-command implementation — implementation PASS, published to ADO `6bad066`; independent acceptance is the next gate and has not run. Canonical evidence: [`docs/backstage/f3-1-3a-implementation-evidence.md`](../docs/backstage/f3-1-3a-implementation-evidence.md). Committed default remains `LEGACY_PRE_F3`.
+- [`f3-1-3a-architecture-implementation-acceptance.md`](./f3-1-3a-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.3a as the accepted implemented baseline at ADO `6bad066`. Canonical review: `docs/backstage/f3-1-3a-architecture-implementation-acceptance.md`. F3.1.3b implementation-prompt authoring GO; F3.1.3b implementation remains separately gated. No ADO code modified; no decision facts created or repaired; no F3.1.3b prompt authored.
+- F3.1.3a acceptance-review prompt authoring — `f3-1-3a-architecture-implementation-acceptance.md` prepared after implementation PASS + PostgreSQL 16 re-verification. Independent acceptance later completed separately (`ACCEPT`).
+- F3.1.3a decision-command implementation — implementation PASS, published to ADO `6bad066`; independent acceptance completed separately (`ACCEPT`). Canonical evidence: [`docs/backstage/f3-1-3a-implementation-evidence.md`](../docs/backstage/f3-1-3a-implementation-evidence.md). Committed default remains `LEGACY_PRE_F3`.
 - F3.1.3 revised-plan architecture re-review — ACCEPT. Prior G13/G14 now PASS; 18 previously passing gates did not regress. Plan is ACCEPTED IMPLEMENTATION CONTRACT. Canonical review: [`docs/backstage/f3-1-3-revised-plan-architecture-rereview.md`](../docs/backstage/f3-1-3-revised-plan-architecture-rereview.md). ADO baseline verified `2249522`; source drift NONE. F3.1.3a implementation-prompt authoring GO; F3.1.3a implementation still separately gated. No ADO code modified; no ApprovalDecision fact created; no implementation prompt authored.
 - [`f3-1-3-revised-plan-architecture-rereview.md`](./f3-1-3-revised-plan-architecture-rereview.md) — completed with `ACCEPT`.
 - F3.1.3 narrow plan revision — READY_FOR_REREVIEW then independently ACCEPTed. Created ADR-014; revised only F3.1.3b resubmission authority and same-changeId identity. F3.1.3a unchanged. `Migration required: NO`.
@@ -81,6 +83,32 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 ## Launcher pattern
 
 Use a short launcher instead of pasting the long prompt into an agent session.
+
+### Historical launcher — F3.1.3a architecture/implementation acceptance (completed — ACCEPT)
+
+```text
+Fetch the latest main from diegofernandes-dev/backstage-docs.
+
+Read prompts/f3-1-3a-architecture-implementation-acceptance.md and execute it as a strict independent review-only checkpoint.
+
+Independently inspect the exact ADO candidate 6bad066d945d49feaf642313ec37467e2658dc3f and verify its parent is 22495229502dabf2d99588599a156d862c5114fa.
+
+Review the complete diff directly.
+
+Verify the decision HTTP contract, individual authority, live CAB membership, decide vs cab.record RBAC separation, caller-owned transaction, trx-aware ledger reads, immutable decision idempotency, concurrent loser behavior, exactly-once decision/authorization/rejection audits, rejected lifecycle projection, post-execution fail-closed behavior, eligibility safety, and PostgreSQL 16 D1-D6.
+
+Explicitly compare LEGACY_PRE_F3 eligibility behavior before and after 6bad066 and reject any unreviewed semantic regression caused by the sandbox-round cleanup.
+
+Independently verify the durable live facts for the happy-path and rejection-path Changes where still available, without creating or repairing decision facts.
+
+Verify GMUD, Catalog, Deployments and Delivery regressions remain clean.
+
+Return exactly ACCEPT or REJECT.
+
+Do not modify ADO code, decision facts, runtime configuration, or production.
+
+Update canonical acceptance/state/progress/docs, commit documentation only, and STOP.
+```
 
 ### Historical launcher — F3.1.3 revised-plan architecture re-review (completed — ACCEPT)
 

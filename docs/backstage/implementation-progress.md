@@ -4,8 +4,8 @@
 > **Implementation source of truth:** Azure DevOps `platform-devops-developer-portal`  
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
-> **Current GMUD implementation baseline:** F3.1.3a implementation **PASS** at ADO `6bad066` (full SHA `6bad066d945d49feaf642313ec37467e2658dc3f`), parent F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** `2249522`. F3.1.3a is **not independently accepted / not CLOSED**. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); ADR-014 Accepted for resubmission authority/identity; F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT preserved; F3.1.3 revised-plan re-review ACCEPT; F3.1.3 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.3a implementation PASS pending independent acceptance; F3.1.3b/F3.2 NO-GO
+> **Current GMUD implementation baseline:** F3.1.3a **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `6bad066` (full SHA `6bad066d945d49feaf642313ec37467e2658dc3f`), parent F3.1.2 **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** `2249522`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); ADR-014 Accepted for resubmission authority/identity; F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b + F3.1.3a accepted; product convergence PASS; F3.1.2 plan ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT preserved; F3.1.3 revised-plan re-review ACCEPT; F3.1.3 plan ACCEPTED IMPLEMENTATION CONTRACT; F3.1.3b implementation-prompt authoring GO; F3.1.3b implementation / F3.2 NO-GO
 
 ## How to use this log
 
@@ -2526,3 +2526,27 @@ Production cutover: NOT AUTHORIZED
 The review must inspect `2249522..6bad066` directly and independently re-check the accepted decision route, individual/CAB authority, `decide` vs `cab.record` RBAC separation, trx-aware ledger reads, caller-owned transaction, immutable idempotent decision semantics, exactly-once milestone audits, rejected lifecycle projection, post-execution fail-closed behavior, eligibility sandbox-fabrication removal, PostgreSQL 16 D1-D6, live happy/rejection facts, and preservation of GMUD/Catalog/Deployments.
 
 The review also explicitly checks whether the eligibility cleanup unintentionally changed `LEGACY_PRE_F3` semantics beyond the accepted contract.
+
+---
+
+## GMUD F3.1.3a — Architecture/implementation acceptance ACCEPT
+
+Independent review of published ADO `6bad066d945d49feaf642313ec37467e2658dc3f` (direct child of accepted `2249522`) returned **ACCEPT**. Parent verified **YES**. Independent `az repos ref list` match. Complete diff `2249522..6bad066` inspected (35 files, `+2880 / −163`). Source drift beyond the candidate: **NONE**.
+
+Canonical review:
+[`f3-1-3a-architecture-implementation-acceptance.md`](./f3-1-3a-architecture-implementation-acceptance.md)
+
+```text
+F3.1.3a architecture/implementation acceptance: ACCEPT
+F3.1.3a: CLOSED / ACCEPTED IMPLEMENTED BASELINE
+Accepted ADO SHA: 6bad066d945d49feaf642313ec37467e2658dc3f
+F3.1.3b implementation-prompt authoring: GO
+F3.1.3b implementation: still requires separate explicit authorization
+F3.1.4 implementation: NO-GO
+F3.2 implementation: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+G1–G19 PASS, including LEGACY_PRE_F3 eligibility regression (parent and candidate both `DENY` / `NO_LEDGER_ROUND` for non-ledger Changes; sandbox `ensureRound` removal is LEDGER-only and authorized). Independent PostgreSQL **16.14** D1–D6 PASS. Live `CHG-2026-000003` / `CHG-2026-000005` durable facts re-read only; zero new or repaired decisions. GMUD/Catalog/Deployments/Delivery remain clean. Committed default remains `LEGACY_PRE_F3`.
+
+**Next authorized activity:** author a constrained F3.1.3b implementation prompt from the accepted F3.1.3 contract + ADR-014. Do **not** implement F3.1.3b from inside prompt authoring. Do **not** implement F3.1.4/F3.2 or perform production cutover.

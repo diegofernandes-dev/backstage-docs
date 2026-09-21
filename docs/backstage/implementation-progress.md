@@ -2550,3 +2550,25 @@ Production cutover: NOT AUTHORIZED
 G1–G19 PASS, including LEGACY_PRE_F3 eligibility regression (parent and candidate both `DENY` / `NO_LEDGER_ROUND` for non-ledger Changes; sandbox `ensureRound` removal is LEDGER-only and authorized). Independent PostgreSQL **16.14** D1–D6 PASS. Live `CHG-2026-000003` / `CHG-2026-000005` durable facts re-read only; zero new or repaired decisions. GMUD/Catalog/Deployments/Delivery remain clean. Committed default remains `LEGACY_PRE_F3`.
 
 **Next authorized activity:** author a constrained F3.1.3b implementation prompt from the accepted F3.1.3 contract + ADR-014. Do **not** implement F3.1.3b from inside prompt authoring. Do **not** implement F3.1.4/F3.2 or perform production cutover.
+
+---
+
+## GMUD F3.1.3b-NEXT — Rejected-change resubmission implementation prompt authored
+
+F3.1.3a is now **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `6bad066d945d49feaf642313ec37467e2658dc3f`. The next bounded slice is F3.1.3b.
+
+Canonical implementation prompt:
+`prompts/f3-1-3b-resubmission-new-round-implementation.md`
+
+Gate:
+```text
+F3.1.3a: CLOSED / ACCEPTED
+F3.1.3b implementation prompt: READY_FOR_EXPLICIT_LAUNCH
+F3.1.3b implementation: NOT STARTED
+Migration required: NO
+Committed default: LEGACY_PRE_F3
+F3.1.4/F3.2: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+The implementation contract is constrained to same-changeId correction after a REJECTED current Round: dedicated `change-management.change.resubmit` permission plus original-requester/current-immutable-owner domain proof; frozen `targetRef`/`ownerRef`/`systemRef`/`requestedBy`/`createdAt`; hidden cross-System execution-plan retarget guard; `change.resubmit` idempotency; Round N+1 with current policy/selectors/new requirements; atomic current non-identity index projection + participant rebuild + `DevelopmentProvider.replaceCurrent`; and PostgreSQL R1 plus R2-R13 authority/identity/history proofs. F3.1.3a semantics are regression-only and must not be redesigned.

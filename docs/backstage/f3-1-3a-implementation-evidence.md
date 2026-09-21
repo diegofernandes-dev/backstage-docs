@@ -2,7 +2,8 @@
 
 - **Status:** IMPLEMENTATION PASS — not independently accepted; F3.1.3a is **not CLOSED**
 - **Date:** 2026-09-21
-- **Canonical docs baseline:** `backstage-docs@7a5bb442749c8185143a139c013811e3652bdd60`
+- **Canonical docs baseline (implementation):** `backstage-docs@7a5bb442749c8185143a139c013811e3652bdd60`
+- **Independent re-verification docs baseline:** `backstage-docs@c1209f59c39c6e7f6c496365d257db2e08187bad`
 - **Authority:** F3.1.3 ACCEPTED IMPLEMENTATION CONTRACT + `prompts/f3-1-3a-decision-command-implementation.md` (explicit launch)
 
 This document records what was implemented and what was actually proven. It does
@@ -174,10 +175,13 @@ Startup with `policyFileReload: true` loaded the new CSV policies, including
 | Build (`yarn build:all`) | **PASS** |
 | TypeScript baseline | **UNCHANGED** — exactly 5 historical dual-package Knex errors in `changeManagementPlugin.ts`; zero new errors |
 
-PostgreSQL runtime used for D1–D6: disposable Homebrew **PostgreSQL 15** on
-`127.0.0.1:55432` (`CHANGE_MANAGEMENT_TEST_POSTGRES_URL=postgresql://diegofernandes@127.0.0.1:55432/change_management_test`).
-Docker/Rancher were not running, so PostgreSQL 16 was not started. Authoritative
-concurrency proofs D1–D6 still executed against PostgreSQL, not SQLite.
+Original implementation D1–D6 ran on disposable Homebrew **PostgreSQL 15**
+because Docker was unavailable. Independent re-verification (same SHA
+`6bad066`) re-ran D1–D6 on disposable Docker **PostgreSQL 16.14**
+(`postgres:16-alpine`, `127.0.0.1:55432`,
+`CHANGE_MANAGEMENT_TEST_POSTGRES_URL=postgresql://postgres@127.0.0.1:55432/change_management_test`).
+Combined backend `changeManagement|delivery` result: **37 suites passed**, 1
+skipped (`CatalogPrincipalResolver.live`), **415 tests passed**, 4 skipped.
 
 ## 7. Live non-production product proof
 
@@ -255,7 +259,32 @@ No F3.1.4 authorization UI. No CAB Workbench. No membership was fabricated.
 - No Teams / execution lifecycle / production cutover
 - No Kargo/Argo/GitOps mutation
 
-## 9. Next gate
+## 9. Independent re-verification
+
+A later explicit launch of the same implementation prompt found ADO
+`feat/ado-repo-governance` already at `6bad066` (`az repos ref list`). That
+commit is the only child of accepted `2249522`. No further source edit was
+required. Committed default remains `LEGACY_PRE_F3`. Laptop overlay remains
+`LEDGER_REQUIRED`.
+
+Re-ran lint, full build, TypeScript baseline (still exactly 5 historical Knex
+dual-package errors), GMUD frontend 13/60, Catalog/Deployments/App/Sidebar
+7/22, and PostgreSQL 16 D1–D6. No `--forceExit`. No new migrations.
+
+Live laptop re-proof did **not** fabricate CAB membership and did **not**
+create additional decisions:
+
+| Check | Result |
+|---|---|
+| Catalog membership | live `group:default/cloud_azure_devops_platform_devops` via `relations.memberOf` and `spec.memberOf` |
+| Primary exact replay | HTTP **200**, same `decisionId` `5b64d801-cdef-4288-9523-07420c838033` / `decidedAt` `2026-09-21T01:23:53.158Z`, evaluation `AUTHORIZED`, lifecycle `submitted` |
+| CAB exact replay including original `cabMeetingRef` | HTTP **200**, same `decisionId` `b465a891-9db3-4e5e-a2e5-f083ffe035fc`, `actingAuthorityRef=group:default/cloud_azure_devops_platform_devops` |
+| Ledger after replay | still 2 decisions, 2 `decision_recorded`, **exactly one** `authorization_reached`, one Round 1 |
+| `CHG-2026-000005` | list/detail `rejected` / `Rejeitada`; eligibility `DENY` / `REJECTED`; `POST .../resubmit` and `POST .../rounds` HTTP **404** |
+| `CHG-2026-000002` | `DENY` / `NO_LEDGER_ROUND` |
+| Catalog `/` and Deployments tab | reachable; Delivery component reads HTTP 200 |
+
+## 10. Next gate
 
 Independent **F3.1.3a architecture/implementation acceptance review**.
 

@@ -4,7 +4,7 @@
 > **Canonical architectural branch:** `main`  
 > **Implementation repository (ADO):** `platform-devops-developer-portal`  
 > **Active branch:** `feat/ado-repo-governance`  
-> **Last updated:** 2026-09-21 (F3.1.3a implementation **PASS** at ADO `6bad066`, pending independent architecture/implementation acceptance; F3.1.3a is **not CLOSED**; F3.1.2 remains **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at parent `2249522`; committed default `LEGACY_PRE_F3`; F3.1.3b prompt/implementation **NO-GO** until 3a independent acceptance; F3.1.4/F3.2 **NO-GO**; production cutover unauthorized)
+> **Last updated:** 2026-09-21 (F3.1.3a implementation **PASS** at ADO `6bad066`, independently re-verified including PostgreSQL 16 D1–D6; pending independent architecture/implementation acceptance; F3.1.3a is **not CLOSED**; F3.1.2 remains **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at parent `2249522`; committed default `LEGACY_PRE_F3`; F3.1.3b prompt/implementation **NO-GO** until 3a independent acceptance; F3.1.4/F3.2 **NO-GO**; production cutover unauthorized)
 
 ## Stack
 

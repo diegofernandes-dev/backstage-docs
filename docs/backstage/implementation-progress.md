@@ -2498,5 +2498,7 @@ Migrations added: NO
 F3.1.3b/F3.1.4/F3.2 behavior added: NO
 ```
 
+A later explicit re-launch of the same prompt independently re-verified published ADO `6bad066` (source drift vs `2249522`: the F3.1.3a commit only). PostgreSQL **16.14** D1–D6 PASS. Live replay of `CHG-2026-000003` / retained rejection `CHG-2026-000005` PASS without new decision facts. F3.1.3a remains **not CLOSED**.
+
 Next authorized activity: independent **F3.1.3a architecture/implementation acceptance review**. Do **not** author or implement F3.1.3b, F3.1.4, or F3.2 from this checkpoint. Production cutover remains **NOT AUTHORIZED**.
 

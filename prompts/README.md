@@ -22,7 +22,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 - **Next gate:** independent F3.1.3a architecture/implementation acceptance review.
 - Non-production `LEDGER_REQUIRED` activation remains **ACCEPT** and the operator-laptop F3.1.3 demo target remains **READY**. Committed default remains `LEGACY_PRE_F3`.
 - Historical F3.1.3 plan review **REJECT 18/20** is preserved. Revised-plan re-review is **ACCEPT**. The F3.1.3 plan is an **ACCEPTED IMPLEMENTATION CONTRACT**. ADR-014 governs only F3.1.3b authority + identity. `Migration required: NO`.
-- [`f3-1-3a-decision-command-implementation.md`](./f3-1-3a-decision-command-implementation.md) — executed with implementation `PASS` after explicit launch. Do not re-execute as a new implementation unless a later review requires it.
+- [`f3-1-3a-decision-command-implementation.md`](./f3-1-3a-decision-command-implementation.md) — executed with implementation `PASS` after explicit launch and independently re-verified at the same ADO SHA `6bad066` (PostgreSQL 16 D1–D6 + live replay). Do not re-implement unless a later review requires it.
 - F3.1.3b implementation-prompt authoring remains **NO-GO** until F3.1.3a is independently accepted. F3.1.3b implementation is **NO-GO**.
 - F3.1.4 and F3.2 CAB autonomy remain **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.

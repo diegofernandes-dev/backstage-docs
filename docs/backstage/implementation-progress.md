@@ -5,7 +5,7 @@
 > **Active implementation branch:** `feat/ado-repo-governance`  
 > **Migration baseline:** legacy bridge `diegofernandes-dev/poc-teams-approval@fe4f8073f2a8785673e32ce51e5f70b7c322ad68`  
 > **Current GMUD implementation baseline:** F3.1.3b **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `5e70d88` (full SHA `5e70d8818f55072d8568b5eb15bae754abb943d1`). F3.1.3 **CLOSED / ACCEPTED IMPLEMENTED DECISION + RESUBMISSION BASELINE**. Parent F3.1.3a **CLOSED / ACCEPTED** at `6bad066`. F3.1.2 remains **CLOSED / ACCEPTED IMPLEMENTED SUBMISSION BASELINE** at `2249522`. Product convergence **PASS** at `f48dc82`; F3.1.1c **CLOSED / ACCEPTED** at `3b302ab`; F3.1.2a **CLOSED / ACCEPTED** at `ccee1e1`; F3.1.2b **CLOSED / ACCEPTED**. Non-production LEDGER_REQUIRED activation **ACCEPT**; F3.1.3 demo target readiness **READY**.  
-> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); ADR-014 Accepted for resubmission authority/identity; F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b + F3.1.3a + F3.1.3b accepted; product convergence PASS; F3.1.2 and F3.1.3 plans ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT preserved; F3.1.3 revised-plan re-review ACCEPT; F3.1.4 planning/prompt authoring GO; F3.1.4 implementation / F3.2 NO-GO
+> **Current GMUD architecture baseline:** ADR-009 Accepted (partially superseded by ADR-013); ADR-014 Accepted for resubmission authority/identity; F3.1.0 + F3.1.1a + F3.1.1b + F3.1.1c + F3.1.2a + F3.1.2b + F3.1.3a + F3.1.3b accepted; product convergence PASS; F3.1.2 and F3.1.3 plans ACCEPTED IMPLEMENTATION CONTRACT; committed default `LEGACY_PRE_F3`; non-production LEDGER_REQUIRED activation ACCEPT on the operator-laptop runtime; F3.1.3 plan architecture review REJECT preserved; F3.1.3 revised-plan re-review ACCEPT; F3.1.4 planning prompt authored (`prompts/f3-1-4-planning.md`); F3.1.4 planning execution still requires explicit launch; F3.1.4 implementation / F3.2 NO-GO
 
 ## How to use this log
 
@@ -2642,4 +2642,32 @@ Production cutover: NOT AUTHORIZED
 
 G1–G23 PASS. R10 independently re-proven on the rejected-round path in SQLite and PostgreSQL 16.14 (`VALIDATION_ERROR` / `change_identity_mismatch`, zero mutation); the live post-Round-2 `round_not_terminal` was not used as identity proof. Live `CHG-2026-000005` Round-2 facts re-read only. `CHG-2026-000003` still one AUTHORIZED Round 1. Committed default remains `LEGACY_PRE_F3`. No ADO source, Round, Decision, or Audit fact was modified.
 
-**Next authorized activity:** author a constrained F3.1.4 implementation prompt. Do **not** implement F3.1.4 from inside prompt authoring. Do **not** implement F3.2 or perform production cutover.
+**Next authorized activity at ACCEPT time:** author a constrained F3.1.4 prompt. Do **not** implement F3.1.4 from inside prompt authoring. Do **not** implement F3.2 or perform production cutover.
+
+F3.1.4 has no accepted implementation contract (unlike F3.1.3 after its plan ACCEPT). The next authored artifact is therefore a **planning** prompt, not an implementation prompt.
+
+---
+
+## GMUD F3.1.4-P — Planning prompt authored
+
+F3.1.4 is the remaining F3.1 checkpoint: permission-filtered authorization/governance representation composed into Change detail. It is still underspecified as an implementation contract (GET shape, audit-read / governance-read-all, GMUD-detail actions vs CAB Workbench). Same pattern as F3.1.3: plan first, independently review, then separately authorize implementation.
+
+Canonical planning prompt:
+`prompts/f3-1-4-planning.md`
+
+```text
+F3.1.4 planning prompt: AUTHORED
+F3.1.4 planning execution: requires explicit launch
+F3.1.4 implementation: NO-GO
+F3.1.4 implementation prompt: NOT AUTHORED
+ADO baseline unchanged: 5e70d8818f55072d8568b5eb15bae754abb943d1
+Committed default: LEGACY_PRE_F3
+F3.2: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+The prompt requires source verification against accepted ADO `5e70d88`, answers Q1–Q8 (read transport, composed DTO, permission filtering, LEGACY/missing-round, Model C, GMUD UI vs Workbench, slice decomposition, live demo), and produces `docs/backstage/f3-1-4-implementation-plan.md` only when explicitly launched. It forbids implementing F3.1.4/F3.2, authoring the F3.1.4 implementation prompt in the same run, mutating ADO, and fabricating Round/Decision/Audit facts.
+
+No ADO source, Round, Decision, Audit, or laptop overlay was modified by prompt authoring.
+
+**Next authorized activity:** explicitly launch `prompts/f3-1-4-planning.md`. Do **not** implement F3.1.4, F3.2, or production cutover from prompt authoring.

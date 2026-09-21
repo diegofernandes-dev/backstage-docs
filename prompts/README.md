@@ -17,11 +17,12 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Current authorized activity
 
-- F3.1.3a is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `6bad066d945d49feaf642313ec37467e2658dc3f`.
-- F3.1.3b implementation is **PASS / PUBLISHED** at ADO `5e70d8818f55072d8568b5eb15bae754abb943d1`, direct child of `6bad066`. It is **not CLOSED**.
-- [`f3-1-3b-architecture-implementation-acceptance.md`](./f3-1-3b-architecture-implementation-acceptance.md) — **current review-only checkpoint**. Independently inspect the exact diff and re-prove resubmission authority, immutable identity, Round-N materialization, idempotency, atomic provider/index/participant projection, R1/R2-R13, F3.1.3a regressions, and live Round-2 evidence.
+- F3.1.3b is **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at ADO `5e70d8818f55072d8568b5eb15bae754abb943d1`.
+- F3.1.3 is **CLOSED / ACCEPTED IMPLEMENTED DECISION + RESUBMISSION BASELINE**.
+- F3.1.3a remains **CLOSED / ACCEPTED IMPLEMENTED BASELINE** at parent `6bad066d945d49feaf642313ec37467e2658dc3f`.
+- F3.1.4 planning/prompt authoring is **GO**. F3.1.4 implementation still requires a separate explicit launch. Do not author the F3.1.4 prompt from inside the F3.1.3b acceptance review.
 - `Migration required: NO`. Committed repository default remains `LEGACY_PRE_F3`.
-- F3.1.4 and F3.2 remain **NO-GO** until F3.1.3b independent acceptance closes the slice.
+- F3.2 CAB autonomy remains **NO-GO**.
 - Production `LEDGER_REQUIRED` cutover remains **NOT AUTHORIZED**.
 ## Production-rollout gate — deferred until a real target exists
 
@@ -29,6 +30,7 @@ The intent is to avoid repeatedly pasting large prompts into an agent session. A
 
 ## Completed / historical prompts
 
+- [`f3-1-3b-architecture-implementation-acceptance.md`](./f3-1-3b-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.3b as the accepted implemented baseline at ADO `5e70d88` and closed F3.1.3 as the accepted implemented decision + resubmission baseline. Canonical review: `docs/backstage/f3-1-3b-architecture-implementation-acceptance.md`. F3.1.4 planning/prompt authoring GO; F3.1.4 implementation remains separately gated. No ADO code modified; no Round/Decision/Audit facts created or repaired; no F3.1.4 prompt authored.
 - F3.1.3b acceptance-review prompt authoring — `f3-1-3b-architecture-implementation-acceptance.md` prepared after implementation PASS/PUBLISHED at ADO `5e70d88`. No ADO code, Round, decision, or resubmission fact was modified by prompt authoring.
 - [`f3-1-3b-resubmission-new-round-implementation.md`](./f3-1-3b-resubmission-new-round-implementation.md) — completed with implementation `PASS`, published to ADO `platform-devops-developer-portal@5e70d8818f55072d8568b5eb15bae754abb943d1`. Canonical evidence: [`docs/backstage/f3-1-3b-implementation-evidence.md`](../docs/backstage/f3-1-3b-implementation-evidence.md). Independent acceptance remains the next gate; F3.1.3b is not CLOSED.
 - [`f3-1-3a-architecture-implementation-acceptance.md`](./f3-1-3a-architecture-implementation-acceptance.md) — completed with `ACCEPT`. Closed F3.1.3a as the accepted implemented baseline at ADO `6bad066`. Canonical review: `docs/backstage/f3-1-3a-architecture-implementation-acceptance.md`. F3.1.3b implementation-prompt authoring GO; F3.1.3b implementation remains separately gated. No ADO code modified; no decision facts created or repaired; no F3.1.3b prompt authored.

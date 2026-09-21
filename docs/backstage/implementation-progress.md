@@ -2596,3 +2596,26 @@ Production cutover: NOT AUTHORIZED
 
 Next authorized activity: independent **F3.1.3b architecture/implementation acceptance review**. Do **not** implement F3.1.4, F3.2, or production cutover from this checkpoint.
 
+
+---
+
+## GMUD F3.1.3b-AR — Independent architecture/implementation acceptance prepared
+
+F3.1.3b implementation is published with PASS at ADO `5e70d8818f55072d8568b5eb15bae754abb943d1`, direct child of accepted F3.1.3a `6bad066d945d49feaf642313ec37467e2658dc3f`. It remains open pending independent acceptance.
+
+Canonical review prompt:
+`prompts/f3-1-3b-architecture-implementation-acceptance.md`
+
+Current gate:
+```text
+F3.1.3a: CLOSED / ACCEPTED
+F3.1.3b implementation: PASS / PUBLISHED
+F3.1.3b independent acceptance: PENDING
+F3.1.3b CLOSED: NO
+F3.1.4/F3.2: NO-GO
+Production cutover: NOT AUTHORIZED
+```
+
+The review must inspect `6bad066..5e70d88` directly and independently verify dedicated resubmit authority, requester-vs-immutable-owner proof, same-change identity freeze, Catalog ownership-drift protection, hidden cross-System activity retarget guard, current-policy Round N+1 materialization, `change.resubmit` idempotency, caller-owned atomic index/participant/provider replacement, R1 plus R2-R13, failure injection, F3.1.3a D1-D6 regressions, and the durable live Round-2 facts.
+
+The live post-Round-2 retarget attempt returned `round_not_terminal`; it is not sufficient evidence for R10. Acceptance must prove rejected-round target mismatch from source/tests independently.
